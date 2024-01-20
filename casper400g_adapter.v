@@ -1,4 +1,4 @@
-module axis_adapter#(
+module casper400g_adapter#(
     parameter ETH = 400
 )(
     /* Ports for connecting CASPER module*/
@@ -11,7 +11,7 @@ module axis_adapter#(
     // QSFP+ -- Actually, it should be OSFP for 400G 
     input mgt_qsfp_clock_p,
     input mgt_qsfp_clock_n,
-    --RX     
+    // RX     
     qsfp_mgt_rx_p                : in  STD_LOGIC_VECTOR(3 downto 0);
     qsfp_mgt_rx_n                : in  STD_LOGIC_VECTOR(3 downto 0);
     -- TX
