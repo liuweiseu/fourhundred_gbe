@@ -111,12 +111,28 @@ module dcmactop#(
     input [5:0] tx_serdes_reset,
     // reset_done_dyn
     output [7:0] gt_tx_reset_done_out,
-    output [7:0] gt_rx_reset_done_out,
-
-
-
-
+    output [7:0] gt_rx_reset_done_out
 );
+
+typedef struct packed {
+  logic [2:0]               id;
+  logic [11:0]              ena;
+  logic [11:0]              sop;
+  logic [11:0]              eop;
+  logic [11:0]              err;
+  logic [11:0][3:0]         mty;
+  logic [11:0][127:0]       dat;
+} axis_tx_pkt_t;
+
+typedef struct packed {
+  logic [2:0]               id;
+  logic [11:0]              ena;
+  logic [11:0]              sop;
+  logic [11:0]              eop;
+  logic [11:0]              err;
+  logic [11:0][3:0]         mty;
+  logic [11:0][127:0]       dat;
+} axis_rx_pkt_t;
 
 /* Static interface is not used in 400G core. */
 assign gmac_reg_core_type           = 32'h0;
@@ -197,8 +213,8 @@ wire [63:0] ctl_tx_vl_marker_id17_100ge = 64'hadd6b70052294800;
 wire [63:0] ctl_tx_vl_marker_id18_100ge = 64'h5f662a00a099d500;
 wire [63:0] ctl_tx_vl_marker_id19_100ge = 64'hc0f0e5003f0f1a00;
 // DCMAC core control wires
-wire  [31:0]   SW_REG_GT_LINE_RATE;
-assign SW_REG_GT_LINE_RATE = {gt_line_rate,gt_line_rate,gt_line_rate,gt_line_rate};
+wire  [31:0]   sw_reg_gt_line_rate;
+assign sw_reg_gt_line_rate = {gt_line_rate,gt_line_rate,gt_line_rate,gt_line_rate};
 // tx datapath wires
 wire gt_reset_rx_datapath_in_0;
 wire gt_reset_rx_datapath_in_1;
@@ -261,6 +277,40 @@ wire clk_tx_axi;
 wire clk_rx_axi;
 assign clk_tx_axi = axis_clk;
 assign clk_rx_axi = axis_clk;
+
+wire [5:0] rx_flexif_clk;
+wire [5:0] tx_flexif_clk;
+assign rx_flexif_clk = {6{axis_clk}};
+assign tx_flexif_clk = {6{axis_clk}};
+wire rx_macif_clk;
+wire tx_macif_clk;
+assign rx_macif_clk = axis_clk;
+assign tx_macif_clk = axis_clk;
+// axis data interface 
+axis_tx_pkt_t tx_axis_pkt;
+axis_rx_pkt_t rx_axis_pkt;
+wire [5:0] rx_axis_tvalid;
+//TODO: what to do with the rx_axis_tvalid?
+wire [5:0][55:0] rx_axis_preamble;
+//TODO: what to do with the rx_axis_preamble?
+wire [5:0] tx_axis_ch_status_id;
+//TODO: what to do with the tx_axis_ch_status_id?
+wire [5:0] tx_axis_af;
+//TODO: what to do with the tx_axis_af?
+wire [5:0] tx_axis_tready;
+//TODO: what to do with the tx_axis_tready?
+wire tx_axis_tuser_skip_response;
+//TODO: what to do with the tx_axis_tuser_skip_response?
+wire [5:0] tx_gearbox_dout_vld;
+//TODO: what to do with the tx_gearbox_dout_vld?
+wire [55:0] tx_tsmac_tdm_stats_data;
+wire [5:0] tx_tsmac_tdm_stats_id;
+wire tx_tsmac_tdm_stats_valid;
+wire [78:0] rx_tsmac_tdm_stats_data;
+wire [5:0] rx_tsmac_tdm_stats_id;
+wire rx_tsmac_tdm_stats_valid;
+//TODO: what to do with the above signals?
+
 /* DCMAC core */
 dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   (
@@ -276,7 +326,7 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .GT_Serial_1_grx_p(gt1_rx_p),       // input-[3:0]-gt -- ok
   .GT_Serial_1_gtx_n(gt1_tx_n),       // output-[3:0]-gt -- ok
   .GT_Serial_1_gtx_p(gt1_tx_p),       // output-[3:0]-gt -- ok
-  .IBUFDS_ODIV2(clk_wiz_in),          // output-[0:0]-gt-156.25MHz, 
+  .IBUFDS_ODIV2(clk_wiz_in),          // output-[0:0]-gt-156.25MHz,  -- ok
                                       // which is connected to clk_wiz, generating core_clk(782MHz), axis_clk(390.625MHz) and ts_clk(350MHz)
   .gt_rxcdrhold(gt_rxcdrhold),        // input-[0:0]-gt--port: gt_ctl(0xA413_0000)-[31:31] -- ok
   .gt_txprecursor(gt_txprecursor),    // input-[5:0]-gt--port: gt_ctl(0xA413_0000)-[17:12] -- ok
@@ -284,32 +334,32 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .gt_txmaincursor(gt_txmaincursor),  // input-[6:0]-gt--port: gt_ctl(0xA413_0000)-[30:24] -- ok
   .ch0_loopback_0(gt_loopback),       // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9]  -- ok
   .ch0_loopback_1(gt_loopback),       // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9]  -- ok
-  .ch0_rxrate_0(SW_REG_GT_LINE_RATE[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
-  .ch0_rxrate_1(SW_REG_GT_LINE_RATE[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
-  .ch0_txrate_0(SW_REG_GT_LINE_RATE[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
-  .ch0_txrate_1(SW_REG_GT_LINE_RATE[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
+  .ch0_rxrate_0(sw_reg_gt_line_rate[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
+  .ch0_rxrate_1(sw_reg_gt_line_rate[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
+  .ch0_txrate_0(sw_reg_gt_line_rate[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
+  .ch0_txrate_1(sw_reg_gt_line_rate[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
   .ch0_tx_usr_clk2_0(gt0_tx_usrclk2_0),      // output-[0:0]-gt--connected to tx_alt_serdes_clk -- ok
   .ch0_tx_usr_clk_0(gt0_tx_usrclk_0),        // output-[0:0]-gt--connected to tx_serdes_clk -- ok
   .ch0_rx_usr_clk2_0(gt0_rx_usrclk2_0),      // output-[0:0]-gt--connected to rx_alt_serdes_clk -- ok
   .ch0_rx_usr_clk_0(gt0_rx_usrclk_0),        // output-[0:0]-gt--connected to rx_serdes_clk -- ok
   .ch1_loopback_0(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
   .ch1_loopback_1(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
-  .ch1_rxrate_0(SW_REG_GT_LINE_RATE[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
-  .ch1_rxrate_1(SW_REG_GT_LINE_RATE[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
-  .ch1_txrate_0(SW_REG_GT_LINE_RATE[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
-  .ch1_txrate_1(SW_REG_GT_LINE_RATE[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch1_rxrate_0(sw_reg_gt_line_rate[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch1_rxrate_1(sw_reg_gt_line_rate[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch1_txrate_0(sw_reg_gt_line_rate[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch1_txrate_1(sw_reg_gt_line_rate[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
   .ch2_loopback_0(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
   .ch2_loopback_1(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
-  .ch2_rxrate_0(SW_REG_GT_LINE_RATE[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
-  .ch2_rxrate_1(SW_REG_GT_LINE_RATE[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
-  .ch2_txrate_0(SW_REG_GT_LINE_RATE[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
-  .ch2_txrate_1(SW_REG_GT_LINE_RATE[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch2_rxrate_0(sw_reg_gt_line_rate[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch2_rxrate_1(sw_reg_gt_line_rate[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch2_txrate_0(sw_reg_gt_line_rate[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch2_txrate_1(sw_reg_gt_line_rate[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
   .ch3_loopback_0(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
   .ch3_loopback_1(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
-  .ch3_rxrate_0(SW_REG_GT_LINE_RATE[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
-  .ch3_rxrate_1(SW_REG_GT_LINE_RATE[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
-  .ch3_txrate_0(SW_REG_GT_LINE_RATE[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
-  .ch3_txrate_1(SW_REG_GT_LINE_RATE[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch3_rxrate_0(sw_reg_gt_line_rate[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch3_rxrate_1(sw_reg_gt_line_rate[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch3_txrate_0(sw_reg_gt_line_rate[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch3_txrate_1(sw_reg_gt_line_rate[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
   .gtpowergood_0(gtpowergood_0),             // output-[0:0]-gt--connected to gtpowergood -- ok
   .gtpowergood_1(gtpowergood_1),             // output-[0:0]-gt--dont't care -- ok
   .ctl_port_ctl_rx_custom_vl_length_minus1(default_vl_length_200GE_or_400GE), // input-fixed-256-[15:0]-dcmac -- ok
@@ -407,103 +457,103 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .rx_all_channel_mac_pm_tick(1'b0),                         // input-fixed-0-[0:0]-dcmac -- ok
   .rx_alt_serdes_clk(rx_alt_serdes_clk),                     // input-[5:0]-dcmac--connected from gt0_rx_usrclk2_0 -- ok
   .rx_axi_clk(clk_rx_axi),                                   // axi-stream-rx--connected from axis_clk, which is 390.625MHz -- ok
-  .rx_axis_tdata0(rx_axis_pkt.dat[0]),
-  .rx_axis_tdata1(rx_axis_pkt.dat[1]),
-  .rx_axis_tdata2(rx_axis_pkt.dat[2]),
-  .rx_axis_tdata3(rx_axis_pkt.dat[3]),
-  .rx_axis_tdata4(rx_axis_pkt.dat[4]),
-  .rx_axis_tdata5(rx_axis_pkt.dat[5]),
-  .rx_axis_tdata6(rx_axis_pkt.dat[6]),
-  .rx_axis_tdata7(rx_axis_pkt.dat[7]),
-  .rx_axis_tdata8(rx_axis_pkt.dat[8]),
-  .rx_axis_tdata9(rx_axis_pkt.dat[9]),
-  .rx_axis_tdata10(rx_axis_pkt.dat[10]),
-  .rx_axis_tdata11(rx_axis_pkt.dat[11]),
-  .rx_axis_tid(rx_axis_pkt.id),
-  .rx_axis_tuser_ena0(rx_axis_pkt_ena[0]),
-  .rx_axis_tuser_ena1(rx_axis_pkt_ena[1]),
-  .rx_axis_tuser_ena2(rx_axis_pkt_ena[2]),
-  .rx_axis_tuser_ena3(rx_axis_pkt_ena[3]),
-  .rx_axis_tuser_ena4(rx_axis_pkt_ena[4]),
-  .rx_axis_tuser_ena5(rx_axis_pkt_ena[5]),
-  .rx_axis_tuser_ena6(rx_axis_pkt_ena[6]),
-  .rx_axis_tuser_ena7(rx_axis_pkt_ena[7]),
-  .rx_axis_tuser_ena8(rx_axis_pkt_ena[8]),
-  .rx_axis_tuser_ena9(rx_axis_pkt_ena[9]),
-  .rx_axis_tuser_ena10(rx_axis_pkt_ena[10]),
-  .rx_axis_tuser_ena11(rx_axis_pkt_ena[11]),
-  .rx_axis_tuser_eop0(rx_axis_pkt.eop[0]),
-  .rx_axis_tuser_eop1(rx_axis_pkt.eop[1]),
-  .rx_axis_tuser_eop2(rx_axis_pkt.eop[2]),
-  .rx_axis_tuser_eop3(rx_axis_pkt.eop[3]),
-  .rx_axis_tuser_eop4(rx_axis_pkt.eop[4]),
-  .rx_axis_tuser_eop5(rx_axis_pkt.eop[5]),
-  .rx_axis_tuser_eop6(rx_axis_pkt.eop[6]),
-  .rx_axis_tuser_eop7(rx_axis_pkt.eop[7]),
-  .rx_axis_tuser_eop8(rx_axis_pkt.eop[8]),
-  .rx_axis_tuser_eop9(rx_axis_pkt.eop[9]),
-  .rx_axis_tuser_eop10(rx_axis_pkt.eop[10]),
-  .rx_axis_tuser_eop11(rx_axis_pkt.eop[11]),
-  .rx_axis_tuser_err0(rx_axis_pkt.err[0]),
-  .rx_axis_tuser_err1(rx_axis_pkt.err[1]),
-  .rx_axis_tuser_err2(rx_axis_pkt.err[2]),
-  .rx_axis_tuser_err3(rx_axis_pkt.err[3]),
-  .rx_axis_tuser_err4(rx_axis_pkt.err[4]),
-  .rx_axis_tuser_err5(rx_axis_pkt.err[5]),
-  .rx_axis_tuser_err6(rx_axis_pkt.err[6]),
-  .rx_axis_tuser_err7(rx_axis_pkt.err[7]),
-  .rx_axis_tuser_err8(rx_axis_pkt.err[8]),
-  .rx_axis_tuser_err9(rx_axis_pkt.err[9]),
-  .rx_axis_tuser_err10(rx_axis_pkt.err[10]),
-  .rx_axis_tuser_err11(rx_axis_pkt.err[11]),
-  .rx_axis_tuser_mty0(rx_axis_pkt.mty[0]),
-  .rx_axis_tuser_mty1(rx_axis_pkt.mty[1]),
-  .rx_axis_tuser_mty2(rx_axis_pkt.mty[2]),
-  .rx_axis_tuser_mty3(rx_axis_pkt.mty[3]),
-  .rx_axis_tuser_mty4(rx_axis_pkt.mty[4]),
-  .rx_axis_tuser_mty5(rx_axis_pkt.mty[5]),
-  .rx_axis_tuser_mty6(rx_axis_pkt.mty[6]),
-  .rx_axis_tuser_mty7(rx_axis_pkt.mty[7]),
-  .rx_axis_tuser_mty8(rx_axis_pkt.mty[8]),
-  .rx_axis_tuser_mty9(rx_axis_pkt.mty[9]),
-  .rx_axis_tuser_mty10(rx_axis_pkt.mty[10]),
-  .rx_axis_tuser_mty11(rx_axis_pkt.mty[11]),
-  .rx_axis_tuser_sop0(rx_axis_pkt.sop[0]),
-  .rx_axis_tuser_sop1(rx_axis_pkt.sop[1]),
-  .rx_axis_tuser_sop2(rx_axis_pkt.sop[2]),
-  .rx_axis_tuser_sop3(rx_axis_pkt.sop[3]),
-  .rx_axis_tuser_sop4(rx_axis_pkt.sop[4]),
-  .rx_axis_tuser_sop5(rx_axis_pkt.sop[5]),
-  .rx_axis_tuser_sop6(rx_axis_pkt.sop[6]),
-  .rx_axis_tuser_sop7(rx_axis_pkt.sop[7]),
-  .rx_axis_tuser_sop8(rx_axis_pkt.sop[8]),
-  .rx_axis_tuser_sop9(rx_axis_pkt.sop[9]),
-  .rx_axis_tuser_sop10(rx_axis_pkt.sop[10]),
-  .rx_axis_tuser_sop11(rx_axis_pkt.sop[11]),
-  .rx_axis_tvalid_0(rx_axis_tvalid[0]),
-  .rx_axis_tvalid_1(rx_axis_tvalid[1]),
-  .rx_axis_tvalid_2(rx_axis_tvalid[2]),
-  .rx_axis_tvalid_3(rx_axis_tvalid[3]),
-  .rx_axis_tvalid_4(rx_axis_tvalid[4]),
-  .rx_axis_tvalid_5(rx_axis_tvalid[5]),
+  .rx_axis_tdata0(rx_axis_pkt.dat[0]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata1(rx_axis_pkt.dat[1]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata2(rx_axis_pkt.dat[2]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata3(rx_axis_pkt.dat[3]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata4(rx_axis_pkt.dat[4]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata5(rx_axis_pkt.dat[5]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata6(rx_axis_pkt.dat[6]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata7(rx_axis_pkt.dat[7]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata8(rx_axis_pkt.dat[8]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata9(rx_axis_pkt.dat[9]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata10(rx_axis_pkt.dat[10]),                     // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata11(rx_axis_pkt.dat[11]),                     // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tid(rx_axis_pkt.id),                              // axi-stream-rx-output-[5:0]-dcmac -- ok
+  .rx_axis_tuser_ena0(rx_axis_pkt_ena[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena1(rx_axis_pkt_ena[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena2(rx_axis_pkt_ena[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena3(rx_axis_pkt_ena[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena4(rx_axis_pkt_ena[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena5(rx_axis_pkt_ena[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena6(rx_axis_pkt_ena[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena7(rx_axis_pkt_ena[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena8(rx_axis_pkt_ena[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena9(rx_axis_pkt_ena[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena10(rx_axis_pkt_ena[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena11(rx_axis_pkt_ena[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop0(rx_axis_pkt.eop[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop1(rx_axis_pkt.eop[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop2(rx_axis_pkt.eop[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop3(rx_axis_pkt.eop[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop4(rx_axis_pkt.eop[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop5(rx_axis_pkt.eop[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop6(rx_axis_pkt.eop[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop7(rx_axis_pkt.eop[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop8(rx_axis_pkt.eop[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop9(rx_axis_pkt.eop[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop10(rx_axis_pkt.eop[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop11(rx_axis_pkt.eop[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err0(rx_axis_pkt.err[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err1(rx_axis_pkt.err[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err2(rx_axis_pkt.err[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err3(rx_axis_pkt.err[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err4(rx_axis_pkt.err[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err5(rx_axis_pkt.err[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err6(rx_axis_pkt.err[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err7(rx_axis_pkt.err[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err8(rx_axis_pkt.err[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err9(rx_axis_pkt.err[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err10(rx_axis_pkt.err[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err11(rx_axis_pkt.err[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_mty0(rx_axis_pkt.mty[0]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty1(rx_axis_pkt.mty[1]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty2(rx_axis_pkt.mty[2]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty3(rx_axis_pkt.mty[3]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty4(rx_axis_pkt.mty[4]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty5(rx_axis_pkt.mty[5]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty6(rx_axis_pkt.mty[6]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty7(rx_axis_pkt.mty[7]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty8(rx_axis_pkt.mty[8]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty9(rx_axis_pkt.mty[9]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty10(rx_axis_pkt.mty[10]),                 // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty11(rx_axis_pkt.mty[11]),                 // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_sop0(rx_axis_pkt.sop[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop1(rx_axis_pkt.sop[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop2(rx_axis_pkt.sop[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop3(rx_axis_pkt.sop[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop4(rx_axis_pkt.sop[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop5(rx_axis_pkt.sop[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop6(rx_axis_pkt.sop[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop7(rx_axis_pkt.sop[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop8(rx_axis_pkt.sop[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop9(rx_axis_pkt.sop[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop10(rx_axis_pkt.sop[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop11(rx_axis_pkt.sop[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tvalid_0(rx_axis_tvalid[0]),                      // axi-stream-rx-output-dcmac -- wired, not used
+  .rx_axis_tvalid_1(rx_axis_tvalid[1]),                      // axi-stream-rx-output-dcmac -- wired, not used
+  .rx_axis_tvalid_2(rx_axis_tvalid[2]),                      // axi-stream-rx-output-dcmac -- wired, not used
+  .rx_axis_tvalid_3(rx_axis_tvalid[3]),                      // axi-stream-rx-output-dcmac -- wired, not used
+  .rx_axis_tvalid_4(rx_axis_tvalid[4]),                      // axi-stream-rx-output-dcmac -- wired, not used
+  .rx_axis_tvalid_5(rx_axis_tvalid[5]),                      // axi-stream-rx-output-dcmac -- wired, not used
   .rx_channel_flush(6'd0),                          // input-fixed-0-[5:0]-dcmac -- ok
   .rx_core_clk(rx_core_clk),                        // input-[0:0]-dcmac--connected to core_clk, which is 782MHz -- ok
   .rx_core_reset(rx_core_reset),                    // input-[0:0]-dcmac--port: reset_dyn(0xA417_0000)-[1:1] -- ok
-  .rx_flexif_clk(rx_flexif_clk),                    // input-[5:0]-dcmac--connected to axi_clk, which is 390.625MHz
+  .rx_flexif_clk(rx_flexif_clk),                    // input-[5:0]-dcmac--connected to axi_clk, which is 390.625MHz -- ok
   .rx_lane_aligner_fill(),                          // output-[6:0]-dcmac -- ok
   .rx_lane_aligner_fill_start(),                    // output-[0:0]-dcmac -- ok
   .rx_lane_aligner_fill_valid(),                    // output-[0:0]-dcmac -- ok
-  .rx_macif_clk(rx_macif_clk),                      // input-[0:0]-dcmac--connected to axi_clk, which is 390.625MHz
+  .rx_macif_clk(rx_macif_clk),                      // input-[0:0]-dcmac--connected to axi_clk, which is 390.625MHz -- ok
   .rx_pcs_tdm_stats_data(),                         // output-[43:0]-dcmac -- ok
   .rx_pcs_tdm_stats_start(),                        // output-[0:0]-dcmac -- ok
   .rx_pcs_tdm_stats_valid(),                        // output-[0:0]-dcmac -- ok
   .rx_port_pm_rdy(),                                // output[5:0]-dcmac -- ok
-  .rx_preambleout_0(rx_axis_preamble[0]),           // output-[55:0]-dcmac--connected to gearbox_rx module
-  .rx_preambleout_1(rx_axis_preamble[1]),           // output-[55:0]-dcmac--connected to gearbox_rx module
-  .rx_preambleout_2(rx_axis_preamble[2]),           // output-[55:0]-dcmac--connected to gearbox_rx module
-  .rx_preambleout_3(rx_axis_preamble[3]),           // output-[55:0]-dcmac--connected to gearbox_rx module
-  .rx_preambleout_4(rx_axis_preamble[4]),           // output-[55:0]-dcmac--connected to gearbox_rx module
-  .rx_preambleout_5(rx_axis_preamble[5]),           // output-[55:0]-dcmac--connected to gearbox_rx module
+  .rx_preambleout_0(rx_axis_preamble[0]),           // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used
+  .rx_preambleout_1(rx_axis_preamble[1]),           // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used
+  .rx_preambleout_2(rx_axis_preamble[2]),           // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used
+  .rx_preambleout_3(rx_axis_preamble[3]),           // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used
+  .rx_preambleout_4(rx_axis_preamble[4]),           // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used
+  .rx_preambleout_5(rx_axis_preamble[5]),           // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used
   
   .rx_serdes_albuf_restart_0(),                     // output-[0:0]-dcmac -- ok
   .rx_serdes_albuf_restart_1(),                     // output-[0:0]-dcmac -- ok
@@ -573,113 +623,113 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .s_axi_wvalid(s_axi_wvalid),    // -- ok
   .s_axi_aclk(s_axi_aclk),        // -- ok
   .s_axi_aresetn(s_axi_aresetn),  // -- ok
-  .ts_clk({6{ts_clk}}),                                           // input-[5:0]-dcmac--connected from ts_clk, which is 350MHz
+  .ts_clk({6{ts_clk}}),                                           // input-[5:0]-dcmac--connected from ts_clk, which is 350MHz -- ok
   .tx_all_channel_mac_pm_rdy(),                                   // output-[0:0]-dcmac -- ok
   .tx_all_channel_mac_pm_tick(1'b0),                              // input-fixed-0-[0:0]-dcmac -- ok
   .tx_alt_serdes_clk(tx_alt_serdes_clk),                          // input-[5:0]-dcmac--connected from tx_usrclk2_0 -- ok
   .tx_axi_clk(clk_tx_axi),                                        // axi-stream-tx--connected from axis_clk, which is 390.625MHz -- ok
-  .tx_axis_ch_status_id(tx_axis_ch_status_id),
-  .tx_axis_ch_status_skip_req(tx_axis_ch_status_skip_req),
-  .tx_axis_ch_status_vld(tx_axis_ch_status_vld),
-  .tx_axis_id_req(tx_axis_id_req),
-  .tx_axis_id_req_vld(tx_axis_id_req_vld),
-  .tx_axis_taf_0(tx_axis_af[0]),
-  .tx_axis_taf_1(tx_axis_af[1]),
-  .tx_axis_taf_2(tx_axis_af[2]),
-  .tx_axis_taf_3(tx_axis_af[3]),
-  .tx_axis_taf_4(tx_axis_af[4]),
-  .tx_axis_taf_5(tx_axis_af[5]),
-  .tx_axis_tdata0(tx_axis_pkt.dat[0]),
-  .tx_axis_tdata1(tx_axis_pkt.dat[1]),
-  .tx_axis_tdata2(tx_axis_pkt.dat[2]),
-  .tx_axis_tdata3(tx_axis_pkt.dat[3]),
-  .tx_axis_tdata4(tx_axis_pkt.dat[4]),
-  .tx_axis_tdata5(tx_axis_pkt.dat[5]),
-  .tx_axis_tdata6(tx_axis_pkt.dat[6]),
-  .tx_axis_tdata7(tx_axis_pkt.dat[7]),
-  .tx_axis_tdata8(tx_axis_pkt.dat[8]),
-  .tx_axis_tdata9(tx_axis_pkt.dat[9]),
-  .tx_axis_tdata10(tx_axis_pkt.dat[10]),
-  .tx_axis_tdata11(tx_axis_pkt.dat[11]),
-  .tx_axis_tid(tx_axis_pkt.id),
-  .tx_axis_tready_0(tx_axis_tready[0]),
-  .tx_axis_tready_1(tx_axis_tready[1]),
-  .tx_axis_tready_2(tx_axis_tready[2]),
-  .tx_axis_tready_3(tx_axis_tready[3]),
-  .tx_axis_tready_4(tx_axis_tready[4]),
-  .tx_axis_tready_5(tx_axis_tready[5]),
-  .tx_axis_tuser_ena0(tx_axis_pkt.ena[0]),
-  .tx_axis_tuser_ena1(tx_axis_pkt.ena[1]),
-  .tx_axis_tuser_ena2(tx_axis_pkt.ena[2]),
-  .tx_axis_tuser_ena3(tx_axis_pkt.ena[3]),
-  .tx_axis_tuser_ena4(tx_axis_pkt.ena[4]),
-  .tx_axis_tuser_ena5(tx_axis_pkt.ena[5]),
-  .tx_axis_tuser_ena6(tx_axis_pkt.ena[6]),
-  .tx_axis_tuser_ena7(tx_axis_pkt.ena[7]),
-  .tx_axis_tuser_ena8(tx_axis_pkt.ena[8]),
-  .tx_axis_tuser_ena9(tx_axis_pkt.ena[9]),
-  .tx_axis_tuser_ena10(tx_axis_pkt.ena[10]),
-  .tx_axis_tuser_ena11(tx_axis_pkt.ena[11]),
-  .tx_axis_tuser_eop0(tx_axis_pkt.eop[0]),
-  .tx_axis_tuser_eop1(tx_axis_pkt.eop[1]),
-  .tx_axis_tuser_eop2(tx_axis_pkt.eop[2]),
-  .tx_axis_tuser_eop3(tx_axis_pkt.eop[3]),
-  .tx_axis_tuser_eop4(tx_axis_pkt.eop[4]),
-  .tx_axis_tuser_eop5(tx_axis_pkt.eop[5]),
-  .tx_axis_tuser_eop6(tx_axis_pkt.eop[6]),
-  .tx_axis_tuser_eop7(tx_axis_pkt.eop[7]),
-  .tx_axis_tuser_eop8(tx_axis_pkt.eop[8]),
-  .tx_axis_tuser_eop9(tx_axis_pkt.eop[9]),
-  .tx_axis_tuser_eop10(tx_axis_pkt.eop[10]),
-  .tx_axis_tuser_eop11(tx_axis_pkt.eop[11]),
-  .tx_axis_tuser_err0(tx_axis_pkt.err[0]),
-  .tx_axis_tuser_err1(tx_axis_pkt.err[1]),
-  .tx_axis_tuser_err2(tx_axis_pkt.err[2]),
-  .tx_axis_tuser_err3(tx_axis_pkt.err[3]),
-  .tx_axis_tuser_err4(tx_axis_pkt.err[4]),
-  .tx_axis_tuser_err5(tx_axis_pkt.err[5]),
-  .tx_axis_tuser_err6(tx_axis_pkt.err[6]),
-  .tx_axis_tuser_err7(tx_axis_pkt.err[7]),
-  .tx_axis_tuser_err8(tx_axis_pkt.err[8]),
-  .tx_axis_tuser_err9(tx_axis_pkt.err[9]),
-  .tx_axis_tuser_err10(tx_axis_pkt.err[10]),
-  .tx_axis_tuser_err11(tx_axis_pkt.err[11]),
-  .tx_axis_tuser_mty0(tx_axis_pkt.mty[0]),
-  .tx_axis_tuser_mty1(tx_axis_pkt.mty[1]),
-  .tx_axis_tuser_mty2(tx_axis_pkt.mty[2]),
-  .tx_axis_tuser_mty3(tx_axis_pkt.mty[3]),
-  .tx_axis_tuser_mty4(tx_axis_pkt.mty[4]),
-  .tx_axis_tuser_mty5(tx_axis_pkt.mty[5]),
-  .tx_axis_tuser_mty6(tx_axis_pkt.mty[6]),
-  .tx_axis_tuser_mty7(tx_axis_pkt.mty[7]),
-  .tx_axis_tuser_mty8(tx_axis_pkt.mty[8]),
-  .tx_axis_tuser_mty9(tx_axis_pkt.mty[9]),
-  .tx_axis_tuser_mty10(tx_axis_pkt.mty[10]),
-  .tx_axis_tuser_mty11(tx_axis_pkt.mty[11]),
-  .tx_axis_tuser_skip_response(tx_axis_tuser_skip_response),
-  .tx_axis_tuser_sop0(tx_axis_pkt.sop[0]),
-  .tx_axis_tuser_sop1(tx_axis_pkt.sop[1]),
-  .tx_axis_tuser_sop2(tx_axis_pkt.sop[2]),
-  .tx_axis_tuser_sop3(tx_axis_pkt.sop[3]),
-  .tx_axis_tuser_sop4(tx_axis_pkt.sop[4]),
-  .tx_axis_tuser_sop5(tx_axis_pkt.sop[5]),
-  .tx_axis_tuser_sop6(tx_axis_pkt.sop[6]),
-  .tx_axis_tuser_sop7(tx_axis_pkt.sop[7]),
-  .tx_axis_tuser_sop8(tx_axis_pkt.sop[8]),
-  .tx_axis_tuser_sop9(tx_axis_pkt.sop[9]),
-  .tx_axis_tuser_sop10(tx_axis_pkt.sop[10]),
-  .tx_axis_tuser_sop11(tx_axis_pkt.sop[11]),
-  .tx_axis_tvalid_0(tx_gearbox_dout_vld[0] | tx_axi_vld_mask[0]),
-  .tx_axis_tvalid_1(tx_gearbox_dout_vld[1] | tx_axi_vld_mask[1]),
-  .tx_axis_tvalid_2(tx_gearbox_dout_vld[2] | tx_axi_vld_mask[2]),
-  .tx_axis_tvalid_3(tx_gearbox_dout_vld[3] | tx_axi_vld_mask[3]),
-  .tx_axis_tvalid_4(tx_gearbox_dout_vld[4] | tx_axi_vld_mask[4]),
-  .tx_axis_tvalid_5(tx_gearbox_dout_vld[5] | tx_axi_vld_mask[5]),
+  .tx_axis_ch_status_id(tx_axis_ch_status_id),                    // axi-stream-tx-output-[5:0]-dcmac-connected to axis_pkt_gen_ts -- wired, not used
+  .tx_axis_ch_status_skip_req(tx_axis_ch_status_skip_req),        // axi-stream-tx-output-dcmac-don't care -- ok 
+  .tx_axis_ch_status_vld(tx_axis_ch_status_vld),                  // axi-stream-tx-output-dcmac-don't care -- ok
+  .tx_axis_id_req(tx_axis_id_req),                                // axi-stream-tx-output-[5:0]-dcmac-don't care -- ok
+  .tx_axis_id_req_vld(tx_axis_id_req_vld),                        // axi-stream-tx-output-dcmac-don't care -- ok 
+  .tx_axis_taf_0(tx_axis_af[0]),                                  // axi-stream-tx-output-dcmac -- wired, not used
+  .tx_axis_taf_1(tx_axis_af[1]),                                  // axi-stream-tx-output-dcmac -- wired, not used
+  .tx_axis_taf_2(tx_axis_af[2]),                                  // axi-stream-tx-output-dcmac -- wired, not used
+  .tx_axis_taf_3(tx_axis_af[3]),                                  // axi-stream-tx-output-dcmac -- wired, not used
+  .tx_axis_taf_4(tx_axis_af[4]),                                  // axi-stream-tx-output-dcmac -- wired, not used
+  .tx_axis_taf_5(tx_axis_af[5]),                                  // axi-stream-tx-output-dcmac -- wired, not used
+  .tx_axis_tdata0(tx_axis_pkt.dat[0]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata1(tx_axis_pkt.dat[1]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata2(tx_axis_pkt.dat[2]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata3(tx_axis_pkt.dat[3]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata4(tx_axis_pkt.dat[4]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata5(tx_axis_pkt.dat[5]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata6(tx_axis_pkt.dat[6]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata7(tx_axis_pkt.dat[7]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata8(tx_axis_pkt.dat[8]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata9(tx_axis_pkt.dat[9]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata10(tx_axis_pkt.dat[10]),                          // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata11(tx_axis_pkt.dat[11]),                          // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tid(tx_axis_pkt.id),                                   // axi-stream-tx-input-[5:0]-dcmac -- ok
+  .tx_axis_tready_0(tx_axis_tready[0]),                           // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used
+  .tx_axis_tready_1(tx_axis_tready[1]),                           // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used
+  .tx_axis_tready_2(tx_axis_tready[2]),                           // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used
+  .tx_axis_tready_3(tx_axis_tready[3]),                           // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used
+  .tx_axis_tready_4(tx_axis_tready[4]),                           // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used
+  .tx_axis_tready_5(tx_axis_tready[5]),                           // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used
+  .tx_axis_tuser_ena0(tx_axis_pkt.ena[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena1(tx_axis_pkt.ena[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena2(tx_axis_pkt.ena[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena3(tx_axis_pkt.ena[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena4(tx_axis_pkt.ena[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena5(tx_axis_pkt.ena[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena6(tx_axis_pkt.ena[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena7(tx_axis_pkt.ena[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena8(tx_axis_pkt.ena[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena9(tx_axis_pkt.ena[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena10(tx_axis_pkt.ena[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena11(tx_axis_pkt.ena[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop0(tx_axis_pkt.eop[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop1(tx_axis_pkt.eop[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop2(tx_axis_pkt.eop[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop3(tx_axis_pkt.eop[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop4(tx_axis_pkt.eop[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop5(tx_axis_pkt.eop[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop6(tx_axis_pkt.eop[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop7(tx_axis_pkt.eop[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop8(tx_axis_pkt.eop[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop9(tx_axis_pkt.eop[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop10(tx_axis_pkt.eop[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop11(tx_axis_pkt.eop[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err0(tx_axis_pkt.err[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err1(tx_axis_pkt.err[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err2(tx_axis_pkt.err[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err3(tx_axis_pkt.err[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err4(tx_axis_pkt.err[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err5(tx_axis_pkt.err[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err6(tx_axis_pkt.err[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err7(tx_axis_pkt.err[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err8(tx_axis_pkt.err[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err9(tx_axis_pkt.err[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err10(tx_axis_pkt.err[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err11(tx_axis_pkt.err[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_mty0(tx_axis_pkt.mty[0]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty1(tx_axis_pkt.mty[1]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty2(tx_axis_pkt.mty[2]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty3(tx_axis_pkt.mty[3]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty4(tx_axis_pkt.mty[4]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty5(tx_axis_pkt.mty[5]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty6(tx_axis_pkt.mty[6]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty7(tx_axis_pkt.mty[7]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty8(tx_axis_pkt.mty[8]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty9(tx_axis_pkt.mty[9]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty10(tx_axis_pkt.mty[10]),                      // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty11(tx_axis_pkt.mty[11]),                      // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_skip_response(tx_axis_tuser_skip_response),      // axi-stream-tx-input-dcmac-connected from axis_pkt_gen_ts -- wired, not used
+  .tx_axis_tuser_sop0(tx_axis_pkt.sop[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop1(tx_axis_pkt.sop[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop2(tx_axis_pkt.sop[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop3(tx_axis_pkt.sop[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop4(tx_axis_pkt.sop[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop5(tx_axis_pkt.sop[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop6(tx_axis_pkt.sop[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop7(tx_axis_pkt.sop[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop8(tx_axis_pkt.sop[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop9(tx_axis_pkt.sop[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop10(tx_axis_pkt.sop[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop11(tx_axis_pkt.sop[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tvalid_0(tx_gearbox_dout_vld[0]),                      // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used
+  .tx_axis_tvalid_1(tx_gearbox_dout_vld[1]),                      // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used
+  .tx_axis_tvalid_2(tx_gearbox_dout_vld[2]),                      // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used
+  .tx_axis_tvalid_3(tx_gearbox_dout_vld[3]),                      // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used
+  .tx_axis_tvalid_4(tx_gearbox_dout_vld[4]),                      // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used
+  .tx_axis_tvalid_5(tx_gearbox_dout_vld[5]),                      // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used
   .tx_channel_flush(6'd0),                                         // input-fixed-0-[5:0]-dcmac -- ok
   .tx_core_clk(tx_core_clk),                                       // input-[0:0]-dcmac--connected from core_clk, which is 782MHz -- ok
   .tx_core_reset(tx_core_reset),                                   // input-[0:0]-dcmac--port: reset_dyn(0xA417_0000)-[0:0] -- ok
-  .tx_flexif_clk(tx_flexif_clk),                                   // input-[5:0]-dcmac--connected from axis_clk, which is 390.625MHz
-  .tx_macif_clk(tx_macif_clk),                                     // input-[0:0]-dcmac--connected from axis_clk, which is 390.625MHz  
+  .tx_flexif_clk(tx_flexif_clk),                                   // input-[5:0]-dcmac--connected from axis_clk, which is 390.625MHz -- ok
+  .tx_macif_clk(tx_macif_clk),                                     // input-[0:0]-dcmac--connected from axis_clk, which is 390.625MHz -- ok
   .tx_pcs_tdm_stats_data(),                                        // output-[21:0]-dcmac -- ok
   .tx_pcs_tdm_stats_start(),                                       // output-[0:0]-dcmac -- ok
   .tx_pcs_tdm_stats_valid(),                                       // output-[0:0]-dcmac -- ok
