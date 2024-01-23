@@ -298,7 +298,7 @@ assign tx_macif_clk = axis_clk;
 // axis data interface 
 axis_tx_i_pkt_t tx_i_axis_pkt;
 axis_tx_o_pkt_t tx_o_axis_pkt;
-axis_rx_pkt_t rx_axis_pkt;
+axis_rx_o_pkt_t rx_axis_pkt;
 wire [5:0] rx_axis_tvalid;
 //TODO: what to do with the tx/rx_axis_tvalid? 
 //wire [5:0][55:0] rx_axis_preamble;

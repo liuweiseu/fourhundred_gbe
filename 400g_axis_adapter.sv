@@ -6,7 +6,9 @@ module 400g_axis_adapter #(
     tx_pkt,
     rx_pkt,
     dcmac_tx_pkt,
-    dcmac_rx_pkt
+    dcmac_rx_pkt,
+    dcmac_tx_axis_ch_status_id,
+    dcmac_tx_axis_tuser_skip_response
 );
 
 typedef struct packed {
@@ -27,24 +29,33 @@ typedef struct packed {
 } axis_rx_pkt_t;
 
 typedef struct packed {
-    logic [2:0]               id;
-    logic [11:0]              ena;
-    logic [11:0]              sop;
-    logic [11:0]              eop;
-    logic [11:0]              err;
-    logic [11:0][3:0]         mty;
-    logic [11:0][127:0]       dat;
-} dcmac_axis_tx_pkt_t;
+  logic [2:0]               id;
+  logic [11:0]              ena;
+  logic [11:0]              sop;
+  logic [11:0]              eop;
+  logic [11:0]              err;
+  logic [11:0][3:0]         mty;
+  logic [11:0][127:0]       dat;
+  logic [5:0][55:0]         preamble;
+  logic [5:0]               vld;    
+} dcmac_axis_tx_i_pkt_t;
 
 typedef struct packed {
-    logic [2:0]               id;
-    logic [11:0]              ena;
-    logic [11:0]              sop;
-    logic [11:0]              eop;
-    logic [11:0]              err;
-    logic [11:0][3:0]         mty;
-    logic [11:0][127:0]       dat;
-} dcmac_axis_rx_pkt_t;
+  logic [5:0]               tready;
+  logic [5:0]               af;
+} dcmac_axis_tx_o_pkt_t;
+
+typedef struct packed {
+  logic [2:0]               id;
+  logic [11:0]              ena;
+  logic [11:0]              sop;
+  logic [11:0]              eop;
+  logic [11:0]              err;
+  logic [11:0][3:0]         mty;
+  logic [11:0][127:0]       dat;
+  logic [5:0][55:0]         preamble;
+  logic [5:0]               vld;
+} dcmac_axis_rx_o_pkt_t;
 
 
 input clk;
@@ -55,7 +66,8 @@ output axis_rx_pkt_t rx_pkt;
 // these two sets of ports are connected to the dcmac core
 output dcmac_axis_tx_pkt_t dcmac_tx_pkt;
 input dcmac_axis_rx_pkt_t dcmac_rx_pkt;
-
+input dcmac_tx_axis_ch_status_id;
+output dcmac_tx_axis_tuser_skip_response;
 /* Implement the adapter logic here.
 * Memo:
     1. For the axis interface connected to the dcmac core, there are 12 channels, each channel sends 16 bytes.
