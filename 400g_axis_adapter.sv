@@ -266,7 +266,7 @@ begin
                     dcmac_tx_o_pkt.eop[i] <= 0;
                 end
         end
-    else if(tx_pkt.tvalid && tx_pkt.tready)
+    else if(tx_pkt.tvalid && tx_pkt.tready  && tx_pkt.tlast) // we need tlast here.
         begin
             //--------------------------------
             // there are 12 eops, but it seems we only need the first 8 eops for 400G.
