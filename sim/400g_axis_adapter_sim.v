@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module 400g_axis_adapter_sim;
+module fhg_axis_adapter_sim;
 
 parameter DATA_WIDTH = 1024;
 parameter PKT_SIZE = 8192;
@@ -173,7 +173,7 @@ begin
 end
 
 //---------------------400g_axis_adapter module is here--------------------------
-400g_axis_adapter#(
+fhg_axis_adapter#(
     .PKT_SIZE(PKT_SIZE)
 )adapter_inst(
     .clk(clk),

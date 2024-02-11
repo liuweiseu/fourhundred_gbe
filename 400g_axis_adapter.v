@@ -1,4 +1,4 @@
-module 400g_axis_adapter #(
+module fhg_axis_adapter #(
     parameter ETH = 400,
     parameter DATA_WIDTH = 1024,
     parameter SEG_USED = 8,
@@ -38,7 +38,7 @@ module 400g_axis_adapter #(
     // dcmac rx in
     input   [2:0]     dcmac_rx_id,
     input   [11:0]    dcmac_rx_ena,
-    input   [11:0]    dcmac_rx_sop
+    input   [11:0]    dcmac_rx_sop,
     input   [11:0]    dcmac_rx_eop,
     input   [11:0]    dcmac_rx_err,
     input   [3:0]     dcmac_rx_mty[11:0],
@@ -48,7 +48,7 @@ module 400g_axis_adapter #(
 );
 parameter SEG_N = 6;
 parameter CYC = PKT_SIZE / BYTES_PER_SEG / SEG_USED;
-parameter REM = PKT_SIZE - CYC * BYTES_PER_CHANNEL * CHANNELS;
+parameter REM = PKT_SIZE - CYC * BYTES_PER_SEG;
 
 /* Implement the adapter logic here.
 * Memo:
@@ -73,7 +73,7 @@ always @(posedge clk)
 begin
     if(rst)
         begin
-            dcmac_tx_vld <= 6b'0;
+            dcmac_tx_vld <= 6'b0;
         end
     else if(casper_tx_tvalid && casper_tx_tready)
         begin
@@ -86,7 +86,7 @@ begin
         end
     else
         begin
-            dcmac_tx_vld <= 6b'0;
+            dcmac_tx_vld <= 6'b0;
         end
 end
 
