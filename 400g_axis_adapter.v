@@ -20,7 +20,7 @@ module 400g_axis_adapter #(
     input             casper_rx_tready,
     output  [127:0]   casper_rx_tkeep,
     output            casper_rx_tlast,
-    output            casper_tx_tuser,
+    output            casper_rx_tuser,
     // dcmac tx out
     output  [2:0]     dcmac_tx_id,
     output  [11:0]    dcmac_tx_ena,

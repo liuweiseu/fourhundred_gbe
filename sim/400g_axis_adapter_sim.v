@@ -3,8 +3,8 @@
 module 400g_axis_adapter_sim;
 
 parameter DATA_WIDTH = 1024;
-parameter PKT_LEN = 8192;
-parameter SEND_CYC = PKT_LEN / (DATA_WIDTH / 8);
+parameter PKT_SIZE = 8192;
+parameter SEND_CYC = PKT_SIZE / (DATA_WIDTH / 8);
 parameter CYC = SEND_CYC + 1;
 
 reg clk;
@@ -170,4 +170,52 @@ begin
             dcmac_rx_preamble <= 0;
             dcmac_rx_vld <= 0;
         end
+end
+
+//---------------------400g_axis_adapter module is here--------------------------
+400g_axis_adapter#(
+    .PKT_SIZE(PKT_SIZE)
+)adapter_inst(
+    .clk(clk),
+    .rst(rst),
+    // casper tx in
+    .casper_tx_tdata(casper_tx_tdata),
+    .casper_tx_tvalid(casper_tx_tvalid),
+    .casper_tx_tkeep(casper_tx_tkeep),
+    .casper_tx_tlast(casper_tx_tlast),
+    .casper_tx_tuser(casper_tx_tuser),
+    .casper_tx_tready(casper_tx_tready),
+    // casper rx out
+    .casper_rx_tdata(casper_rx_tdata),
+    .casper_rx_tvalid(casper_rx_tvalid),
+    .casper_rx_tready(casper_rx_tready),
+    .casper_rx_tkeep(casper_rx_tkeep),
+    .casper_rx_tlast(casper_rx_tlast),
+    .casper_rx_tuser(casper_rx_tuser),
+    // dcmac tx out
+    .dcmac_tx_id,
+    .dcmac_tx_ena,
+    .dcmac_tx_sop,
+    .dcmac_tx_eop,
+    .dcmac_tx_err,
+    .dcmac_tx_mty[11:0],
+    .dcmac_tx_dat[11:0],
+    .dcmac_tx_preamble[5:0],
+    .dcmac_tx_vld,
+    .dcmac_tx_tready,
+    .dcmac_tx_af,
+    .dcmac_tx_ch_status_id,
+    .dcmac_tx_tuser_skip_response,
+    // dcmac rx in
+    .dcmac_rx_id(dcmac_rx_id),
+    .dcmac_rx_ena(dcmac_rx_ena),
+    .dcmac_rx_sop(dcmac_rx_sop),
+    .dcmac_rx_eop(dcmac_rx_eop),
+    .dcmac_rx_err(dcmac_rx_err),
+    .dcmac_rx_mty(dcmac_rx_mty),
+    .dcmac_rx_dat(dcmac_rx_dat),
+    .dcmac_rx_preamble(dcmac_rx_preamble),
+    .dcmac_rx_vld(dcmac_rx_vld)
+);
+
 endmodule;
