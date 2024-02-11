@@ -2,8 +2,6 @@
 
 module fhg_axis_adapter_sim;
 
-integer i;
-
 parameter PERIOD = 2;
 parameter DATA_WIDTH = 1024;
 parameter PKT_SIZE = 8192;
@@ -158,14 +156,9 @@ begin
             dcmac_rx_sop <= 0;
             dcmac_rx_eop <= 0;
             dcmac_rx_err <= 0;
-            for(i = 0; i < SEG_N; i=i+1)
-            begin
-                dcmac_rx_mty[2*i] <= 0;
-                dcmac_rx_mty[2*i+1] <= 0;
-                dcmac_rx_dat[2*i] <= 0;
-                dcmac_rx_dat[2*i+1] <= 0;
-                dcmac_rx_preamble[i] <= 0;
-            end
+            dcmac_rx_mty <= 0;
+            dcmac_rx_dat <= 0;
+            dcmac_rx_preamble <= 0;
             dcmac_rx_vld <= 0;
         end
     else
@@ -175,14 +168,9 @@ begin
             dcmac_rx_sop <= 0;
             dcmac_rx_eop <= 0;
             dcmac_rx_err <= 0;
-            for( i = 0; i < SEG_N; i=i+1)
-            begin
-                dcmac_rx_mty[2*i] <= 0;
-                dcmac_rx_mty[2*i+1] <= 0;
-                dcmac_rx_dat[2*i] <= 0;
-                dcmac_rx_dat[2*i+1] <= 0;
-                dcmac_rx_preamble[i] <= 0;
-            end
+            dcmac_rx_mty <= 0;
+            dcmac_rx_dat <= 0;
+            dcmac_rx_preamble <= 0;
             dcmac_rx_vld <= 0;
         end
 end
