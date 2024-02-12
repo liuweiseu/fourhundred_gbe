@@ -114,35 +114,6 @@ module dcmactop#(
     output [7:0] gt_rx_reset_done_out
 );
 
-typedef struct packed {
-  logic [2:0]               id;
-  logic [11:0]              ena;
-  logic [11:0]              sop;
-  logic [11:0]              eop;
-  logic [11:0]              err;
-  logic [11:0][3:0]         mty;
-  logic [11:0][127:0]       dat;
-  logic [5:0][55:0]         preamble;
-  logic [5:0]               vld;    
-} axis_tx_i_pkt_t;
-
-typedef struct packed {
-  logic [5:0]               tready;
-  logic [5:0]               af;
-} axis_tx_o_pkt_t;
-
-typedef struct packed {
-  logic [2:0]               id;
-  logic [11:0]              ena;
-  logic [11:0]              sop;
-  logic [11:0]              eop;
-  logic [11:0]              err;
-  logic [11:0][3:0]         mty;
-  logic [11:0][127:0]       dat;
-  logic [5:0][55:0]         preamble;
-  logic [5:0]               vld;
-} axis_rx_o_pkt_t;
-
 /* Static interface is not used in 400G core. */
 assign gmac_reg_core_type           = 32'h0;
 assign gmac_reg_phy_status_h        = 32'h0;
@@ -296,10 +267,6 @@ wire tx_macif_clk;
 assign rx_macif_clk = axis_clk;
 assign tx_macif_clk = axis_clk;
 // axis data interface 
-axis_tx_i_pkt_t tx_i_axis_pkt;
-axis_tx_o_pkt_t tx_o_axis_pkt;
-axis_rx_o_pkt_t rx_axis_pkt;
-wire [5:0] rx_axis_tvalid;
 //TODO: what to do with the tx/rx_axis_tvalid? 
 //wire [5:0][55:0] rx_axis_preamble;
 //wire [5:0][55:0] tx_axis_preamble;
@@ -322,7 +289,106 @@ wire [5:0] rx_tsmac_tdm_stats_id;
 wire rx_tsmac_tdm_stats_valid;
 //TODO: what to do with the above signals?
 
-/* DCMAC core */
+/*-------------------------- 400G axis adapter ---------------------*/
+//--------------casper tx in-------------
+wire [1023:0] casper_tx_tdata;
+wire casper_tx_tvalid;
+wire [127:0]  casper_tx_tkeep;
+wire casper_tx_tlast;
+wire casper_tx_tuser;
+wire casper_tx_tready;
+// the connection is a bit wired here, because rx ports are connected to tx ports.
+assign casper_tx_tdata = axis_rx_tdata;
+assign casper_tx_tvalid = axis_rx_tvalid;
+assign casper_tx_tkeep = axis_rx_tkeep;
+assign casper_tx_tlast = axis_rx_tlast;
+assign casper_tx_tuser = axis_rx_tuser;
+assign axis_rx_tready = casper_tx_tready;
+//--------------casper rx out--------------
+wire [1023:0] casper_rx_tdata;
+wire casper_rx_tvalid;
+wire [127:0]  casper_rx_tkeep;
+wire casper_rx_tlast;
+wire casper_rx_tuser;
+wire casper_rx_tready;
+// the connection is a bit wired here, because tx ports are connected to rx ports.
+assign axis_tx_tdata = casper_rx_tdata;
+assign axis_tx_tvalid = casper_rx_tvalid;
+assign axis_tx_tkeep = casper_rx_tkeep;
+assign axis_tx_tlast = casper_rx_tlast;
+assign axis_tx_tuser = casper_rx_tuser;
+assign casper_rx_tready = 1'b1;
+//---------------dcmac tx in--------------
+wire [2:0] dcmac_tx_id;
+wire [11:0] dcmac_tx_ena;
+wire [11:0] dcmac_tx_sop;
+wire [11:0] dcmac_tx_eop;
+wire [11:0] dcmac_tx_err;
+wire [47:0] dcmac_tx_mty;
+wire [1535:0] dcmac_tx_dat;
+wire [335:0] dcmac_tx_preamble;
+wire [5:0] dcmac_tx_vld;
+wire dcmac_tx_tuser_skip_response;
+wire [5:0] dcmac_tx_tready;
+wire [5:0] dcmac_tx_af;
+wire dcmac_tx_ch_status_id;
+//---------------dcmac rx out--------------
+wire [2:0] dcmac_rx_id;
+wire [11:0] dcmac_rx_ena;
+wire [11:0] dcmac_rx_sop;
+wire [11:0] dcmac_rx_eop;
+wire [11:0] dcmac_rx_err;
+wire [47:0] dcmac_rx_mty;
+wire [1535:0] dcmac_rx_dat;
+wire [335:0] dcmac_rx_preamble;
+wire [5:0] dcmac_rx_vld;
+
+fhg_axis_adapter(
+    .clk(axis_clk),
+    .rst(Reset),
+    // casper tx in
+    .casper_tx_tdata(casper_tx_tdata),        // 1024 bits
+    .casper_tx_tvalid(casper_tx_tvalid),   
+    .casper_tx_tkeep(casper_tx_tkeep),        // 128 bits
+    .casper_tx_tlast(casper_tx_tlast),
+    .casper_tx_tuser(casper_tx_tuser),
+    .casper_tx_tready(casper_tx_tready),      // output
+    // casper rx out
+    .casper_rx_tdata(casper_rx_tdata),        // 1024 bits
+    .casper_rx_tvalid(casper_rx_tvalid),
+    .casper_rx_tkeep(casper_rx_tkeep),        // 128 bits
+    .casper_rx_tlast(casper_rx_tlast),   
+    .casper_rx_tuser(casper_rx_tuser),
+    .casper_rx_tready(casper_rx_tready),      // input
+    // dcmac tx out
+    .dcmac_tx_id(dcmac_tx_id),                // 3 bits
+    .dcmac_tx_ena(dcmac_tx_ena),              // 12 bits
+    .dcmac_tx_sop(dcmac_tx_sop),              // 12 bits
+    .dcmac_tx_eop(dcmac_tx_eop),              // 12 bits
+    .dcmac_tx_err(dcmac_tx_err),              // 12 bits
+    .dcmac_tx_mty(dcmac_tx_mty),              // 48 bits
+    .dcmac_tx_dat(dcmac_tx_dat),              // 1536 bits
+    .dcmac_tx_preamble(dcmac_tx_preamble),    // 336 bits
+    .dcmac_tx_vld(dcmac_tx_vld),              // 6 bits
+    .dcmac_tx_tuser_skip_response(dcmac_tx_tuser_skip_response),
+    .dcmac_tx_tready(dcmac_tx_tready),        // input 6 bits
+    .dcmac_tx_af(dcmac_tx_af),                // input 6 bits
+    .dcmac_tx_ch_status_id(dcmac_tx_ch_status_id), // input
+    // dcmac rx in
+    .dcmac_rx_id(dcmac_rx_id),                // 3 bits
+    .dcmac_rx_ena(dcmac_rx_ena),              // 12 bits
+    .dcmac_rx_sop(dcmac_rx_sop),              // 12 bits
+    .dcmac_rx_eop(dcmac_rx_eop),              // 12 bits
+    .dcmac_rx_err(dcmac_rx_err),              // 12 bits
+    .dcmac_rx_mty(dcmac_rx_mty),              // 48 bits
+    .dcmac_rx_dat(dcmac_rx_dat),              // 1536 bits
+    .dcmac_rx_preamble(dcmac_rx_preamble),    // 336 bits
+    .dcmac_rx_vld(dcmac_rx_vld)               // 6 bits
+);
+/*-------------------------- DCMAC core ---------------------*/
+//-----------ports not important-----------
+wire [5:0] dcmac_tx_serdes_is_am;
+wire [5:0] dcmac_tx_serdes_is_am_prefifo;
 dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   (
   .CLK_IN_D_0_clk_n(gt_clk0_n),       // input-[0:0]-gt -- ok
@@ -468,85 +534,85 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .rx_all_channel_mac_pm_tick(1'b0),                         // input-fixed-0-[0:0]-dcmac -- ok
   .rx_alt_serdes_clk(rx_alt_serdes_clk),                     // input-[5:0]-dcmac--connected from gt0_rx_usrclk2_0 -- ok
   .rx_axi_clk(clk_rx_axi),                                   // axi-stream-rx--connected from axis_clk, which is 390.625MHz -- ok
-  .rx_axis_tdata0(rx_axis_pkt.dat[0]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata1(rx_axis_pkt.dat[1]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata2(rx_axis_pkt.dat[2]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata3(rx_axis_pkt.dat[3]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata4(rx_axis_pkt.dat[4]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata5(rx_axis_pkt.dat[5]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata6(rx_axis_pkt.dat[6]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata7(rx_axis_pkt.dat[7]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata8(rx_axis_pkt.dat[8]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata9(rx_axis_pkt.dat[9]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata10(rx_axis_pkt.dat[10]),                     // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tdata11(rx_axis_pkt.dat[11]),                     // axi-stream-rx-output-[127:0]-dcmac -- ok
-  .rx_axis_tid(rx_axis_pkt.id),                              // axi-stream-rx-output-[5:0]-dcmac -- ok
-  .rx_axis_tuser_ena0(rx_axis_pkt_ena[0]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena1(rx_axis_pkt_ena[1]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena2(rx_axis_pkt_ena[2]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena3(rx_axis_pkt_ena[3]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena4(rx_axis_pkt_ena[4]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena5(rx_axis_pkt_ena[5]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena6(rx_axis_pkt_ena[6]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena7(rx_axis_pkt_ena[7]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena8(rx_axis_pkt_ena[8]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena9(rx_axis_pkt_ena[9]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena10(rx_axis_pkt_ena[10]),                 // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_ena11(rx_axis_pkt_ena[11]),                 // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop0(rx_axis_pkt.eop[0]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop1(rx_axis_pkt.eop[1]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop2(rx_axis_pkt.eop[2]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop3(rx_axis_pkt.eop[3]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop4(rx_axis_pkt.eop[4]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop5(rx_axis_pkt.eop[5]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop6(rx_axis_pkt.eop[6]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop7(rx_axis_pkt.eop[7]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop8(rx_axis_pkt.eop[8]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop9(rx_axis_pkt.eop[9]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop10(rx_axis_pkt.eop[10]),                 // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_eop11(rx_axis_pkt.eop[11]),                 // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err0(rx_axis_pkt.err[0]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err1(rx_axis_pkt.err[1]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err2(rx_axis_pkt.err[2]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err3(rx_axis_pkt.err[3]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err4(rx_axis_pkt.err[4]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err5(rx_axis_pkt.err[5]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err6(rx_axis_pkt.err[6]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err7(rx_axis_pkt.err[7]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err8(rx_axis_pkt.err[8]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err9(rx_axis_pkt.err[9]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err10(rx_axis_pkt.err[10]),                 // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_err11(rx_axis_pkt.err[11]),                 // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_mty0(rx_axis_pkt.mty[0]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty1(rx_axis_pkt.mty[1]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty2(rx_axis_pkt.mty[2]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty3(rx_axis_pkt.mty[3]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty4(rx_axis_pkt.mty[4]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty5(rx_axis_pkt.mty[5]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty6(rx_axis_pkt.mty[6]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty7(rx_axis_pkt.mty[7]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty8(rx_axis_pkt.mty[8]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty9(rx_axis_pkt.mty[9]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty10(rx_axis_pkt.mty[10]),                 // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_mty11(rx_axis_pkt.mty[11]),                 // axi-stream-rx-output-[3:0]-dcmac -- ok
-  .rx_axis_tuser_sop0(rx_axis_pkt.sop[0]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop1(rx_axis_pkt.sop[1]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop2(rx_axis_pkt.sop[2]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop3(rx_axis_pkt.sop[3]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop4(rx_axis_pkt.sop[4]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop5(rx_axis_pkt.sop[5]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop6(rx_axis_pkt.sop[6]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop7(rx_axis_pkt.sop[7]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop8(rx_axis_pkt.sop[8]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop9(rx_axis_pkt.sop[9]),                   // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop10(rx_axis_pkt.sop[10]),                 // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tuser_sop11(rx_axis_pkt.sop[11]),                 // axi-stream-rx-output-dcmac -- ok
-  .rx_axis_tvalid_0(rx_axis_pkt.vld[0]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
-  .rx_axis_tvalid_1(rx_axis_pkt.vld[1]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
-  .rx_axis_tvalid_2(rx_axis_pkt.vld[2]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
-  .rx_axis_tvalid_3(rx_axis_pkt.vld[3]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
-  .rx_axis_tvalid_4(rx_axis_pkt.vld[4]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
-  .rx_axis_tvalid_5(rx_axis_pkt.vld[5]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tdata0(dcmac_rx_dat[127:0]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata1(dcmac_rx_dat[255:128]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata2(dcmac_rx_dat[383:256]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata3(dcmac_rx_dat[511:384]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata4(dcmac_rx_dat[639:512]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata5(dcmac_rx_dat[767:640]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata6(dcmac_rx_dat[895:768]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata7(dcmac_rx_dat[1023:896]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata8(dcmac_rx_dat[1151:1024]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata9(dcmac_rx_dat[1279:1152]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata10(dcmac_rx_dat[1407:1280]),                     // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata11(dcmac_rx_dat[1535:1408]),                     // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tid(dcmac_rx_id),                              // axi-stream-rx-output-[5:0]-dcmac -- ok
+  .rx_axis_tuser_ena0(dcmac_rx_ena[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena1(dcmac_rx_ena[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena2(dcmac_rx_ena[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena3(dcmac_rx_ena[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena4(dcmac_rx_ena[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena5(dcmac_rx_ena[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena6(dcmac_rx_ena[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena7(dcmac_rx_ena[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena8(dcmac_rx_ena[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena9(dcmac_rx_ena[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena10(dcmac_rx_ena[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena11(dcmac_rx_ena[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop0(dcmac_rx_eop[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop1(dcmac_rx_eop[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop2(dcmac_rx_eop[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop3(dcmac_rx_eop[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop4(dcmac_rx_eop[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop5(dcmac_rx_eop[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop6(dcmac_rx_eop[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop7(dcmac_rx_eop[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop8(dcmac_rx_eop[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop9(dcmac_rx_eop[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop10(dcmac_rx_eop[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop11(dcmac_rx_eop[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err0(dcmac_rx_err[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err1(dcmac_rx_err[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err2(dcmac_rx_err[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err3(dcmac_rx_err[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err4(dcmac_rx_err[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err5(dcmac_rx_err[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err6(dcmac_rx_err[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err7(dcmac_rx_err[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err8(dcmac_rx_err[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err9(dcmac_rx_err[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err10(dcmac_rx_err[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err11(dcmac_rx_err[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_mty0(dcmac_rx_mty[3:0]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty1(dcmac_rx_mty[7:4]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty2(dcmac_rx_mty[11:8]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty3(dcmac_rx_mty[15:12]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty4(dcmac_rx_mty[19:16]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty5(dcmac_rx_mty[23:20]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty6(dcmac_rx_mty[27:24]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty7(dcmac_rx_mty[31:28]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty8(dcmac_rx_mty[35:32]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty9(dcmac_rx_mty[39:36]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty10(dcmac_rx_mty[43:40]),                 // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty11(dcmac_rx_mty[47:44]),                 // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_sop0(dcmac_rx_sop[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop1(dcmac_rx_sop[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop2(dcmac_rx_sop[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop3(dcmac_rx_sop[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop4(dcmac_rx_sop[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop5(dcmac_rx_sop[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop6(dcmac_rx_sop[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop7(dcmac_rx_sop[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop8(dcmac_rx_sop[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop9(dcmac_rx_sop[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop10(dcmac_rx_sop[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop11(dcmac_rx_sop[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tvalid_0(dcmac_rx_vld[0]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tvalid_1(dcmac_rx_vld[1]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tvalid_2(dcmac_rx_vld[2]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tvalid_3(dcmac_rx_vld[3]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tvalid_4(dcmac_rx_vld[4]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tvalid_5(dcmac_rx_vld[5]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
   .rx_channel_flush(6'd0),                          // input-fixed-0-[5:0]-dcmac -- ok
   .rx_core_clk(rx_core_clk),                        // input-[0:0]-dcmac--connected to core_clk, which is 782MHz -- ok
   .rx_core_reset(rx_core_reset),                    // input-[0:0]-dcmac--port: reset_dyn(0xA417_0000)-[1:1] -- ok
@@ -559,12 +625,12 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .rx_pcs_tdm_stats_start(),                        // output-[0:0]-dcmac -- ok
   .rx_pcs_tdm_stats_valid(),                        // output-[0:0]-dcmac -- ok
   .rx_port_pm_rdy(),                                // output[5:0]-dcmac -- ok
-  .rx_preambleout_0(rx_axis_pkt.preamble[0]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
-  .rx_preambleout_1(rx_axis_pkt.preamble[1]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
-  .rx_preambleout_2(rx_axis_pkt.preamble[2]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
-  .rx_preambleout_3(rx_axis_pkt.preamble[3]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
-  .rx_preambleout_4(rx_axis_pkt.preamble[4]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
-  .rx_preambleout_5(rx_axis_pkt.preamble[5]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_0(dcmac_rx_preamble[55:0]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_1(dcmac_rx_preamble[111:56]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_2(dcmac_rx_preamble[167:112]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_3(dcmac_rx_preamble[223:168]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_4(dcmac_rx_preamble[279:224]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_5(dcmac_rx_preamble[335:280]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
   
   .rx_serdes_albuf_restart_0(),                     // output-[0:0]-dcmac -- ok
   .rx_serdes_albuf_restart_1(),                     // output-[0:0]-dcmac -- ok
@@ -644,98 +710,98 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .tx_axis_ch_status_vld(tx_axis_ch_status_vld),                  // axi-stream-tx-output-dcmac-don't care -- ok
   .tx_axis_id_req(tx_axis_id_req),                                // axi-stream-tx-output-[5:0]-dcmac-don't care -- ok
   .tx_axis_id_req_vld(tx_axis_id_req_vld),                        // axi-stream-tx-output-dcmac-don't care -- ok 
-  .tx_axis_taf_0(tx_o_axis_pkt.af[0]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_taf_1(tx_o_axis_pkt.af[1]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_taf_2(tx_o_axis_pkt.af[2]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_taf_3(tx_o_axis_pkt.af[3]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_taf_4(tx_o_axis_pkt.af[4]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_taf_5(tx_o_axis_pkt.af[5]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_tdata0(tx_i_axis_pkt.dat[0]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata1(tx_i_axis_pkt.dat[1]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata2(tx_i_axis_pkt.dat[2]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata3(tx_i_axis_pkt.dat[3]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata4(tx_i_axis_pkt.dat[4]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata5(tx_i_axis_pkt.dat[5]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata6(tx_i_axis_pkt.dat[6]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata7(tx_i_axis_pkt.dat[7]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata8(tx_i_axis_pkt.dat[8]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata9(tx_i_axis_pkt.dat[9]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata10(tx_i_axis_pkt.dat[10]),                          // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tdata11(tx_i_axis_pkt.dat[11]),                          // axi-stream-tx-input-[127:0]-dcmac -- ok
-  .tx_axis_tid(tx_i_axis_pkt.id),                                   // axi-stream-tx-input-[5:0]-dcmac -- ok
-  .tx_axis_tready_0(tx_o_axis_pkt.tready[0]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_tready_1(tx_o_axis_pkt.tready[1]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_tready_2(tx_o_axis_pkt.tready[2]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_tready_3(tx_o_axis_pkt.tready[3]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_tready_4(tx_o_axis_pkt.tready[4]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_tready_5(tx_o_axis_pkt.tready[5]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
-  .tx_axis_tuser_ena0(tx_i_axis_pkt.ena[0]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena1(tx_i_axis_pkt.ena[1]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena2(tx_i_axis_pkt.ena[2]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena3(tx_i_axis_pkt.ena[3]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena4(tx_i_axis_pkt.ena[4]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena5(tx_i_axis_pkt.ena[5]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena6(tx_i_axis_pkt.ena[6]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena7(tx_i_axis_pkt.ena[7]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena8(tx_i_axis_pkt.ena[8]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena9(tx_i_axis_pkt.ena[9]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena10(tx_i_axis_pkt.ena[10]),                      // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_ena11(tx_i_axis_pkt.ena[11]),                      // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop0(tx_i_axis_pkt.eop[0]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop1(tx_i_axis_pkt.eop[1]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop2(tx_i_axis_pkt.eop[2]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop3(tx_i_axis_pkt.eop[3]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop4(tx_i_axis_pkt.eop[4]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop5(tx_i_axis_pkt.eop[5]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop6(tx_i_axis_pkt.eop[6]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop7(tx_i_axis_pkt.eop[7]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop8(tx_i_axis_pkt.eop[8]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop9(tx_i_axis_pkt.eop[9]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop10(tx_i_axis_pkt.eop[10]),                      // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_eop11(tx_i_axis_pkt.eop[11]),                      // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err0(tx_i_axis_pkt.err[0]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err1(tx_i_axis_pkt.err[1]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err2(tx_i_axis_pkt.err[2]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err3(tx_i_axis_pkt.err[3]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err4(tx_i_axis_pkt.err[4]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err5(tx_i_axis_pkt.err[5]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err6(tx_i_axis_pkt.err[6]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err7(tx_i_axis_pkt.err[7]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err8(tx_i_axis_pkt.err[8]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err9(tx_i_axis_pkt.err[9]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err10(tx_i_axis_pkt.err[10]),                      // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_err11(tx_i_axis_pkt.err[11]),                      // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_mty0(tx_i_axis_pkt.mty[0]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty1(tx_i_axis_pkt.mty[1]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty2(tx_i_axis_pkt.mty[2]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty3(tx_i_axis_pkt.mty[3]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty4(tx_i_axis_pkt.mty[4]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty5(tx_i_axis_pkt.mty[5]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty6(tx_i_axis_pkt.mty[6]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty7(tx_i_axis_pkt.mty[7]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty8(tx_i_axis_pkt.mty[8]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty9(tx_i_axis_pkt.mty[9]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty10(tx_i_axis_pkt.mty[10]),                      // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_mty11(tx_i_axis_pkt.mty[11]),                      // axi-stream-tx-input-[3:0]-dcmac -- ok
-  .tx_axis_tuser_skip_response(tx_axis_tuser_skip_response),      // axi-stream-tx-input-dcmac-connected from axis_pkt_gen_ts -- wired, not used
-  .tx_axis_tuser_sop0(tx_i_axis_pkt.sop[0]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop1(tx_i_axis_pkt.sop[1]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop2(tx_i_axis_pkt.sop[2]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop3(tx_i_axis_pkt.sop[3]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop4(tx_i_axis_pkt.sop[4]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop5(tx_i_axis_pkt.sop[5]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop6(tx_i_axis_pkt.sop[6]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop7(tx_i_axis_pkt.sop[7]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop8(tx_i_axis_pkt.sop[8]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop9(tx_i_axis_pkt.sop[9]),                        // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop10(tx_i_axis_pkt.sop[10]),                      // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tuser_sop11(tx_i_axis_pkt.sop[11]),                      // axi-stream-tx-input-dcmac -- ok
-  .tx_axis_tvalid_0(tx_i_axis_pkt.vld[0]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
-  .tx_axis_tvalid_1(tx_i_axis_pkt.vld[1]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
-  .tx_axis_tvalid_2(tx_i_axis_pkt.vld[2]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
-  .tx_axis_tvalid_3(tx_i_axis_pkt.vld[3]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
-  .tx_axis_tvalid_4(tx_i_axis_pkt.vld[4]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
-  .tx_axis_tvalid_5(tx_i_axis_pkt.vld[5]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_taf_0(dcmac_tx_af[0]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_taf_1(dcmac_tx_af[1]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_taf_2(dcmac_tx_af[2]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_taf_3(dcmac_tx_af[3]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_taf_4(dcmac_tx_af[4]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_taf_5(dcmac_tx_af[5]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tdata0(dcmac_tx_dat[127:0]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata1(dcmac_tx_dat[255:128]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata2(dcmac_tx_dat[383:256]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata3(dcmac_tx_dat[511:384]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata4(dcmac_tx_dat[639:512]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata5(dcmac_tx_dat[767:640]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata6(dcmac_tx_dat[895:768]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata7(dcmac_tx_dat[1023:896]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata8(dcmac_tx_dat[1151:1024]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata9(dcmac_tx_dat[1279:1152]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata10(dcmac_tx_dat[1407:1280]),                          // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata11(dcmac_tx_dat[1535:1408]),                          // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tid(dcmac_tx_id),                                   // axi-stream-tx-input-[5:0]-dcmac -- ok
+  .tx_axis_tready_0(dcmac_tx_tready[0]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tready_1(dcmac_tx_tready[1]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tready_2(dcmac_tx_tready[2]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tready_3(dcmac_tx_tready[3]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tready_4(dcmac_tx_tready[4]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tready_5(dcmac_tx_tready[5]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tuser_ena0(dcmac_tx_ena[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena1(dcmac_tx_ena[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena2(dcmac_tx_ena[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena3(dcmac_tx_ena[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena4(dcmac_tx_ena[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena5(dcmac_tx_ena[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena6(dcmac_tx_ena[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena7(dcmac_tx_ena[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena8(dcmac_tx_ena[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena9(dcmac_tx_ena[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena10(dcmac_tx_ena[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena11(dcmac_tx_ena[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop0(dcmac_tx_eop[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop1(dcmac_tx_eop[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop2(dcmac_tx_eop[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop3(dcmac_tx_eop[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop4(dcmac_tx_eop[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop5(dcmac_tx_eop[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop6(dcmac_tx_eop[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop7(dcmac_tx_eop[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop8(dcmac_tx_eop[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop9(dcmac_tx_eop[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop10(dcmac_tx_eop[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop11(dcmac_tx_eop[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err0(dcmac_tx_err[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err1(dcmac_tx_err[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err2(dcmac_tx_err[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err3(dcmac_tx_err[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err4(dcmac_tx_err[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err5(dcmac_tx_err[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err6(dcmac_tx_err[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err7(dcmac_tx_err[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err8(dcmac_tx_err[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err9(dcmac_tx_err[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err10(dcmac_tx_err[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err11(dcmac_tx_err[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_mty0(dcmac_tx_mty[3:0]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty1(dcmac_tx_mty[7:4]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty2(dcmac_tx_mty[11:8]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty3(dcmac_tx_mty[15:12]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty4(dcmac_tx_mty[19:16]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty5(dcmac_tx_mty[23:20]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty6(dcmac_tx_mty[27:24]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty7(dcmac_tx_mty[31:28]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty8(dcmac_tx_mty[35:32]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty9(dcmac_tx_mty[39:36]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty10(dcmac_tx_mty[43:40]),                      // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty11(dcmac_tx_mty[47:44]),                      // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_skip_response(tx_axis_tuser_skip_response),        // axi-stream-tx-input-dcmac-connected from axis_pkt_gen_ts -- wired, not used
+  .tx_axis_tuser_sop0(dcmac_tx_sop[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop1(dcmac_tx_sop[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop2(dcmac_tx_sop[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop3(dcmac_tx_sop[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop4(dcmac_tx_sop[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop5(dcmac_tx_sop[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop6(dcmac_tx_sop[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop7(dcmac_tx_sop[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop8(dcmac_tx_sop[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop9(dcmac_tx_sop[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop10(dcmac_tx_sop[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop11(dcmac_tx_sop[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tvalid_0(dcmac_tx_vld[0]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_tvalid_1(dcmac_tx_vld[1]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_tvalid_2(dcmac_tx_vld[2]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_tvalid_3(dcmac_tx_vld[3]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_tvalid_4(dcmac_tx_vld[4]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_tvalid_5(dcmac_tx_vld[5]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
   .tx_channel_flush(6'd0),                                        // input-fixed-0-[5:0]-dcmac -- ok
   .tx_core_clk(tx_core_clk),                                      // input-[0:0]-dcmac--connected from core_clk, which is 782MHz -- ok
   .tx_core_reset(tx_core_reset),                                  // input-[0:0]-dcmac--port: reset_dyn(0xA417_0000)-[0:0] -- ok
@@ -747,25 +813,25 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .tx_port_pm_rdy(),                                              // output-[5:0]-dcmac -- ok
   .tx_port_pm_tick(pm_tick_core),                                 // input-[5:0]-fixed-0-dcmac -- ok
   .rx_port_pm_tick(pm_tick_core),                                 // input-[5:0]-fixed-0-dcmac -- ok
-  .tx_preamblein_0(tx_i_axis_pkt.preamble[0]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
-  .tx_preamblein_1(tx_i_axis_pkt.preamble[1]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
-  .tx_preamblein_2(tx_i_axis_pkt.preamble[2]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
-  .tx_preamblein_3(tx_i_axis_pkt.preamble[3]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
-  .tx_preamblein_4(tx_i_axis_pkt.preamble[4]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
-  .tx_preamblein_5(tx_i_axis_pkt.preamble[5]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_0(dcmac_tx_preamble[55:0]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_1(dcmac_tx_preamble[111:56]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_2(dcmac_tx_preamble[167:112]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_3(dcmac_tx_preamble[223:168]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_4(dcmac_tx_preamble[279:224]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_5(dcmac_tx_preamble[335:280]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
   .tx_serdes_clk(tx_serdes_clk),                                  // input-[5:0]-dcmac--connected from gt0_tx_usrclk_0 -- ok
-  .tx_serdes_is_am_0(tx_serdes_is_am[0]),                         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_1(tx_serdes_is_am[1]),                         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_2(tx_serdes_is_am[2]),                         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_3(tx_serdes_is_am[3]),                         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_4(tx_serdes_is_am[4]),                         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_5(tx_serdes_is_am[5]),                         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_prefifo_0(tx_serdes_is_am_prefifo[0]),         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_prefifo_1(tx_serdes_is_am_prefifo[1]),         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_prefifo_2(tx_serdes_is_am_prefifo[2]),         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_prefifo_3(tx_serdes_is_am_prefifo[3]),         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_prefifo_4(tx_serdes_is_am_prefifo[4]),         // output-[0:0]-dcmac--don't care
-  .tx_serdes_is_am_prefifo_5(tx_serdes_is_am_prefifo[5]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_0(dcmac_tx_serdes_is_am[0]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_1(dcmac_tx_serdes_is_am[1]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_2(dcmac_tx_serdes_is_am[2]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_3(dcmac_tx_serdes_is_am[3]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_4(dcmac_tx_serdes_is_am[4]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_5(dcmac_tx_serdes_is_am[5]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_0(dcmac_tx_serdes_is_am_prefifo[0]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_1(dcmac_tx_serdes_is_am_prefifo[1]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_2(dcmac_tx_serdes_is_am_prefifo[2]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_3(dcmac_tx_serdes_is_am_prefifo[3]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_4(dcmac_tx_serdes_is_am_prefifo[4]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_5(dcmac_tx_serdes_is_am_prefifo[5]),         // output-[0:0]-dcmac--don't care
   .tx_tsmac_tdm_stats_data(tx_tsmac_tdm_stats_data),              // output-[55:0]-dcmac--connected to tx_stats_cnt module -- wired, not used
   .tx_tsmac_tdm_stats_id(tx_tsmac_tdm_stats_id),                  // output-[5:0]-dcmac--connected to tx_stats_cnt module -- wired, not used
   .tx_tsmac_tdm_stats_valid(tx_tsmac_tdm_stats_valid),            // output-[0:0]-dcmac--connected to tx_stats_cnt module -- wired, not used
