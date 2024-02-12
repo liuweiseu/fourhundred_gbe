@@ -92,7 +92,14 @@ begin
         end
     else if(cnt == SEND_CYC - 2)
         begin
-            casper_tx_tdata <= casper_tx_tdata + 1;
+            casper_tx_tdata[127:0] <= casper_tx_tdata[127:0] + 1;
+            casper_tx_tdata[255:128] <= casper_tx_tdata[255:128] + 1;
+            casper_tx_tdata[383:256] <= casper_tx_tdata[383:256] + 1;
+            casper_tx_tdata[511:384] <= casper_tx_tdata[511:384] + 1;
+            casper_tx_tdata[639:512] <= casper_tx_tdata[639:512] + 1;
+            casper_tx_tdata[767:640] <= casper_tx_tdata[767:640] + 1;
+            casper_tx_tdata[895:768] <= casper_tx_tdata[895:768] + 1;
+            casper_tx_tdata[1023:896] <= casper_tx_tdata[1023:896] + 1;
             casper_tx_tvalid<= 1'b1;
             casper_tx_tkeep <= 128'hffffffffffffffffffffffffffffffff;
             casper_tx_tlast <= 1'b1;
@@ -108,7 +115,14 @@ begin
         end
     else
         begin
-            casper_tx_tdata <= casper_tx_tdata + 1;
+            casper_tx_tdata[127:0] <= casper_tx_tdata[127:0] + 1;
+            casper_tx_tdata[255:128] <= casper_tx_tdata[255:128] + 1;
+            casper_tx_tdata[383:256] <= casper_tx_tdata[383:256] + 1;
+            casper_tx_tdata[511:384] <= casper_tx_tdata[511:384] + 1;
+            casper_tx_tdata[639:512] <= casper_tx_tdata[639:512] + 1;
+            casper_tx_tdata[767:640] <= casper_tx_tdata[767:640] + 1;
+            casper_tx_tdata[895:768] <= casper_tx_tdata[895:768] + 1;
+            casper_tx_tdata[1023:896] <= casper_tx_tdata[1023:896] + 1;
             casper_tx_tvalid<= 1'b1;
             casper_tx_tkeep <= 128'hffffffffffffffffffffffffffffffff;
             casper_tx_tlast <= 1'b0;

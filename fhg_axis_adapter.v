@@ -147,7 +147,30 @@ begin
         begin
             //--------------------------------
             // there are 12 enas, but it seems we only need the first 8 enas for 400G.
-            dcmac_tx_ena <= 12'b1;
+            for(i = 0; i < SEG_USED; i = i+1)
+            begin
+                dcmac_tx_ena[i] <=      casper_tx_tkeep[BYTES_PER_SEG*i]  | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+1] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+2] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+3] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+4] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+5] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+6] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+7] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+8] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+9] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+10] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+11] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+12] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+13] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+14] | 
+                                        casper_tx_tkeep[BYTES_PER_SEG*i+15];
+            end
+            // set the unused eop to 0.
+            dcmac_tx_ena[8] <= 0;
+            dcmac_tx_ena[9] <= 0;
+            dcmac_tx_ena[10] <= 0;
+            dcmac_tx_ena[11] <= 0;
         end
     else
         begin
@@ -195,34 +218,43 @@ begin
             //--------------------------------
             // tkeep is used to indicate how many bytes are valid in the last segment.
             // so eop is related to what casper_tx_tkeep is.
-            for(i = 0; i < SEG_USED; i = i+1)
+            //--------------------------------
+            // if tkeep are all ones, then the eop[7] should be set to 1.
+            if(casper_tx_tkeep == 128'hffffffffffffffffffffffffffffffff)
                 begin
-                    dcmac_tx_eop[i] <=      casper_tx_tkeep[BYTES_PER_SEG*i]  & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+1] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+2] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+3] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+4] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+5] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+6] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+7] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+8] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+9] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+10] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+11] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+12] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+13] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+14] & 
-                                            casper_tx_tkeep[BYTES_PER_SEG*i+15];
+                    dcmac_tx_eop <= 12'b000010000000;
                 end
-            // set the unused eop to 0.
-            dcmac_tx_eop[8] <= 0;
-            dcmac_tx_eop[9] <= 0;
-            dcmac_tx_eop[10] <= 0;
-            dcmac_tx_eop[11] <= 0;   
+            else
+                begin
+                    for(i = 0; i < SEG_USED; i = i+1)
+                        begin
+                            dcmac_tx_eop[i] <=      casper_tx_tkeep[BYTES_PER_SEG*i]  & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+1] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+2] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+3] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+4] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+5] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+6] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+7] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+8] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+9] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+10] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+11] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+12] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+13] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+14] & 
+                                                    casper_tx_tkeep[BYTES_PER_SEG*i+15];
+                        end
+                    // set the unused eop to 0.
+                    dcmac_tx_eop[8] <= 0;
+                    dcmac_tx_eop[9] <= 0;
+                    dcmac_tx_eop[10] <= 0;
+                    dcmac_tx_eop[11] <= 0;  
+                end 
         end
     else
         begin
-            dcmac_tx_eop[0] <= 12'b0;
+            dcmac_tx_eop <= 12'b0;
         end
 end
 //err
