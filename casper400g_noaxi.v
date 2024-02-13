@@ -43,7 +43,7 @@ module casper100g_noaxi#(
         // Yellow block interfaces
         output gbe_tx_afull,
         output gbe_tx_overflow,
-        output [511:0] gbe_rx_data,
+        output [1023:0] gbe_rx_data,            // data width is changed from 512 to 1024
         output gbe_rx_valid,
         output [31:0] gbe_rx_source_ip,
         output [15:0] gbe_rx_source_port,
@@ -119,9 +119,9 @@ module casper100g_noaxi#(
         input gbe_rx_overrun_ack,
         input [31:0] gbe_tx_dest_ip,
         input [15:0] gbe_tx_dest_port,
-        input [511:0] gbe_tx_data,
+        input [1023:0] gbe_tx_data,         // data width is changed from 512 to 1024
         input [3:0] gbe_tx_valid,
-        input [63:0] gbe_tx_byte_enable,
+        input [127:0] gbe_tx_byte_enable,   // byte enable width is changed from 64 to 128
         input gbe_tx_end_of_frame
         
     );
@@ -144,6 +144,7 @@ module casper100g_noaxi#(
     //assign gbe_rx_valid = {4{rx_valid_int}};
 
     // Register AXI signals
+    // With dcmac core for 400g, the registers are different.
     reg [31:0] gmac_reg_phy_control_h_reg;
     reg [31:0] gmac_reg_phy_control_l_reg;
     reg [31:0] gmac_reg_mac_address_h_reg = {16'b0, FABRIC_MAC[47:32]};

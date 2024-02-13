@@ -23,7 +23,9 @@ module dcmactop#(
     output [3:0] gt0_tx_n,
     output [3:0] gt1_tx_p,
     output [3:0] gt1_tx_n,
-    // Statistics interface            
+    // Statistics interface
+    // These registers are required for casper, not from the cmac core(100g) or dcmac core(400g),
+    // so we need to implement these registers in the casper module.
     output [31:0] gmac_reg_core_type,
     output [31:0] gmac_reg_phy_status_h,
     output [31:0] gmac_reg_phy_status_l,
@@ -114,7 +116,7 @@ module dcmactop#(
     output [7:0] gt_rx_reset_done_out
 );
 
-/* Static interface is not used in 400G core. */
+/* TODO: implement static registers in this 400G core. */
 assign gmac_reg_core_type           = 32'h0;
 assign gmac_reg_phy_status_h        = 32'h0;
 assign gmac_reg_phy_status_l        = 32'h0;
@@ -161,11 +163,11 @@ assign clk_wiz_reset = 1'b0;
 
 dcmac_0_clk_wiz_0 i_dcmac_0_clk_wiz_0 (
   .reset      (clk_wiz_reset),
-  .clk_in1	  (clk_wiz_in),
+  .clk_in1	  (clk_wiz_in),     // 156.25MHz
   .locked     (clk_wiz_locked),
-  .clk_out1	  (core_clk),
-  .clk_out2   (axis_clk),
-  .clk_out3   (ts_clk)
+  .clk_out1	  (core_clk),       // 782MHz
+  .clk_out2   (axis_clk),       // 390.625MHz
+  .clk_out3   (ts_clk)          // 350MHz
 );
 
 // Wires with static values for DCMAC core
