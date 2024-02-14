@@ -1,14 +1,15 @@
 module dcmactop#(
-    parameter ETH = 400
+    parameter ETH           = 400,
+    parameter C_USE_RS_FEC  = 0,
+    parameter C_INST_ID     = 0,
+    parameter C_N_COMMON    = 2
 )(
     /* Ports for connecting CASPER module*/
-    // Reference clock to generate 100MHz from
-    input Clk100MHz,
     // Global System Enable
     input Enable,
     input Reset,
     // Ethernet reference clock for 156.25MHz
-    // QSFP+ -- Actually, it should be OSFP for 400G 
+    // it should be OSFP for 400G 
     input gt_clk0_p,
     input gt_clk0_n,
     input gt_clk1_p,
@@ -29,8 +30,8 @@ module dcmactop#(
     output [31:0] gmac_reg_core_type,
     output [31:0] gmac_reg_phy_status_h,
     output [31:0] gmac_reg_phy_status_l,
-    input [31:0] gmac_reg_phy_control_h,
-    input [31:0] gmac_reg_phy_control_l,
+    input  [31:0] gmac_reg_phy_control_h,
+    input  [31:0] gmac_reg_phy_control_l,
     output [31:0] gmac_reg_tx_packet_rate,
     output [31:0] gmac_reg_tx_packet_count,
     output [31:0] gmac_reg_tx_valid_rate,
@@ -116,7 +117,9 @@ module dcmactop#(
     output [7:0] gt_rx_reset_done_out
 );
 
-/* TODO: implement static registers in this 400G core. */
+/*--------------------------------------------------------------------------------------*/
+// TODO: implement static registers in this 400G core.
+/*--------------------------------------------------------------------------------------*/
 assign gmac_reg_core_type           = 32'h0;
 assign gmac_reg_phy_status_h        = 32'h0;
 assign gmac_reg_phy_status_l        = 32'h0;
@@ -130,29 +133,9 @@ assign gmac_reg_rx_valid_rate       = 32'h0;
 assign gmac_reg_rx_valid_count      = 32'h0;
 assign gmac_reg_rx_bad_packet_count = 32'h0;
 
-/* LBUS is not used in 400G core. */
-assign lbus_tx_ovfout               = 1'b0;
-
-/* Let's ignore RX(from DCMAC core), and just focus on TX for now. */
-// RX from DCMAC core is connected to TX here.
-// TODO: Add RX
-assign axis_tx_tdata                = 512'h0;
-assign axis_tx_tvalid               = 1'b0;
-assign axis_tx_tkeep                = 64'h0;
-assign axis_tx_tlast                = 1'b0;
-
-// yellow block interface
-// TODO: implement yellow block interface
-assign axis_tx_tuser                = 1'b0;
-assign yellow_block_rx_data         = 512'h0;
-assign yellow_block_rx_valid        = 1'b0;
-assign yellow_block_rx_eof          = 1'b0;
-assign yellow_block_rx_overrun      = 1'b0;
-
-// TX
-
-
-/* clk_wiz */
+/*--------------------------------------------------------------------------------------*/
+// clocks for DCMAC core
+/*--------------------------------------------------------------------------------------*/
 wire clk_wiz_reset;
 wire clk_wiz_in;
 wire clk_wiz_locked;
@@ -170,6 +153,133 @@ dcmac_0_clk_wiz_0 i_dcmac_0_clk_wiz_0 (
   .clk_out3   (ts_clk)          // 350MHz
 );
 
+/*--------------------------------------------------------------------------------------*/
+// axis tx clock, which is 390.625MHz 
+/*--------------------------------------------------------------------------------------*/
+assign axis_tx_clkout               = axis_clk;
+
+
+/*--------------------------------------------------------------------------------------*/
+// LBUS is not used in 400G core. 
+// TODO: I may remove this port sometime.
+/*--------------------------------------------------------------------------------------*/
+assign lbus_tx_ovfout               = 1'b0;
+assign lbus_tx_unfout               = 1'b0;
+/*--------------------------------------------------------------------------------------*/
+// Let's ignore RX(from DCMAC core), and just focus on TX for now.
+// RX from DCMAC core is connected to TX here.
+// TODO: implement logic for the yellow block interface.
+/*--------------------------------------------------------------------------------------*/
+assign axis_tx_tuser                = 1'b0;
+assign yellow_block_rx_data         = 1024'h0;
+assign yellow_block_rx_valid        = 1'b0;
+assign yellow_block_rx_eof          = 1'b0;
+assign yellow_block_rx_overrun      = 1'b0;
+
+/*--------------------------------------------------------------------------------------*/
+// 400G axis adapter 
+// This adapter changed the standard axis itnerface(used by casper) 
+// to the dcmac axis interface(lbus?).
+/*--------------------------------------------------------------------------------------*/
+// casper tx in
+wire [1023:0] casper_tx_tdata;
+wire casper_tx_tvalid;
+wire [127:0]  casper_tx_tkeep;
+wire casper_tx_tlast;
+wire casper_tx_tuser;
+wire casper_tx_tready;
+// the connection is a bit wired here, because rx ports are connected to tx ports.
+assign casper_tx_tdata = axis_rx_tdata;
+assign casper_tx_tvalid = axis_rx_tvalid;
+assign casper_tx_tkeep = axis_rx_tkeep;
+assign casper_tx_tlast = axis_rx_tlast;
+assign casper_tx_tuser = axis_rx_tuser;
+assign axis_rx_tready = casper_tx_tready;
+// casper rx out
+wire [1023:0] casper_rx_tdata;
+wire casper_rx_tvalid;
+wire [127:0]  casper_rx_tkeep;
+wire casper_rx_tlast;
+wire casper_rx_tuser;
+wire casper_rx_tready;
+// the connection is a bit wired here, because tx ports are connected to rx ports.
+assign axis_tx_tdata = casper_rx_tdata;
+assign axis_tx_tvalid = casper_rx_tvalid;
+assign axis_tx_tkeep = casper_rx_tkeep;
+assign axis_tx_tlast = casper_rx_tlast;
+assign axis_tx_tuser = casper_rx_tuser;
+assign casper_rx_tready = 1'b1;
+// dcmac tx in
+wire [2:0] dcmac_tx_id;
+wire [11:0] dcmac_tx_ena;
+wire [11:0] dcmac_tx_sop;
+wire [11:0] dcmac_tx_eop;
+wire [11:0] dcmac_tx_err;
+wire [47:0] dcmac_tx_mty;
+wire [1535:0] dcmac_tx_dat;
+wire [335:0] dcmac_tx_preamble;
+wire [5:0] dcmac_tx_vld;
+wire dcmac_tx_tuser_skip_response;
+wire [5:0] dcmac_tx_tready;
+wire [5:0] dcmac_tx_af;
+wire dcmac_tx_ch_status_id;
+// dcmac rx out
+wire [2:0] dcmac_rx_id;
+wire [11:0] dcmac_rx_ena;
+wire [11:0] dcmac_rx_sop;
+wire [11:0] dcmac_rx_eop;
+wire [11:0] dcmac_rx_err;
+wire [47:0] dcmac_rx_mty;
+wire [1535:0] dcmac_rx_dat;
+wire [335:0] dcmac_rx_preamble;
+wire [5:0] dcmac_rx_vld;
+// 400g adapter instance
+fhg_axis_adapter(
+    .clk(axis_clk),
+    .rst(Reset),
+    // casper tx in
+    .casper_tx_tdata(casper_tx_tdata),        // 1024 bits
+    .casper_tx_tvalid(casper_tx_tvalid),   
+    .casper_tx_tkeep(casper_tx_tkeep),        // 128 bits
+    .casper_tx_tlast(casper_tx_tlast),
+    .casper_tx_tuser(casper_tx_tuser),
+    .casper_tx_tready(casper_tx_tready),      // output
+    // casper rx out
+    .casper_rx_tdata(casper_rx_tdata),        // 1024 bits
+    .casper_rx_tvalid(casper_rx_tvalid),
+    .casper_rx_tkeep(casper_rx_tkeep),        // 128 bits
+    .casper_rx_tlast(casper_rx_tlast),   
+    .casper_rx_tuser(casper_rx_tuser),
+    .casper_rx_tready(casper_rx_tready),      // input
+    // dcmac tx out
+    .dcmac_tx_id(dcmac_tx_id),                // 3 bits
+    .dcmac_tx_ena(dcmac_tx_ena),              // 12 bits
+    .dcmac_tx_sop(dcmac_tx_sop),              // 12 bits
+    .dcmac_tx_eop(dcmac_tx_eop),              // 12 bits
+    .dcmac_tx_err(dcmac_tx_err),              // 12 bits
+    .dcmac_tx_mty(dcmac_tx_mty),              // 48 bits
+    .dcmac_tx_dat(dcmac_tx_dat),              // 1536 bits
+    .dcmac_tx_preamble(dcmac_tx_preamble),    // 336 bits
+    .dcmac_tx_vld(dcmac_tx_vld),              // 6 bits
+    .dcmac_tx_tuser_skip_response(dcmac_tx_tuser_skip_response),
+    .dcmac_tx_tready(dcmac_tx_tready),        // input 6 bits
+    .dcmac_tx_af(dcmac_tx_af),                // input 6 bits
+    .dcmac_tx_ch_status_id(dcmac_tx_ch_status_id), // input
+    // dcmac rx in
+    .dcmac_rx_id(dcmac_rx_id),                // 3 bits
+    .dcmac_rx_ena(dcmac_rx_ena),              // 12 bits
+    .dcmac_rx_sop(dcmac_rx_sop),              // 12 bits
+    .dcmac_rx_eop(dcmac_rx_eop),              // 12 bits
+    .dcmac_rx_err(dcmac_rx_err),              // 12 bits
+    .dcmac_rx_mty(dcmac_rx_mty),              // 48 bits
+    .dcmac_rx_dat(dcmac_rx_dat),              // 1536 bits
+    .dcmac_rx_preamble(dcmac_rx_preamble),    // 336 bits
+    .dcmac_rx_vld(dcmac_rx_vld)               // 6 bits
+);
+
+/*--------------------------------------------------------------------------------------*/
+// DCMAC core signales 
+/*--------------------------------------------------------------------------------------*/
 // Wires with static values for DCMAC core
 // TODO: check if these values are correct
 wire [15:0] default_vl_length_100GE     = 16'd255;
@@ -250,7 +360,6 @@ assign rx_alt_serdes_clk = {1'b0,1'b0,gt0_rx_usrclk2_0,gt0_rx_usrclk2_0,gt0_rx_u
 assign tx_alt_serdes_clk = {1'b0,1'b0,gt0_tx_usrclk2_0,gt0_tx_usrclk2_0,gt0_tx_usrclk2_0,gt0_tx_usrclk2_0};
 assign rx_serdes_clk     = {1'b0,1'b0,gt0_rx_usrclk_0,gt0_rx_usrclk_0,gt0_rx_usrclk_0,gt0_rx_usrclk_0}; 
 assign tx_serdes_clk     = {1'b0,1'b0,gt0_tx_usrclk_0,gt0_tx_usrclk_0,gt0_tx_usrclk_0,gt0_tx_usrclk_0};
-
 wire tx_core_clk;
 wire rx_core_clk;
 assign tx_core_clk = core_clk;
@@ -259,7 +368,6 @@ wire clk_tx_axi;
 wire clk_rx_axi;
 assign clk_tx_axi = axis_clk;
 assign clk_rx_axi = axis_clk;
-
 wire [5:0] rx_flexif_clk;
 wire [5:0] tx_flexif_clk;
 assign rx_flexif_clk = {6{axis_clk}};
@@ -268,129 +376,22 @@ wire rx_macif_clk;
 wire tx_macif_clk;
 assign rx_macif_clk = axis_clk;
 assign tx_macif_clk = axis_clk;
-// axis data interface 
-//TODO: what to do with the tx/rx_axis_tvalid? 
-//wire [5:0][55:0] rx_axis_preamble;
-//wire [5:0][55:0] tx_axis_preamble;
-//TODO: what to do with the rx_axis_preamble? -- packed into tx/rx_axis_pkt
+
+//TODO: what to do with the tx_axis_ch_status_id and tx_axis_tuser_skip_response?
 wire [5:0] tx_axis_ch_status_id;
-//TODO: what to do with the tx_axis_ch_status_id?
-//wire [5:0] tx_axis_af;
-//TODO: what to do with the tx_axis_af?  -- packed into tx_o_axis_pkt
-//wire [5:0] tx_axis_tready;
-//TODO: what to do with the tx_axis_tready? -- packed into tx_o_axis_pkt
 wire tx_axis_tuser_skip_response;
-//TODO: what to do with the tx_axis_tuser_skip_response?
-// wire [5:0] tx_gearbox_dout_vld;
-//TODO: what to do with the tx_gearbox_dout_vld? -- packed into tx_i_axis_pkt
+//TODO: what to do with the following signals?
 wire [55:0] tx_tsmac_tdm_stats_data;
 wire [5:0] tx_tsmac_tdm_stats_id;
 wire tx_tsmac_tdm_stats_valid;
 wire [78:0] rx_tsmac_tdm_stats_data;
 wire [5:0] rx_tsmac_tdm_stats_id;
 wire rx_tsmac_tdm_stats_valid;
-//TODO: what to do with the above signals?
-
-/*-------------------------- 400G axis adapter ---------------------*/
-//--------------casper tx in-------------
-wire [1023:0] casper_tx_tdata;
-wire casper_tx_tvalid;
-wire [127:0]  casper_tx_tkeep;
-wire casper_tx_tlast;
-wire casper_tx_tuser;
-wire casper_tx_tready;
-// the connection is a bit wired here, because rx ports are connected to tx ports.
-assign casper_tx_tdata = axis_rx_tdata;
-assign casper_tx_tvalid = axis_rx_tvalid;
-assign casper_tx_tkeep = axis_rx_tkeep;
-assign casper_tx_tlast = axis_rx_tlast;
-assign casper_tx_tuser = axis_rx_tuser;
-assign axis_rx_tready = casper_tx_tready;
-//--------------casper rx out--------------
-wire [1023:0] casper_rx_tdata;
-wire casper_rx_tvalid;
-wire [127:0]  casper_rx_tkeep;
-wire casper_rx_tlast;
-wire casper_rx_tuser;
-wire casper_rx_tready;
-// the connection is a bit wired here, because tx ports are connected to rx ports.
-assign axis_tx_tdata = casper_rx_tdata;
-assign axis_tx_tvalid = casper_rx_tvalid;
-assign axis_tx_tkeep = casper_rx_tkeep;
-assign axis_tx_tlast = casper_rx_tlast;
-assign axis_tx_tuser = casper_rx_tuser;
-assign casper_rx_tready = 1'b1;
-//---------------dcmac tx in--------------
-wire [2:0] dcmac_tx_id;
-wire [11:0] dcmac_tx_ena;
-wire [11:0] dcmac_tx_sop;
-wire [11:0] dcmac_tx_eop;
-wire [11:0] dcmac_tx_err;
-wire [47:0] dcmac_tx_mty;
-wire [1535:0] dcmac_tx_dat;
-wire [335:0] dcmac_tx_preamble;
-wire [5:0] dcmac_tx_vld;
-wire dcmac_tx_tuser_skip_response;
-wire [5:0] dcmac_tx_tready;
-wire [5:0] dcmac_tx_af;
-wire dcmac_tx_ch_status_id;
-//---------------dcmac rx out--------------
-wire [2:0] dcmac_rx_id;
-wire [11:0] dcmac_rx_ena;
-wire [11:0] dcmac_rx_sop;
-wire [11:0] dcmac_rx_eop;
-wire [11:0] dcmac_rx_err;
-wire [47:0] dcmac_rx_mty;
-wire [1535:0] dcmac_rx_dat;
-wire [335:0] dcmac_rx_preamble;
-wire [5:0] dcmac_rx_vld;
-
-fhg_axis_adapter(
-    .clk(axis_clk),
-    .rst(Reset),
-    // casper tx in
-    .casper_tx_tdata(casper_tx_tdata),        // 1024 bits
-    .casper_tx_tvalid(casper_tx_tvalid),   
-    .casper_tx_tkeep(casper_tx_tkeep),        // 128 bits
-    .casper_tx_tlast(casper_tx_tlast),
-    .casper_tx_tuser(casper_tx_tuser),
-    .casper_tx_tready(casper_tx_tready),      // output
-    // casper rx out
-    .casper_rx_tdata(casper_rx_tdata),        // 1024 bits
-    .casper_rx_tvalid(casper_rx_tvalid),
-    .casper_rx_tkeep(casper_rx_tkeep),        // 128 bits
-    .casper_rx_tlast(casper_rx_tlast),   
-    .casper_rx_tuser(casper_rx_tuser),
-    .casper_rx_tready(casper_rx_tready),      // input
-    // dcmac tx out
-    .dcmac_tx_id(dcmac_tx_id),                // 3 bits
-    .dcmac_tx_ena(dcmac_tx_ena),              // 12 bits
-    .dcmac_tx_sop(dcmac_tx_sop),              // 12 bits
-    .dcmac_tx_eop(dcmac_tx_eop),              // 12 bits
-    .dcmac_tx_err(dcmac_tx_err),              // 12 bits
-    .dcmac_tx_mty(dcmac_tx_mty),              // 48 bits
-    .dcmac_tx_dat(dcmac_tx_dat),              // 1536 bits
-    .dcmac_tx_preamble(dcmac_tx_preamble),    // 336 bits
-    .dcmac_tx_vld(dcmac_tx_vld),              // 6 bits
-    .dcmac_tx_tuser_skip_response(dcmac_tx_tuser_skip_response),
-    .dcmac_tx_tready(dcmac_tx_tready),        // input 6 bits
-    .dcmac_tx_af(dcmac_tx_af),                // input 6 bits
-    .dcmac_tx_ch_status_id(dcmac_tx_ch_status_id), // input
-    // dcmac rx in
-    .dcmac_rx_id(dcmac_rx_id),                // 3 bits
-    .dcmac_rx_ena(dcmac_rx_ena),              // 12 bits
-    .dcmac_rx_sop(dcmac_rx_sop),              // 12 bits
-    .dcmac_rx_eop(dcmac_rx_eop),              // 12 bits
-    .dcmac_rx_err(dcmac_rx_err),              // 12 bits
-    .dcmac_rx_mty(dcmac_rx_mty),              // 48 bits
-    .dcmac_rx_dat(dcmac_rx_dat),              // 1536 bits
-    .dcmac_rx_preamble(dcmac_rx_preamble),    // 336 bits
-    .dcmac_rx_vld(dcmac_rx_vld)               // 6 bits
-);
-/*-------------------------- DCMAC core ---------------------*/
-//-----------ports not important-----------
+// ports not important
 wire [5:0] dcmac_tx_serdes_is_am;
 wire [5:0] dcmac_tx_serdes_is_am_prefifo;
+
+// dcmac wrapper
 dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   (
   .CLK_IN_D_0_clk_n(gt_clk0_n),       // input-[0:0]-gt -- ok
@@ -839,4 +840,5 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .tx_tsmac_tdm_stats_valid(tx_tsmac_tdm_stats_valid),            // output-[0:0]-dcmac--connected to tx_stats_cnt module -- wired, not used
   .tx_serdes_reset(tx_serdes_reset)                               // input-[5:0]-dcmac--port: reset_dyn(0xA417_0000)-[7:2] -- ok
   );
+
 endmodule
