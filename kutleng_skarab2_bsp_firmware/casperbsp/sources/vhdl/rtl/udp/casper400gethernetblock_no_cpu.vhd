@@ -43,9 +43,6 @@ entity casper400gethernetblock_no_cpu is
         G_MAC_INSTANCE               : integer              := 0
     );
     port(
-        -- Clock locked signal to control operations to be halted until clocks 
-        -- are stable.  
-        RefClkLocked                                : in  std_logic;
         -- Aximm clock is the AXI Lite MM clock for the gmac register interface
         -- Usually 125MHz 
         aximm_clk                                   : in  STD_LOGIC;
@@ -54,15 +51,21 @@ entity casper400gethernetblock_no_cpu is
         -- Axis reset is the global synchronous reset to the highest clock
         axis_reset                                  : in  STD_LOGIC;
         -- Ethernet reference clock for 156.25MHz
-        -- QSFP+ 1
-        mgt_qsfp_clock_p                            : in  STD_LOGIC;
-        mgt_qsfp_clock_n                            : in  STD_LOGIC;
+        -- We need 2 quads for the 400G Ethernet by default.
+        gt_clk0_p                                   : in  STD_LOGIC;
+        gt_clk0_n                                   : in  STD_LOGIC;
+        gt_clk1_p                                   : in  STD_LOGIC;
+        gt_clk1_n                                   : in  STD_LOGIC; 
         --RX     
-        qsfp_mgt_rx_p                               : in  STD_LOGIC_VECTOR(3 downto 0);
-        qsfp_mgt_rx_n                               : in  STD_LOGIC_VECTOR(3 downto 0);
+        gt0_rx_p                                    : in  STD_LOGIC_VECTOR(3 downto 0);
+        gt0_rx_n                                    : in  STD_LOGIC_VECTOR(3 downto 0); 
+        gt1_rx_p                                    : in  STD_LOGIC_VECTOR(3 downto 0);
+        gt1_rx_n                                    : in  STD_LOGIC_VECTOR(3 downto 0);
         -- TX
-        qsfp_mgt_tx_p                               : out STD_LOGIC_VECTOR(3 downto 0);
-        qsfp_mgt_tx_n                               : out STD_LOGIC_VECTOR(3 downto 0);
+        gt0_tx_p                                    : out STD_LOGIC_VECTOR(3 downto 0);
+        gt0_tx_n                                    : out STD_LOGIC_VECTOR(3 downto 0);
+        gt1_tx_p                                    : out STD_LOGIC_VECTOR(3 downto 0);
+        gt1_tx_n                                    : out STD_LOGIC_VECTOR(3 downto 0);
         -- Settings
         qsfp_modsell_ls                             : out STD_LOGIC;
         qsfp_resetl_ls                              : out STD_LOGIC;
@@ -94,6 +97,45 @@ entity casper400gethernetblock_no_cpu is
         yellow_block_rx_eof             : out  STD_LOGIC;
         yellow_block_rx_overrun         : out  STD_LOGIC;
 
+        -- DCMAC core config/rst interfaces
+        -- axi interface for DCMAC core configuration
+        s_axi_aclk                   : in  STD_LOGIC;    
+        s_axi_aresetn                : in  STD_LOGIC;
+        s_axi_awaddr                 : in  STD_LOGIC_VECTOR(31 downto 0);
+        s_axi_awvalid                : in  STD_LOGIC;
+        s_axi_awready                : out STD_LOGIC;
+        s_axi_wdata                  : in  STD_LOGIC_VECTOR(31 downto 0);
+        s_axi_wvalid                 : in  STD_LOGIC;
+        s_axi_wready                 : out STD_LOGIC;
+        s_axi_bresp                  : out STD_LOGIC_VECTOR(1 downto 0);
+        s_axi_bvalid                 : out STD_LOGIC;
+        s_axi_bready                 : in  STD_LOGIC;
+        s_axi_araddr                 : in  STD_LOGIC_VECTOR(31 downto 0);
+        s_axi_arvalid                : in  STD_LOGIC;
+        s_axi_arready                : out STD_LOGIC;
+        s_axi_rdata                  : out STD_LOGIC_VECTOR(31 downto 0);
+        s_axi_rresp                  : out STD_LOGIC_VECTOR(1 downto 0);
+        s_axi_rvalid                 : out STD_LOGIC;
+        s_axi_rready                 : in  STD_LOGIC;
+        -- GT control signals
+        gt_rxcdrhold                 : in  STD_LOGIC;
+        gt_txprecursor               : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt_txpostcursor              : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt_txmaincursor              : in  STD_LOGIC_VECTOR(6 downto 0);
+        gt_loopback                  : in  STD_LOGIC_VECTOR(2 downto 0);
+        gt_line_rate                 : in  STD_LOGIC_VECTOR(7 downto 0);
+        gt_reset_all_in              : in  STD_LOGIC;
+        -- TX & RX datapath
+        gt_reset_tx_datapath_in      : in  STD_LOGIC_VECTOR(7 downto 0);
+        gt_reset_rx_datapath_in      : in  STD_LOGIC_VECTOR(7 downto 0);
+        -- reset_dyn
+        rx_core_reset                : in  STD_LOGIC;
+        rx_serdes_reset              : in  STD_LOGIC_VECTOR(5 downto 0);
+        tx_core_reset                : in  STD_LOGIC;
+        tx_serdes_reset              : in  STD_LOGIC_VECTOR(5 downto 0);
+        -- reset_done_dyn
+        gt_tx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
+        gt_rx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
 
         --Data inputs from AXIS bus of the Yellow Blocks
         axis_streaming_data_tx_destination_ip       : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
@@ -147,26 +189,7 @@ entity casper400gethernetblock_no_cpu is
         gmac_arp_cache_write_address           : in STD_LOGIC_VECTOR(31 downto 0);
         gmac_arp_cache_read_address            : in STD_LOGIC_VECTOR(31 downto 0);
         gmac_arp_cache_read_data               : out STD_LOGIC_VECTOR(31 downto 0)
-        --gmac_tx_data_write_enable              : STD_LOGIC;
-        --gmac_tx_data_read_enable               : STD_LOGIC;
-        --gmac_tx_data_write_data                : STD_LOGIC_VECTOR(7 downto 0);
-        --gmac_tx_data_write_byte_enable         : STD_LOGIC_VECTOR(1 downto 0);
-        --gmac_tx_data_read_data                 : STD_LOGIC_VECTOR(7 downto 0);
-        --gmac_tx_data_read_byte_enable          : STD_LOGIC_VECTOR(1 downto 0);
-        --gmac_tx_data_write_address             : STD_LOGIC_VECTOR(C_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
-        --gmac_tx_data_read_address              : STD_LOGIC_VECTOR(C_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
-        --gmac_tx_ringbuffer_slot_id             : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        --gmac_tx_ringbuffer_slot_set            : STD_LOGIC;
-        --gmac_tx_ringbuffer_slot_status         : STD_LOGIC;
-        --gmac_tx_ringbuffer_number_slots_filled : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        --gmac_rx_data_read_enable               : STD_LOGIC;
-        --gmac_rx_data_read_data                 : STD_LOGIC_VECTOR(7 downto 0);
-        --gmac_rx_data_read_byte_enable          : STD_LOGIC_VECTOR(1 downto 0);
-        --gmac_rx_data_read_address              : STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
-        --gmac_rx_ringbuffer_slot_id             : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        --gmac_rx_ringbuffer_slot_clear          : STD_LOGIC;
-        --gmac_rx_ringbuffer_slot_status         : STD_LOGIC;
-        --gmac_rx_ringbuffer_number_slots_filled : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+
     );
 end entity casper400gethernetblock_no_cpu;
 
@@ -177,7 +200,7 @@ architecture rtl of casper400gethernetblock_no_cpu is
     constant C_CPU_RX_DATA_BUFFER_ASIZE : natural                          := 11;
     constant C_ARP_DATA_WIDTH           : natural                          := 32;
 
-    component udpipinterfacepr is
+    component udpipinterfacepr400g is
         generic(
             G_INCLUDE_ICAP               : boolean                          := false;
             G_AXIS_DATA_WIDTH            : natural                          := 512;
@@ -350,9 +373,9 @@ architecture rtl of casper400gethernetblock_no_cpu is
             axis_rx_tkeep                                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_rx_tlast                                : in  STD_LOGIC
         );
-    end component udpipinterfacepr;
+    end component udpipinterfacepr400g;
 
-    component mac100gphy is
+    component mac400gphy is
         generic(
             C_MAC_INSTANCE : natural range 0 to 3 := 0;
             C_USE_RS_FEC : boolean := false;
@@ -360,25 +383,32 @@ architecture rtl of casper400gethernetblock_no_cpu is
         );
         port(
             -- Ethernet reference clock for 156.25MHz
-            -- QSFP+ 
-            mgt_qsfp_clock_p             : in  STD_LOGIC;
-            mgt_qsfp_clock_n             : in  STD_LOGIC;
+            -- We need 2 quads for the 400G Ethernet by default.
+            gt_clk0_p                    : in  STD_LOGIC;
+            gt_clk0_n                    : in  STD_LOGIC;
+            gt_clk1_p                    : in  STD_LOGIC;
+            gt_clk1_n                    : in  STD_LOGIC; 
             --RX     
-            qsfp_mgt_rx_p                : in  STD_LOGIC_VECTOR(3 downto 0);
-            qsfp_mgt_rx_n                : in  STD_LOGIC_VECTOR(3 downto 0);
+            gt0_rx_p                     : in  STD_LOGIC_VECTOR(3 downto 0);
+            gt0_rx_n                     : in  STD_LOGIC_VECTOR(3 downto 0); 
+            gt1_rx_p                     : in  STD_LOGIC_VECTOR(3 downto 0);
+            gt1_rx_n                     : in  STD_LOGIC_VECTOR(3 downto 0);
             -- TX
-            qsfp_mgt_tx_p                : out STD_LOGIC_VECTOR(3 downto 0);
-            qsfp_mgt_tx_n                : out STD_LOGIC_VECTOR(3 downto 0);
+            gt0_tx_p                     : out STD_LOGIC_VECTOR(3 downto 0);
+            gt0_tx_n                     : out STD_LOGIC_VECTOR(3 downto 0);
+            gt1_tx_p                     : out STD_LOGIC_VECTOR(3 downto 0);
+            gt1_tx_n                     : out STD_LOGIC_VECTOR(3 downto 0);
             ------------------------------------------------------------------------
-            -- These signals/busses run at 322.265625MHz clock domain              -
+            -- These signals/buses run at 390.625MHz clock domain                  -
             ------------------------------------------------------------------------
-            -- Incoming packet filters
-            fabric_mac                   : in STD_LOGIC_VECTOR(47 downto 0);
-            fabric_ip                    : in STD_LOGIC_VECTOR(31 downto 0);
-            fabric_port                  : in STD_LOGIC_VECTOR(15 downto 0);
             -- Global System Enable
             Enable                       : in  STD_LOGIC;
             Reset                        : in  STD_LOGIC;
+            DataRateBackOff              : out STD_LOGIC;
+            -- incoming packet filters
+            fabric_mac                   : in STD_LOGIC_VECTOR(47 downto 0);
+            fabric_ip                    : in STD_LOGIC_VECTOR(31 downto 0);
+            fabric_port                  : in STD_LOGIC_VECTOR(15 downto 0);
             -- Statistics interface
             gmac_reg_core_type           : out STD_LOGIC_VECTOR(31 downto 0);
             gmac_reg_phy_status_h        : out STD_LOGIC_VECTOR(31 downto 0);
@@ -412,48 +442,58 @@ architecture rtl of casper400gethernetblock_no_cpu is
             axis_rx_tuser                : in  STD_LOGIC;
             -- TX Bus
             axis_tx_clkout               : out STD_LOGIC;
-            axis_tx_tdata                : out STD_LOGIC_VECTOR(1024 downto 0);
+            axis_tx_tdata                : out STD_LOGIC_VECTOR(1023 downto 0);
             axis_tx_tvalid               : out STD_LOGIC;
             axis_tx_tkeep                : out STD_LOGIC_VECTOR(127 downto 0);
             axis_tx_tlast                : out STD_LOGIC;
             -- User signal for errors and dropping of packets
             axis_tx_tuser                : out STD_LOGIC;
-
-            yellow_block_user_clk    : in   STD_LOGIC;
-            yellow_block_rx_data     : out  STD_LOGIC_VECTOR(1023 downto 0);
-            yellow_block_rx_valid    : out  STD_LOGIC;
-            yellow_block_rx_eof      : out  STD_LOGIC;
-            yellow_block_rx_overrun  : out  STD_LOGIC
+            yellow_block_user_clk        : in STD_LOGIC;
+            yellow_block_rx_data         : out  STD_LOGIC_VECTOR(1023 downto 0);
+            yellow_block_rx_valid        : out  STD_LOGIC;
+            yellow_block_rx_eof          : out  STD_LOGIC;
+            yellow_block_rx_overrun      : out STD_LOGIC;
+            -- DCMAC core config/rst interfaces
+            -- axi interface for DCMAC core configuration
+            s_axi_aclk                   : in  STD_LOGIC;    
+            s_axi_aresetn                : in  STD_LOGIC;
+            s_axi_awaddr                 : in  STD_LOGIC_VECTOR(31 downto 0);
+            s_axi_awvalid                : in  STD_LOGIC;
+            s_axi_awready                : out STD_LOGIC;
+            s_axi_wdata                  : in  STD_LOGIC_VECTOR(31 downto 0);
+            s_axi_wvalid                 : in  STD_LOGIC;
+            s_axi_wready                 : out STD_LOGIC;
+            s_axi_bresp                  : out STD_LOGIC_VECTOR(1 downto 0);
+            s_axi_bvalid                 : out STD_LOGIC;
+            s_axi_bready                 : in  STD_LOGIC;
+            s_axi_araddr                 : in  STD_LOGIC_VECTOR(31 downto 0);
+            s_axi_arvalid                : in  STD_LOGIC;
+            s_axi_arready                : out STD_LOGIC;
+            s_axi_rdata                  : out STD_LOGIC_VECTOR(31 downto 0);
+            s_axi_rresp                  : out STD_LOGIC_VECTOR(1 downto 0);
+            s_axi_rvalid                 : out STD_LOGIC;
+            s_axi_rready                 : in  STD_LOGIC;
+            -- GT control signals
+            gt_rxcdrhold                 : in  STD_LOGIC;
+            gt_txprecursor               : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt_txpostcursor              : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt_txmaincursor              : in  STD_LOGIC_VECTOR(6 downto 0);
+            gt_loopback                  : in  STD_LOGIC_VECTOR(2 downto 0);
+            gt_line_rate                 : in  STD_LOGIC_VECTOR(7 downto 0);
+            gt_reset_all_in              : in  STD_LOGIC;
+            -- TX & RX datapath
+            gt_reset_tx_datapath_in      : in  STD_LOGIC_VECTOR(7 downto 0);
+            gt_reset_rx_datapath_in      : in  STD_LOGIC_VECTOR(7 downto 0);
+            -- reset_dyn
+            rx_core_reset                : in  STD_LOGIC;
+            rx_serdes_reset              : in  STD_LOGIC_VECTOR(5 downto 0);
+            tx_core_reset                : in  STD_LOGIC;
+            tx_serdes_reset              : in  STD_LOGIC_VECTOR(5 downto 0);
+            -- reset_done_dyn
+            gt_tx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
+            gt_rx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
         );
-    end component mac100gphy;
-
-    ----------------------------------------------------------------------------
-    --                 Vivado logic analyser test modules                     --
-    -- TODO                                                                   --
-    -- Remove these for production designs                                    --
-    -- They are only here for debug purposes                                  --
-    ----------------------------------------------------------------------------
-    --component axisila is
-    --    port(
-    --        clk     : IN STD_LOGIC;
-    --        probe0  : IN STD_LOGIC_VECTOR(511 DOWNTO 0);
-    --        probe1  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe2  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe3  : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-    --        probe4  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe5  : IN STD_LOGIC_VECTOR(511 DOWNTO 0);
-    --        probe6  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe7  : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-    --        probe8  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe9  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe10 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe11 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe12 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe13 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe14 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    --        probe15 : IN STD_LOGIC_VECTOR(0 DOWNTO 0)
-    --    );
-    --end component axisila;
+    end component mac400gphy;
 
     signal Reset          : std_logic;
     signal lbus_tx_ovfout : std_logic;
@@ -495,12 +535,12 @@ architecture rtl of casper400gethernetblock_no_cpu is
     signal fabric_mac : STD_LOGIC_VECTOR(47 downto 0);
 
 begin
-    Reset <= (not RefClkLocked) or axis_reset;
+    Reset <=  axis_reset;
 
     ----------------------------------------------------------------------------
-    --             Generic QSFP28+ port configuration settings.               --
+    --               Generic OSFP port configuration settings.                --
     ----------------------------------------------------------------------------
-    --                             QSFP28+ port 1                             --       
+    --                             OSFP+ port 1                               --       
     -- This port is used for all Ethernet communications and is the main port.--       
     ----------------------------------------------------------------------------    
     -- Dont set module to low power mode
@@ -512,10 +552,9 @@ begin
     -- Construct mac address
     fabric_mac <= gmac_reg_mac_address_h(15 downto 0) & gmac_reg_mac_address_l(31 downto 0);
     ----------------------------------------------------------------------------
-    --          QSFP28+ CMAC0 100G MAC Instance (port 1)                      --
-    -- The CMAC resides in the static partition of the design.                --
-    -- This is the main data port on the design.                              --
-    -- On the VCU118 this is mapped to the top port on the board.             -- 
+    --          OSFP DCMAC0 400G MAC Instance (port 1)                        --
+    -- The DCMAC resides in the static partition of the design.               --
+    -- This is the main data port on the design.                              -- 
     ----------------------------------------------------------------------------
     GMAC_i : mac400gphy
         generic map(
@@ -544,12 +583,18 @@ begin
             gmac_reg_rx_valid_count      => udp_gmac_reg_rx_valid_count,
             gmac_reg_rx_bad_packet_count => udp_gmac_reg_rx_bad_packet_count,
             gmac_reg_counters_reset      => udp_gmac_reg_counters_reset,
-            mgt_qsfp_clock_p             => mgt_qsfp_clock_p,
-            mgt_qsfp_clock_n             => mgt_qsfp_clock_n,
-            qsfp_mgt_rx_p                => qsfp_mgt_rx_p,
-            qsfp_mgt_rx_n                => qsfp_mgt_rx_n,
-            qsfp_mgt_tx_p                => qsfp_mgt_tx_p,
-            qsfp_mgt_tx_n                => qsfp_mgt_tx_n,
+            gt_clk0_p                    => gt_clk0_p;
+            gt_clk0_n                    => gt_clk0_n;
+            gt_clk1_p                    => gt_clk1_p;
+            gt_clk1_n                    => gt_clk1_n;   
+            gt0_rx_p                     => gt0_rx_p;
+            gt0_rx_n                     => gt0_rx_n; 
+            gt1_rx_p                     => gt1_rx_p;
+            gt1_rx_n                     => gt1_rx_n;
+            gt0_tx_p                     => gt0_tx_p;
+            gt0_tx_n                     => gt0_tx_n;
+            gt1_tx_p                     => gt1_tx_p;
+            gt1_tx_n                     => gt1_tx_n;
             axis_tx_clkout               => ClkQSFP,
             axis_rx_clkin                => ClkQSFP,
             lbus_tx_ovfout               => lbus_tx_ovfout,
@@ -566,11 +611,103 @@ begin
             axis_tx_tkeep                => axis_rx_tkeep,
             axis_tx_tlast                => axis_rx_tlast,
             axis_tx_tuser                => axis_rx_tuser,
-            yellow_block_user_clk     => axis_streaming_data_clk(0),
-            yellow_block_rx_data      => yellow_block_rx_data,
-            yellow_block_rx_valid     => yellow_block_rx_valid,
-            yellow_block_rx_eof       => yellow_block_rx_eof,
-            yellow_block_rx_overrun   => yellow_block_rx_overrun
+            yellow_block_user_clk        => axis_streaming_data_clk(0),
+            yellow_block_rx_data         => yellow_block_rx_data,
+            yellow_block_rx_valid        => yellow_block_rx_valid,
+            yellow_block_rx_eof          => yellow_block_rx_eof,
+            yellow_block_rx_overrun      => yellow_block_rx_overrun,
+            -- DCMAC core config/rst interfaces
+            -- axi interface for DCMAC core configuration
+            s_axi_aclk                   => s_axi_aclk,       
+            s_axi_aresetn                => s_axi_aresetn,
+            s_axi_awaddr                 => s_axi_awaddr,
+            s_axi_awvalid                => s_axi_awvalid,
+            s_axi_awready                => s_axi_awready,
+            s_axi_wdata                  => s_axi_wdata,
+            s_axi_wvalid                 => s_axi_wvalid,
+            s_axi_wready                 => s_axi_wready,
+            s_axi_bresp                  => s_axi_bresp,
+            s_axi_bvalid                 => s_axi_bvalid,
+            s_axi_bready                 => s_axi_bready,
+            s_axi_araddr                 => s_axi_araddr,
+            s_axi_arvalid                => s_axi_arvalid,
+            s_axi_arready                => s_axi_arready,
+            s_axi_rdata                  => s_axi_rdata,
+            s_axi_rresp                  => s_axi_rresp,
+            s_axi_rvalid                 => s_axi_rvalid,
+            s_axi_rready                 => s_axi_rready,
+            -- GT control signals
+            gt_rxcdrhold                 => gt_rxcdrhold,
+            gt_txprecursor               => gt_txprecursor,
+            gt_txpostcursor              => gt_txpostcursor,
+            gt_txmaincursor              => gt_txmaincursor,
+            gt_loopback                  => gt_loopback,
+            gt_line_rate                 => gt_line_rate,
+            gt_reset_all_in              => gt_reset_all_in,
+            -- TX & RX datapath
+            gt_reset_tx_datapath_in      => gt_reset_tx_datapath_in,
+            gt_reset_rx_datapath_in      => gt_reset_rx_datapath_in,
+            -- reset_dyn
+            rx_core_reset                => rx_core_reset,
+            rx_serdes_reset              => rx_serdes_reset,
+            tx_core_reset                => tx_core_reset,
+            tx_serdes_reset              => tx_serdes_reset,
+            -- reset_done_dyn
+            gt_tx_reset_done_out         => gt_tx_reset_done_out,
+            gt_rx_reset_done_out         => gt_rx_reset_done_out,
+
+            --Data inputs from AXIS bus of the Yellow Blocks
+            axis_streaming_data_tx_destination_ip       : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_destination_udp_port : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_packet_length        : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
+            
+            axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_tvalid               : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+            axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR(((G_AXIS_DATA_WIDTH / 8) * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_tlast                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+            axis_streaming_data_tx_tready               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+
+            -- Software controlled register IO
+            gmac_reg_phy_control_h                 : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_phy_control_l                 : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_mac_address_h                 : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_mac_address_l                 : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_local_ip_address              : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_local_ip_netmask              : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_gateway_ip_address            : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_multicast_ip_address          : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_multicast_ip_mask             : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_udp_port                      : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_core_ctrl                     : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_core_type                     : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_phy_status_h                  : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_phy_status_l                  : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_packet_rate                : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_packet_count               : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_valid_rate                 : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_valid_count                : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_overflow_count             : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_almost_full_count          : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_packet_rate                : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_packet_count               : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_valid_rate                 : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_valid_count                : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_overflow_count             : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_almost_full_count          : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_bad_packet_count           : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_arp_size                      : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_word_size                     : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_buffer_max_size               : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_count_reset                   : in STD_LOGIC_VECTOR(31 downto 0);
+
+            gmac_arp_cache_write_enable            : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_arp_cache_read_enable             : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_arp_cache_write_data              : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_arp_cache_write_address           : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_arp_cache_read_address            : in STD_LOGIC_VECTOR(31 downto 0);
+            gmac_arp_cache_read_data               : out STD_LOGIC_VECTOR(31 downto 0)
         );
 
     ----------------------------------------------------------------------------
@@ -585,7 +722,7 @@ begin
     -- To facilitate reaching maximum bandwidth several streaming apps can be --
     -- connected to the module as data sources/sinks.                         --     
     ----------------------------------------------------------------------------
-    UDPIPIFFi : udpipinterfacepr
+    UDPIPIFFi : udpipinterfacepr400g
         generic map(
             G_INCLUDE_ICAP               => G_INCLUDE_ICAP,
             G_AXIS_DATA_WIDTH            => G_AXIS_DATA_WIDTH,
@@ -711,27 +848,6 @@ begin
             axis_rx_tkeep                                => axis_rx_tkeep,
             axis_rx_tlast                                => axis_rx_tlast
         );
-
-    --MAINAXIS_i : axisila
-    --    port map(
-    --        clk        => ClkQSFP,
-    --        probe0     => axis_rx_tdata,
-    --        probe1(0)  => axis_rx_tvalid,
-    --        probe2(0)  => axis_rx_tuser,
-    --        probe3     => axis_rx_tkeep,
-    --        probe4(0)  => axis_rx_tlast,
-    --        probe5     => axis_tx_tdata,
-    --        probe6(0)  => axis_tx_tvalid,
-    --        probe7     => axis_tx_tkeep,
-    --        probe8(0)  => axis_tx_tlast,
-    --        probe9(0)  => axis_tx_tready,
-    --        probe10(0) => udp_gmac_reg_mac_enable,
-    --        probe11(0) => lbus_tx_ovfout,
-    --        probe12(0) => lbus_tx_unfout,
-    --        probe13(0) => RefClkLocked,
-    --        probe14(0) => Reset,
-    --        probe15(0) => qsfp_intl_ls
-    --    );
 
 end architecture rtl;
 
