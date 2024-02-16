@@ -348,7 +348,7 @@ begin
                                 lPacketData(303 downto 288) <= lSourceUDPPort;
                                 lPacketData(319 downto 304) <= lUDPDataStreamLength;
                                 lPacketData(335 downto 320) <= lUDPCheckSum;
-                                lPacketData(511 downto 336) <= axis_rx_tdata(511 downto 336);
+                                lPacketData(G_DATA_WIDTH - 1 downto 336) <= axis_rx_tdata(G_DATA_WIDTH - 1 downto 336);
                             else
                                 -- This is other bytes
                                 -- Pass all data

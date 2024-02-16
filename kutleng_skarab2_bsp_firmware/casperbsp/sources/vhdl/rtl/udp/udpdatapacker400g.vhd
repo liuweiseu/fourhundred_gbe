@@ -23,7 +23,7 @@ entity udpdatapacker400g is
         G_ARP_CACHE_ASIZE : natural := 9;
         G_ARP_DATA_WIDTH  : natural := 32; -- The address width is log2(2048/(512/8))=5 bits wide
         G_ADDR_WIDTH      : natural := 8;  -- log2(Number of words in each circular buffer slot)
-        G_INCLUDE_ILA : boolean := false
+        G_INCLUDE_ILA     : boolean := false
     );
     port(
         axis_clk                       : in  STD_LOGIC;
@@ -69,26 +69,30 @@ end entity udpdatapacker400g;
 
 architecture rtl of udpdatapacker400g is
     -- TODO: create a axis_data_fifo for 400g, whose data width is 1024
-    COMPONENT axis_data_fifo_400g
-      PORT (
+    component axis_data_fifo_400g
+    generic(
+        G_AXIS_DATA_WIDTH : natural := 1024
+    );
+    port (
         s_axis_aresetn : IN STD_LOGIC;
         s_axis_aclk : IN STD_LOGIC;
         s_axis_tvalid : IN STD_LOGIC;
         s_axis_tready : OUT STD_LOGIC;
-        s_axis_tdata : IN STD_LOGIC_VECTOR(1023 DOWNTO 0);
-        s_axis_tkeep : IN STD_LOGIC_VECTOR(127 DOWNTO 0);
+        s_axis_tdata : IN STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 DOWNTO 0);
+        s_axis_tkeep : IN STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 DOWNTO 0);
         s_axis_tlast : IN STD_LOGIC;
         s_axis_tuser : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
         m_axis_aclk : IN STD_LOGIC;
         m_axis_tvalid : OUT STD_LOGIC;
         m_axis_tready : IN STD_LOGIC;
-        m_axis_tdata : OUT STD_LOGIC_VECTOR(1023 DOWNTO 0);
-        m_axis_tkeep : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
+        m_axis_tdata : OUT STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 DOWNTO 0);
+        m_axis_tkeep : OUT STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 DOWNTO 0);
         m_axis_tlast : OUT STD_LOGIC;
         m_axis_tuser : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
-      );
-    END COMPONENT;
-    
+    );
+    end component axis_data_fifo_400g;
+
+
     -- TODO: create a axioffseter for 400g, whose data width is 1024
     component axioffseter400g
     generic(
@@ -113,7 +117,7 @@ architecture rtl of udpdatapacker400g is
         axim_tlast   : out STD_LOGIC
     );
     end component;
-    
+
     COMPONENT dest_address_fifo
     PORT (
         rst : IN STD_LOGIC;
