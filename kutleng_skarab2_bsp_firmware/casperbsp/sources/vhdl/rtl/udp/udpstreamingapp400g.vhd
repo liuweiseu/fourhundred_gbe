@@ -139,7 +139,7 @@ architecture rtl of udpstreamingapp400g is
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
             RecvRingBufferDataEnable       : out STD_LOGIC_VECTOR(63 downto 0);
-            RecvRingBufferDataOut          : out STD_LOGIC_VECTOR(511 downto 0);
+             u          : out STD_LOGIC_VECTOR(511 downto 0);
             RecvRingBufferAddress          : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             -- Packet Readout in addressed bus format
             SenderRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -250,7 +250,7 @@ architecture rtl of udpstreamingapp400g is
             axis_tlast                     : in  STD_LOGIC
         );
     end component udpdatapacker400g;
-    
+
     signal UDPRXRingBufferSlotID         : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal UDPRXRingBufferSlotClear      : STD_LOGIC;
     signal UDPRXRingBufferSlotStatus     : STD_LOGIC;
