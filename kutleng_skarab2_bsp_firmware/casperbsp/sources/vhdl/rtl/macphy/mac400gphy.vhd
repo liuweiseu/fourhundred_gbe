@@ -25,7 +25,8 @@ entity mac400gphy is
         -- For the 400g design, it's requried to use 2GTM per quad across 2 quads.
         -- Search "full density or half density mode" in this document:
         -- https://docs.xilinx.com/r/en-US/am017-versal-gtm-transceivers/Transceiver-and-Tool-Overview
-        C_N_COMMON : natural range 1 to 2 := 2
+        C_N_COMMON : natural range 1 to 2 := 2;
+        G_AXIS_DATA_WIDTH          : natural  := 1024
     );
     port(
         -- Ethernet reference clock for 156.25MHz
@@ -137,7 +138,7 @@ entity mac400gphy is
         tx_serdes_reset              : in  STD_LOGIC_VECTOR(5 downto 0);
         -- reset_done_dyn
         gt_tx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
-        gt_rx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
+        gt_rx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0)
     );
 end entity mac400gphy;
 
@@ -259,10 +260,14 @@ architecture rtl of mac400gphy is
             tx_serdes_reset              : in  STD_LOGIC_VECTOR(5 downto 0);
             -- reset_done_dyn
             gt_tx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
-            gt_rx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
+            gt_rx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0)
         );
     end component dcmactop;
-    component macaxisdecoupler128bytes is
+
+    component macaxisdecoupler400g is
+        generic(
+            G_AXIS_DATA_WIDTH : natural := 1024
+        );
         port(
             axis_tx_clk       : in  STD_LOGIC;
             axis_rx_clk       : in  STD_LOGIC;
@@ -271,22 +276,24 @@ architecture rtl of mac400gphy is
             TXOverFlowCount   : out STD_LOGIC_VECTOR(31 downto 0);
             TXAlmostFullCount : out STD_LOGIC_VECTOR(31 downto 0);
             --Outputs to AXIS bus MAC side 
-            axis_tx_tdata     : out STD_LOGIC_VECTOR(1023 downto 0);
+            axis_tx_tdata     : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             axis_tx_tvalid    : out STD_LOGIC;
             axis_tx_tready    : in  STD_LOGIC;
             axis_tx_tuser     : out STD_LOGIC;
-            axis_tx_tkeep     : out STD_LOGIC_VECTOR(127 downto 0);
+            axis_tx_tkeep     : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_tx_tlast     : out STD_LOGIC;
             --Inputs from AXIS bus of the MAC side
             axis_rx_tready    : out STD_LOGIC;
-            axis_rx_tdata     : in  STD_LOGIC_VECTOR(1023 downto 0);
+            axis_rx_tdata     : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             axis_rx_tvalid    : in  STD_LOGIC;
             axis_rx_tuser     : in  STD_LOGIC;
-            axis_rx_tkeep     : in  STD_LOGIC_VECTOR(127 downto 0);
+            axis_rx_tkeep     : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_rx_tlast     : in  STD_LOGIC
         );
-    end component macaxisdecoupler128bytes;
-    component axispacketbufferfifo128bytes
+    end component macaxisdecoupler400g;
+
+    -- TODO: we need a new ip core for this fifo
+    component axispacketbufferfifo400g
         port(
             s_aclk         : IN  STD_LOGIC;
             s_aresetn      : IN  STD_LOGIC;
@@ -304,9 +311,10 @@ architecture rtl of mac400gphy is
             m_axis_tuser   : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
             axis_prog_full : OUT STD_LOGIC
         );
-    end component axispacketbufferfifo128bytes;
+    end component axispacketbufferfifo400g;
 
-    component axis_stream_data_tx_ila_128bytes is
+    -- TODO: we need a new ip core for this ila
+    component axis_stream_data_tx_ila_400g is
         port(
             clk    : in STD_LOGIC;
             probe0 : in STD_LOGIC_VECTOR(1023 downto 0);
@@ -317,17 +325,18 @@ architecture rtl of mac400gphy is
             probe5 : in STD_LOGIC_VECTOR(0 to 0);
             probe6 : in STD_LOGIC_VECTOR(0 to 0)
         );
-    end component axis_stream_data_tx_ila_128bytes;
-    signal axis_tdata       : STD_LOGIC_VECTOR(1023 downto 0);
+    end component axis_stream_data_tx_ila_400g;
+
+    signal axis_tdata       : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH downto 0);
     signal axis_tvalid      : STD_LOGIC;
     signal axis_tready      : STD_LOGIC;
-    signal axis_tkeep       : STD_LOGIC_VECTOR(127 downto 0);
+    signal axis_tkeep       : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
     signal axis_tlast       : STD_LOGIC;
     signal axis_tuser       : STD_LOGIC;
-    signal axis_cp_tdata    : STD_LOGIC_VECTOR(1023 downto 0);
+    signal axis_cp_tdata    : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
     signal axis_cp_tvalid   : STD_LOGIC;
     signal axis_cp_tready   : STD_LOGIC;
-    signal axis_cp_tkeep    : STD_LOGIC_VECTOR(127 downto 0);
+    signal axis_cp_tkeep    : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
     signal axis_cp_tlast    : STD_LOGIC;
     signal axis_cp_tuser    : STD_LOGIC;
     signal laxis_tx_clk     : STD_LOGIC;
@@ -345,7 +354,7 @@ begin
         -- Here we generate a simple packet decoupling FIFO buffer.           -- 
         -- This buffer will have very fine packet throttling through tready.  -- 
         ------------------------------------------------------------------------
-        AXISPAcketBufferFIFO_i : axispacketbufferfifo_128bytes
+        AXISPAcketBufferFIFO_i : axispacketbufferfifo400g
             PORT MAP(
                 s_aclk          => laxis_tx_clk,
                 s_aresetn       => ResetN,
@@ -373,7 +382,7 @@ begin
         -- packets delimited by TLAST. TREADY will never toggle to control    --
         -- packet rate.                                                       --
         ------------------------------------------------------------------------        
-        AXISPAcketBufferFIFO_i : axispacketbufferfifo128bytes
+        AXISPAcketBufferFIFO_i : axispacketbufferfifo400g
             PORT MAP(
                 s_aclk          => laxis_tx_clk,
                 s_aresetn       => ResetN,
@@ -392,7 +401,7 @@ begin
                 axis_prog_full  => lDataRateBackOff
             );
 
-        DecouplerIlAi : axis_stream_data_tx_ila_128bytes
+        DecouplerIlAi : axis_stream_data_tx_ila_400g
             port map(
                 clk       => laxis_tx_clk,
                 probe0    => axis_tdata,
@@ -404,7 +413,7 @@ begin
                 probe6(0) => lDataRateBackOff
             );
 
-        AXISDecoupleri : macaxisdecoupler128bytes
+        AXISDecoupleri : macaxisdecoupler400g
             port map(
                 axis_tx_clk       => laxis_tx_clk,
                 axis_rx_clk       => axis_rx_clkin,
@@ -498,7 +507,7 @@ begin
             s_axi_awvalid                => s_axi_awvalid,
             s_axi_awready                => s_axi_awready,
             s_axi_wdata                  => s_axi_wdata,
-            s_axi_awvalid                => s_axi_awvalid,
+            s_axi_wvalid                 => s_axi_wvalid,
             s_axi_wready                 => s_axi_wready,   
             s_axi_bresp                  => s_axi_bresp,
             s_axi_bvalid                 => s_axi_bvalid,

@@ -20,7 +20,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity macaxisdecoupler is
+entity macaxisdecoupler400g is
+    generic(
+        G_AXIS_DATA_WIDTH : natural := 1024
+    );
     port(
         axis_tx_clk       : in  STD_LOGIC;
         axis_rx_clk       : in  STD_LOGIC;
@@ -29,27 +32,28 @@ entity macaxisdecoupler is
         TXOverFlowCount   : out STD_LOGIC_VECTOR(31 downto 0);
         TXAlmostFullCount : out STD_LOGIC_VECTOR(31 downto 0);
         --Outputs to AXIS bus MAC side 
-        axis_tx_tdata     : out STD_LOGIC_VECTOR(511 downto 0);
+        axis_tx_tdata     : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         axis_tx_tvalid    : out STD_LOGIC;
         axis_tx_tready    : in  STD_LOGIC;
         axis_tx_tuser     : out STD_LOGIC;
-        axis_tx_tkeep     : out STD_LOGIC_VECTOR(63 downto 0);
+        axis_tx_tkeep     : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
         axis_tx_tlast     : out STD_LOGIC;
         --Inputs from AXIS bus of the MAC side
         axis_rx_tready    : out STD_LOGIC;
-        axis_rx_tdata     : in  STD_LOGIC_VECTOR(511 downto 0);
+        axis_rx_tdata     : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         axis_rx_tvalid    : in  STD_LOGIC;
         axis_rx_tuser     : in  STD_LOGIC;
-        axis_rx_tkeep     : in  STD_LOGIC_VECTOR(63 downto 0);
+        axis_rx_tkeep     : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
         axis_rx_tlast     : in  STD_LOGIC
     );
-end entity macaxisdecoupler;
+end entity macaxisdecoupler400g;
 
-architecture rtl of macaxisdecoupler is
-    component macaxissender
+architecture rtl of macaxisdecoupler400g is
+    component macaxissender400g
         generic(
             G_SLOT_WIDTH : natural;
-            G_ADDR_WIDTH : natural
+            G_ADDR_WIDTH : natural;
+            G_AXIS_DATA_WIDTH : natural
         );
         port(
             axis_clk                 : in  STD_LOGIC;
@@ -60,22 +64,23 @@ architecture rtl of macaxisdecoupler is
             RingBufferSlotStatus     : in  STD_LOGIC;
             RingBufferSlotTypeStatus : in  STD_LOGIC;
             RingBufferDataRead       : out STD_LOGIC;
-            RingBufferDataEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
-            RingBufferDataIn         : in  STD_LOGIC_VECTOR(511 downto 0);
+            RingBufferDataEnable     : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+            RingBufferDataIn         : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             RingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-            axis_tx_tdata            : out STD_LOGIC_VECTOR(511 downto 0);
+            axis_tx_tdata            : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             axis_tx_tvalid           : out STD_LOGIC;
             axis_tx_tready           : in  STD_LOGIC;
             axis_tx_tuser            : out STD_LOGIC;
-            axis_tx_tkeep            : out STD_LOGIC_VECTOR(63 downto 0);
+            axis_tx_tkeep            : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_tx_tlast            : out STD_LOGIC
         );
-    end component macaxissender;
+    end component macaxissender400g;
 
-    component macaxisreceiver
+    component macaxisreceiver400g
         generic(
             G_SLOT_WIDTH : natural;
-            G_ADDR_WIDTH : natural
+            G_ADDR_WIDTH : natural;
+            G_AXIS_DATA_WIDTH : natural
         );
         port(
             axis_ringbuffer_clk      : in  STD_LOGIC;
@@ -88,17 +93,18 @@ architecture rtl of macaxisdecoupler is
             RingBufferSlotStatus     : out STD_LOGIC;
             RingBufferSlotTypeStatus : out STD_LOGIC;
             RingBufferDataRead       : in  STD_LOGIC;
-            RingBufferDataEnable     : out STD_LOGIC_VECTOR(63 downto 0);
-            RingBufferDataOut        : out STD_LOGIC_VECTOR(511 downto 0);
+            RingBufferDataEnable     : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+            RingBufferDataOut        : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             RingBufferAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-            axis_rx_tdata            : in  STD_LOGIC_VECTOR(511 downto 0);
+            axis_rx_tdata            : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             axis_rx_tvalid           : in  STD_LOGIC;
             axis_rx_tuser            : in  STD_LOGIC;
             axis_rx_tready           : out STD_LOGIC;
-            axis_rx_tkeep            : in  STD_LOGIC_VECTOR(63 downto 0);
+            axis_rx_tkeep            : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_rx_tlast            : in  STD_LOGIC
         );
-    end component macaxisreceiver;
+    end component macaxisreceiver400g;
+
     constant G_SLOT_WIDTH : natural := 4;
     constant G_ADDR_WIDTH : natural := 5;
 
@@ -107,16 +113,17 @@ architecture rtl of macaxisdecoupler is
     signal RingBufferSlotStatus     : STD_LOGIC;
     signal RingBufferSlotTypeStatus : STD_LOGIC;
     signal RingBufferDataRead       : STD_LOGIC;
-    signal RingBufferDataEnable     : STD_LOGIC_VECTOR(63 downto 0);
-    signal RingBufferData           : STD_LOGIC_VECTOR(511 downto 0);
+    signal RingBufferDataEnable     : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+    signal RingBufferData           : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
     signal RingBufferAddress        : STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 
 begin
 
-    UDPSender_i : macaxissender
+    UDPSender_i : macaxissender400g
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
-            G_ADDR_WIDTH => G_ADDR_WIDTH
+            G_ADDR_WIDTH => G_ADDR_WIDTH,
+            G_AXIS_DATA_WIDTH => G_AXIS_DATA_WIDTH
         )
         port map(
             axis_clk                 => axis_tx_clk,
@@ -138,10 +145,11 @@ begin
             axis_tx_tlast            => axis_tx_tlast
         );
 
-    UDPReceiver_i : macaxisreceiver
+    UDPReceiver_i : macaxisreceiver400g
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
-            G_ADDR_WIDTH => G_ADDR_WIDTH
+            G_ADDR_WIDTH => G_ADDR_WIDTH,
+            G_AXIS_DATA_WIDTH => G_AXIS_DATA_WIDTH
         )
         port map(
             axis_ringbuffer_clk      => axis_tx_clk,

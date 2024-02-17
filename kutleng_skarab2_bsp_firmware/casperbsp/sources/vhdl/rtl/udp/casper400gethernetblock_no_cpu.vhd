@@ -203,7 +203,7 @@ architecture rtl of casper400gethernetblock_no_cpu is
     component udpipinterfacepr400g is
         generic(
             G_INCLUDE_ICAP               : boolean                          := false;
-            G_AXIS_DATA_WIDTH            : natural                          := 512;
+            G_AXIS_DATA_WIDTH            : natural                          := 1024;
             G_SLOT_WIDTH                 : natural                          := 4;
             -- Number of UDP Streaming Data Server Modules 
             G_NUM_STREAMING_DATA_SERVERS : natural range 1 to 4             := 1;
@@ -491,7 +491,7 @@ architecture rtl of casper400gethernetblock_no_cpu is
             tx_serdes_reset              : in  STD_LOGIC_VECTOR(5 downto 0);
             -- reset_done_dyn
             gt_tx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
-            gt_rx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
+            gt_rx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0)
         );
     end component mac400gphy;
 
@@ -556,7 +556,7 @@ begin
     -- The DCMAC resides in the static partition of the design.               --
     -- This is the main data port on the design.                              -- 
     ----------------------------------------------------------------------------
-    GMAC_i : mac400gphy
+    DCMAC_i : mac400gphy
         generic map(
             C_MAC_INSTANCE => G_MAC_INSTANCE,
             C_USE_RS_FEC => G_USE_RS_FEC,
@@ -583,18 +583,18 @@ begin
             gmac_reg_rx_valid_count      => udp_gmac_reg_rx_valid_count,
             gmac_reg_rx_bad_packet_count => udp_gmac_reg_rx_bad_packet_count,
             gmac_reg_counters_reset      => udp_gmac_reg_counters_reset,
-            gt_clk0_p                    => gt_clk0_p;
-            gt_clk0_n                    => gt_clk0_n;
-            gt_clk1_p                    => gt_clk1_p;
-            gt_clk1_n                    => gt_clk1_n;   
-            gt0_rx_p                     => gt0_rx_p;
-            gt0_rx_n                     => gt0_rx_n; 
-            gt1_rx_p                     => gt1_rx_p;
-            gt1_rx_n                     => gt1_rx_n;
-            gt0_tx_p                     => gt0_tx_p;
-            gt0_tx_n                     => gt0_tx_n;
-            gt1_tx_p                     => gt1_tx_p;
-            gt1_tx_n                     => gt1_tx_n;
+            gt_clk0_p                    => gt_clk0_p,
+            gt_clk0_n                    => gt_clk0_n,
+            gt_clk1_p                    => gt_clk1_p,
+            gt_clk1_n                    => gt_clk1_n,   
+            gt0_rx_p                     => gt0_rx_p,
+            gt0_rx_n                     => gt0_rx_n, 
+            gt1_rx_p                     => gt1_rx_p,
+            gt1_rx_n                     => gt1_rx_n,
+            gt0_tx_p                     => gt0_tx_p,
+            gt0_tx_n                     => gt0_tx_n,
+            gt1_tx_p                     => gt1_tx_p,
+            gt1_tx_n                     => gt1_tx_n,
             axis_tx_clkout               => ClkQSFP,
             axis_rx_clkin                => ClkQSFP,
             lbus_tx_ovfout               => lbus_tx_ovfout,
@@ -654,60 +654,7 @@ begin
             tx_serdes_reset              => tx_serdes_reset,
             -- reset_done_dyn
             gt_tx_reset_done_out         => gt_tx_reset_done_out,
-            gt_rx_reset_done_out         => gt_rx_reset_done_out,
-
-            --Data inputs from AXIS bus of the Yellow Blocks
-            axis_streaming_data_tx_destination_ip       : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-            axis_streaming_data_tx_destination_udp_port : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-            axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-            axis_streaming_data_tx_packet_length        : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
-            
-            axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-            axis_streaming_data_tx_tvalid               : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-            axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
-            axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR(((G_AXIS_DATA_WIDTH / 8) * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-            axis_streaming_data_tx_tlast                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
-            axis_streaming_data_tx_tready               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
-
-            -- Software controlled register IO
-            gmac_reg_phy_control_h                 : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_phy_control_l                 : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_mac_address_h                 : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_mac_address_l                 : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_local_ip_address              : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_local_ip_netmask              : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_gateway_ip_address            : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_multicast_ip_address          : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_multicast_ip_mask             : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_udp_port                      : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_core_ctrl                     : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_core_type                     : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_phy_status_h                  : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_phy_status_l                  : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_tx_packet_rate                : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_tx_packet_count               : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_tx_valid_rate                 : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_tx_valid_count                : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_tx_overflow_count             : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_tx_almost_full_count          : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_packet_rate                : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_packet_count               : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_valid_rate                 : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_valid_count                : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_overflow_count             : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_almost_full_count          : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_bad_packet_count           : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_arp_size                      : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_word_size                     : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_buffer_max_size               : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_count_reset                   : in STD_LOGIC_VECTOR(31 downto 0);
-
-            gmac_arp_cache_write_enable            : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_arp_cache_read_enable             : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_arp_cache_write_data              : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_arp_cache_write_address           : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_arp_cache_read_address            : in STD_LOGIC_VECTOR(31 downto 0);
-            gmac_arp_cache_read_data               : out STD_LOGIC_VECTOR(31 downto 0)
+            gt_rx_reset_done_out         => gt_rx_reset_done_out
         );
 
     ----------------------------------------------------------------------------

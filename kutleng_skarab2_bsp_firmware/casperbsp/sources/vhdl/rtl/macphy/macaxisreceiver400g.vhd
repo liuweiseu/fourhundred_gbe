@@ -26,11 +26,12 @@ entity macaxisreceiver is
         -- For normal maximum ethernet frame packet size = ceil(1522)=2048 Bytes 
         -- The address width is log2(2048/(512/8))=5 bits wide
         -- 1 x (16KBRAM) per slot = 1 x 4 = 4 (16K BRAMS)/ 2 (32K BRAMS)   
-        G_ADDR_WIDTH : natural := 5
+        G_ADDR_WIDTH : natural := 5;
         -- For 9600 Jumbo ethernet frame packet size = ceil(9600)=16384 Bytes 
         -- The address width is log2(16384/(512/8))=8 bits wide
         -- 64 x (16KBRAM) per slot = 32 x 4 = 128 (32K BRAMS)! 
         -- G_ADDR_WIDTH      : natural                          := 5
+        G_AXIS_DATA_WIDTH : natural := 512
     );
     port(
         axis_ringbuffer_clk      : in  STD_LOGIC;
@@ -48,15 +49,15 @@ entity macaxisreceiver is
         RingBufferDataRead       : in  STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
-        RingBufferDataEnable     : out STD_LOGIC_VECTOR(63 downto 0);
-        RingBufferDataOut        : out STD_LOGIC_VECTOR(511 downto 0);
+        RingBufferDataEnable     : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+        RingBufferDataOut        : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         RingBufferAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         --Inputs from AXIS bus upstream burst interface
-        axis_rx_tdata            : in  STD_LOGIC_VECTOR(511 downto 0);
+        axis_rx_tdata            : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         axis_rx_tvalid           : in  STD_LOGIC;
         axis_rx_tuser            : in  STD_LOGIC;
         axis_rx_tready           : out STD_LOGIC;
-        axis_rx_tkeep            : in  STD_LOGIC_VECTOR(63 downto 0);
+        axis_rx_tkeep            : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
         axis_rx_tlast            : in  STD_LOGIC
     );
 end entity macaxisreceiver;

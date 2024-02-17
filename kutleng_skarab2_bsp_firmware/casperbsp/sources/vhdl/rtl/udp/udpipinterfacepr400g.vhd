@@ -542,7 +542,7 @@ begin
             ARPReadAddress     => ARPReadAddress
         );
 
-    STREAMAPPSi : udpstreamingapps
+    STREAMAPPSi : udpstreamingapps400g
         generic map(
             G_AXIS_DATA_WIDTH            => G_AXIS_DATA_WIDTH,
             G_SLOT_WIDTH                 => G_SLOT_WIDTH,
