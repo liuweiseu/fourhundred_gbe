@@ -39,7 +39,7 @@ architecture rtl of axioffseter is
     COMPONENT axioffseter_ila    
     PORT (
         clk : IN STD_LOGIC;
-        probe0 : IN STD_LOGIC_VECTOR(0 DOWNTO 0); 
+        probe0 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
         probe1 : IN STD_LOGIC_VECTOR(0 DOWNTO 0); 
         probe2 : IN STD_LOGIC_VECTOR(1023 DOWNTO 0); 
         probe3 : IN STD_LOGIC_VECTOR(0 DOWNTO 0); 

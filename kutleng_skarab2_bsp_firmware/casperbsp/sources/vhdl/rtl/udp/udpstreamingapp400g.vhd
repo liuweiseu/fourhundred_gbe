@@ -112,11 +112,12 @@ end entity udpstreamingapp400g;
 
 architecture rtl of udpstreamingapp400g is
 
-    component macifudpserver is
+    component macifudpserver400g is
         generic(
             G_SLOT_WIDTH : natural := 4;
             -- The address width is log2(2048/(512/8))=5 bits wide
-            G_ADDR_WIDTH : natural := 5
+            G_ADDR_WIDTH : natural := 5;
+            G_AXIS_DATA_WIDTH : natural := 1024
         );
         port(
             axis_clk                       : in  STD_LOGIC;
@@ -138,8 +139,8 @@ architecture rtl of udpstreamingapp400g is
             RecvRingBufferDataRead         : in  STD_LOGIC;
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
-            RecvRingBufferDataEnable       : out STD_LOGIC_VECTOR(63 downto 0);
-             u          : out STD_LOGIC_VECTOR(511 downto 0);
+            RecvRingBufferDataEnable       : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+            RecvRingBufferDataOut          : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             RecvRingBufferAddress          : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             -- Packet Readout in addressed bus format
             SenderRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -150,25 +151,25 @@ architecture rtl of udpstreamingapp400g is
             SenderRingBufferDataRead       : out STD_LOGIC;
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
-            SenderRingBufferDataEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
-            SenderRingBufferDataIn         : in  STD_LOGIC_VECTOR(511 downto 0);
+            SenderRingBufferDataEnable     : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+            SenderRingBufferDataIn         : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             SenderRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             --Inputs from AXIS bus of the MAC side
             --Outputs to AXIS bus MAC side 
             axis_tx_tpriority              : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-            axis_tx_tdata                  : out STD_LOGIC_VECTOR(511 downto 0);
+            axis_tx_tdata                  : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             axis_tx_tvalid                 : out STD_LOGIC;
             axis_tx_tready                 : in  STD_LOGIC;
-            axis_tx_tkeep                  : out STD_LOGIC_VECTOR(63 downto 0);
+            axis_tx_tkeep                  : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_tx_tlast                  : out STD_LOGIC;
             --Inputs from AXIS bus of the MAC side
-            axis_rx_tdata                  : in  STD_LOGIC_VECTOR(511 downto 0);
+            axis_rx_tdata                  : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             axis_rx_tvalid                 : in  STD_LOGIC;
             axis_rx_tuser                  : in  STD_LOGIC;
-            axis_rx_tkeep                  : in  STD_LOGIC_VECTOR(63 downto 0);
+            axis_rx_tkeep                  : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_rx_tlast                  : in  STD_LOGIC
         );
-    end component macifudpserver;
+    end component macifudpserver400g;
 
     component udpdatastripper is
         generic(
@@ -333,7 +334,7 @@ begin
             axis_tlast               => axis_streaming_data_rx_tlast
         );
 
-    UDPAPPSENDER_i : udpdatapacker_jh
+    UDPAPPSENDER_i : udpdatapacker400g
         generic map(
             G_SLOT_WIDTH      => G_SLOT_WIDTH,
             G_ARP_CACHE_ASIZE => G_ARP_CACHE_ASIZE,
@@ -400,7 +401,7 @@ begin
 --            probe14(0) => laxis_tx_tlast
 --        );
 
-    UDPDATAApp_i : macifudpserver
+    UDPDATAApp_i : macifudpserver400g
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
             G_ADDR_WIDTH => G_ADDR_WIDTH
