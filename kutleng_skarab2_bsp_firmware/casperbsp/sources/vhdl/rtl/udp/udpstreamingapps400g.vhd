@@ -26,7 +26,7 @@ entity udpstreamingapps400g is
         G_ARP_DATA_WIDTH             : natural              := 32
     );
     port(
-        -- Axis clock is the Ethernet module clock running at 322.625MHz
+        -- Axis clock is the Ethernet module clock running at 390.625MHz
         axis_clk                                    : in  STD_LOGIC;
         -- Axis reset is the global synchronous reset to the highest clock
         axis_reset                                  : in  STD_LOGIC;
@@ -213,6 +213,7 @@ architecture rtl of udpstreamingapps400g is
             axis_rx_tlast     : in  STD_LOGIC_VECTOR(G_MUX_PORTS - 1 downto 0)
         );
     end component axisfabricmultiplexer;
+    
     type dwordarray_t is array (0 to (G_NUM_STREAMING_DATA_SERVERS - 1)) of std_logic_vector(31 downto 0);
 
     signal gmac_reg_tx_overflow_count    : dwordarray_t;

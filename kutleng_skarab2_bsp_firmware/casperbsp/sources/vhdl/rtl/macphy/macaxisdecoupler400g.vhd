@@ -22,7 +22,7 @@ use ieee.numeric_std.all;
 
 entity macaxisdecoupler400g is
     generic(
-        G_AXIS_DATA_WIDTH : natural := 1024
+        G_AXIS_DATA_WIDTH : natural := 512
     );
     port(
         axis_tx_clk       : in  STD_LOGIC;

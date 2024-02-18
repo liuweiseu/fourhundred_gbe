@@ -20,7 +20,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity macaxisreceiver is
+entity macaxisreceiver400g is
     generic(
         G_SLOT_WIDTH : natural := 4;
         -- For normal maximum ethernet frame packet size = ceil(1522)=2048 Bytes 
@@ -60,9 +60,9 @@ entity macaxisreceiver is
         axis_rx_tkeep            : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
         axis_rx_tlast            : in  STD_LOGIC
     );
-end entity macaxisreceiver;
+end entity macaxisreceiver400g;
 
-architecture rtl of macaxisreceiver is
+architecture rtl of macaxisreceiver400g is
 
     component dualportpacketringbuffer is
         generic(
@@ -282,13 +282,13 @@ begin
                                 --
                                 lPacketAddressCounter          <= (others => '0');
                                 lPacketByteEnable(0)           <= '1';
-                                lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
+                                lPacketByteEnable((G_AXIS_DATA_WIDTH/8)-1 downto 1) <= axis_rx_tkeep((G_AXIS_DATA_WIDTH/8)-1 downto 1);
                             else
                                 -- This is a longer than 64 byte packet
                                 lInPacket                      <= '1';
                                 -- tkeep(0) is always 1 when writing data is valid 
                                 lPacketByteEnable(0)           <= '0';
-                                lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
+                                lPacketByteEnable((G_AXIS_DATA_WIDTH/8)-1 downto 1) <= axis_rx_tkeep((G_AXIS_DATA_WIDTH/8)-1 downto 1);
                                 if (axis_rx_tvalid = '1') then
                                     lPacketAddressCounter <= unsigned(lPacketAddressCounter) + 1;
                                 end if;

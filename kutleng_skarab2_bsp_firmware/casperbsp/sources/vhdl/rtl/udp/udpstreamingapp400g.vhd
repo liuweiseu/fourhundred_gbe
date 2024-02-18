@@ -171,10 +171,11 @@ architecture rtl of udpstreamingapp400g is
         );
     end component macifudpserver400g;
 
-    component udpdatastripper is
+    component udpdatastripper400g is
         generic(
             G_SLOT_WIDTH : natural := 4;
-            G_ADDR_WIDTH : natural := 5
+            G_ADDR_WIDTH : natural := 5;
+            G_DATA_WIDTH : natural := 512
         );
         port(
             axis_clk                 : in  STD_LOGIC;
@@ -188,20 +189,20 @@ architecture rtl of udpstreamingapp400g is
             RecvRingBufferDataRead   : out STD_LOGIC;
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
-            RecvRingBufferDataEnable : in  STD_LOGIC_VECTOR(63 downto 0);
-            RecvRingBufferDataOut    : in  STD_LOGIC_VECTOR(511 downto 0);
+            RecvRingBufferDataEnable : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            RecvRingBufferDataOut    : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             RecvRingBufferAddress    : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             --
             UDPPacketLength          : out STD_LOGIC_VECTOR(15 downto 0);
             --
             axis_tuser               : out STD_LOGIC;
-            axis_tdata               : out STD_LOGIC_VECTOR(511 downto 0);
+            axis_tdata               : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             axis_tvalid              : out STD_LOGIC;
             axis_tready              : in  STD_LOGIC;
-            axis_tkeep               : out STD_LOGIC_VECTOR(63 downto 0);
+            axis_tkeep               : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
             axis_tlast               : out STD_LOGIC
         );
-    end component udpdatastripper;
+    end component udpdatastripper400g;
 
     component udpdatapacker400g is
         generic(
@@ -256,8 +257,8 @@ architecture rtl of udpstreamingapp400g is
     signal UDPRXRingBufferSlotClear      : STD_LOGIC;
     signal UDPRXRingBufferSlotStatus     : STD_LOGIC;
     signal UDPRXRingBufferDataRead       : STD_LOGIC;
-    signal UDPRXRingBufferDataEnable     : STD_LOGIC_VECTOR(63 downto 0);
-    signal UDPRXRingBufferData           : STD_LOGIC_VECTOR(511 downto 0);
+    signal UDPRXRingBufferDataEnable     : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+    signal UDPRXRingBufferData           : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
     signal UDPRXRingBufferAddress        : STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
     signal UDPTXRingBufferSlotID         : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal UDPTXRingBufferSlotClear      : STD_LOGIC;
@@ -265,8 +266,8 @@ architecture rtl of udpstreamingapp400g is
     signal UDPTXRingBufferSlotTypeStatus : STD_LOGIC;
     signal UDPTXRingBufferSlotsFilled    : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal UDPTXRingBufferDataRead       : STD_LOGIC;
-    signal UDPTXRingBufferDataEnable     : STD_LOGIC_VECTOR(63 downto 0);
-    signal UDPTXRingBufferData           : STD_LOGIC_VECTOR(511 downto 0);
+    signal UDPTXRingBufferDataEnable     : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+    signal UDPTXRingBufferData           : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
     signal UDPTXRingBufferAddress        : STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 
 --    component axis_ila_server is
@@ -304,10 +305,11 @@ begin
     axis_tx_tkeep     <= laxis_tx_tkeep;
     axis_tx_tlast     <= laxis_tx_tlast;
 
-    UDPRECEIVER_i : udpdatastripper
+    UDPRECEIVER_i : udpdatastripper400g
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
-            G_ADDR_WIDTH => G_ADDR_WIDTH
+            G_ADDR_WIDTH => G_ADDR_WIDTH,
+            G_DATA_WIDTH => G_AXIS_DATA_WIDTH
         )
         port map(
             axis_clk                 => axis_streaming_data_clk,

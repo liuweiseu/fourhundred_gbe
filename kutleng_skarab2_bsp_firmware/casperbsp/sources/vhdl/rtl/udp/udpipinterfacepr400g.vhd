@@ -37,7 +37,7 @@ entity udpipinterfacepr400g is
         G_PR_SERVER_PORT             : natural range 0 to ((2**16) - 1) := 5
     );
     port(
-        -- Axis clock is the Ethernet module clock running at 322.625MHz
+        -- Axis clock is the Ethernet module clock running at 390.625MHz
         axis_clk                                     : in  STD_LOGIC;
         -- Aximm clock is the AXI Lite MM clock for the gmac register interface
         -- It's 100MHz on the VPK180 board
@@ -209,7 +209,9 @@ architecture rtl of udpipinterfacepr400g is
     -- The reason is the interface to the CPU side is registers from axi interface, which is not necessary to be modified;
     -- The interface to the MAC side is AXIS interface, and there is no fifo used in this module,
     -- so the only thing need to be changed here is the G_AXIS_DATA_WIDTH.
-    component cpuethernetmacif is
+    -- ******************************
+    -- The data width is hard coded in some submodules, so we have to change this module.
+    component cpuethernetmacif400g is
         generic(
             G_SLOT_WIDTH               : natural := 4;
             G_AXIS_DATA_WIDTH          : natural := 1024;
@@ -275,7 +277,7 @@ architecture rtl of udpipinterfacepr400g is
             axis_rx_tkeep                                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_rx_tlast                                : in  STD_LOGIC
         );
-    end component cpuethernetmacif;
+    end component cpuethernetmacif400g;
 
     -- TODO: Check if we need to modify the arpcache module.
     -- I think we don't need to modify this module, as we only get arp info from this module.
@@ -602,7 +604,7 @@ begin
             axis_rx_tlast                               => axis_rx_tlast
         );
 
-    CPUIFi : cpuethernetmacif
+    CPUIFi : cpuethernetmacif400g
         generic map(
             G_SLOT_WIDTH               => G_SLOT_WIDTH,
             G_AXIS_DATA_WIDTH          => G_AXIS_DATA_WIDTH,

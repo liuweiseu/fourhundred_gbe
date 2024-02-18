@@ -76,7 +76,7 @@ begin
     RingBufferAddress <= std_logic_vector(lRingBufferAddress);
 
     axis_tx_tdata              <= RingBufferDataIn;
-    axis_tx_tkeep(63 downto 1) <= RingBufferDataEnable(63 downto 1);
+    axis_tx_tkeep((G_AXIS_DATA_WIDTH/8)-1 downto 1) <= RingBufferDataEnable((G_AXIS_DATA_WIDTH/8)-1 downto 1);
     axis_tx_tkeep(0)           <= (not RingBufferDataEnable(0)) when (RingBufferDataEnable(0) = '0') else '1';
     axis_tx_tlast              <= '1' when ((lRingBufferAddress = C_RING_BUFFER_MAX_ADDRESS) or (RingBufferDataEnable(0) = '1')) else '0';
     axis_tx_tuser              <= '1' when (lRingBufferAddress = C_RING_BUFFER_MAX_ADDRESS) else '0';
