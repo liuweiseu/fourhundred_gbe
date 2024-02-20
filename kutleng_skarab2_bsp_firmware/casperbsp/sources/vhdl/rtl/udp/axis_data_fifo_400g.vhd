@@ -4,6 +4,8 @@ use ieee.numeric_std.all;
  
 entity axis_data_fifo_400g is
     generic(
+        -- we're using xpm_fifo_axis here, but it may only work on Versal SoC, or it's a new core on Vivado 2023.1.
+        -- I'm not sure about it for now.
         PLATFORM          : string  := "versal";
         G_AXIS_DATA_WIDTH : natural := 1024;
         G_AXIS_FIFO_DEPTH : natural := 64
@@ -31,24 +33,24 @@ architecture rtl of axis_data_fifo_400g is
     -- This is the FIFO work on Versal SoC
     component xpm_fifo_axis
     generic (
-        CASCADE_HEIGHT          : natural :=  0;               -- DECIMAL
-        CDC_SYNC_STAGES         : natural :=  2;               -- DECIMAL
-        CLOCKING_MODE           : string  := "common_clock";  -- String
-        ECC_MODE                : string  := "no_ecc";        -- String
-        FIFO_DEPTH              : natural :=  64;              -- DECIMAL
-        FIFO_MEMORY_TYPE        : string  := "auto";          -- String
-        PACKET_FIFO             : string  := "false";         -- String
-        PROG_EMPTY_THRESH       : natural :=  10;              -- DECIMAL
-        PROG_FULL_THRESH        : natural :=  10;              -- DECIMAL
-        RD_DATA_COUNT_WIDTH     : natural :=  1;               -- DECIMAL
-        RELATED_CLOCKS          : natural :=  0;               -- DECIMAL
-        SIM_ASSERT_CHK          : natural :=  0;               -- DECIMAL; 0=disable simulation messages, 1=enable simulation messages
-        TDATA_WIDTH             : natural :=  32;              -- DECIMAL
-        TDEST_WIDTH             : natural :=  1;               -- DECIMAL
-        TID_WIDTH               : natural :=  1;               -- DECIMAL
-        TUSER_WIDTH             : natural :=  1;               -- DECIMAL
-        USE_ADV_FEATURES        : string  :=  "1000";          -- String
-        WR_DATA_COUNT_WIDTH     : natural :=  1                -- DECIMAL
+        CASCADE_HEIGHT          : natural :=  0;                -- DECIMAL
+        CDC_SYNC_STAGES         : natural :=  2;                -- DECIMAL
+        CLOCKING_MODE           : string  := "common_clock";    -- String
+        ECC_MODE                : string  := "no_ecc";          -- String
+        FIFO_DEPTH              : natural :=  64;               -- DECIMAL
+        FIFO_MEMORY_TYPE        : string  := "auto";            -- String
+        PACKET_FIFO             : string  := "false";           -- String
+        PROG_EMPTY_THRESH       : natural :=  10;               -- DECIMAL
+        PROG_FULL_THRESH        : natural :=  10;               -- DECIMAL
+        RD_DATA_COUNT_WIDTH     : natural :=  1;                -- DECIMAL
+        RELATED_CLOCKS          : natural :=  0;                -- DECIMAL
+        SIM_ASSERT_CHK          : natural :=  0;                -- DECIMAL; 0=disable simulation messages, 1=enable simulation messages
+        TDATA_WIDTH             : natural :=  32;               -- DECIMAL
+        TDEST_WIDTH             : natural :=  1;                -- DECIMAL
+        TID_WIDTH               : natural :=  1;                -- DECIMAL
+        TUSER_WIDTH             : natural :=  1;                -- DECIMAL
+        USE_ADV_FEATURES        : string  :=  "1000";           -- String
+        WR_DATA_COUNT_WIDTH     : natural :=  1                 -- DECIMAL
     );
     port(
         almost_empty_axis   : out STD_LOGIC;    

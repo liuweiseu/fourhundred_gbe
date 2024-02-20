@@ -30,7 +30,7 @@ entity cpumacifethernetreceiver400g is
         -- The address width is log2(16384/(512/8))=8 bits wide
         -- 64 x (16KBRAM) per slot = 32 x 4 = 128 (32K BRAMS)! 
         -- G_ADDR_WIDTH      : natural                          := 5
-        G_AXIS_DATA_WIDTH : natural := 512
+        G_AXIS_DATA_WIDTH : natural := 1024
     );
     port(
         axis_clk               : in  STD_LOGIC;

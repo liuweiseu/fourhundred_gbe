@@ -27,7 +27,7 @@ entity macifudpserver400g is
         G_SLOT_WIDTH      : natural                          := 4;
         -- The address width is log2(2048/(512/8))=5 bits wide
         G_ADDR_WIDTH      : natural                          := 5;
-        G_DATA_WIDTH      : natural                          := 1024
+        G_DATA_WIDTH      : natural                          := 512
     );
     port(
         axis_clk                       : in  STD_LOGIC;
@@ -83,12 +83,13 @@ entity macifudpserver400g is
 end entity macifudpserver400g;
 
 architecture rtl of macifudpserver400g is
-    component macifudpsender is
+    component macifudpsender400g is
         generic(
             G_SLOT_WIDTH : natural := 4;
             --G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
             -- The address width is log2(2048/(512/8))=5 bits wide
-            G_ADDR_WIDTH : natural := 5
+            G_ADDR_WIDTH : natural := 5;
+            G_DATA_WIDTH : natural := 512
         );
         port(
             axis_clk                 : in  STD_LOGIC;
@@ -106,25 +107,26 @@ architecture rtl of macifudpserver400g is
             RingBufferDataRead       : out STD_LOGIC;
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
-            RingBufferDataEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
-            RingBufferDataIn         : in  STD_LOGIC_VECTOR(511 downto 0);
+            RingBufferDataEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            RingBufferDataIn         : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             RingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             --Inputs from AXIS bus of the MAC side
             --Outputs to AXIS bus MAC side 
             axis_tx_tpriority        : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-            axis_tx_tdata            : out STD_LOGIC_VECTOR(511 downto 0);
+            axis_tx_tdata            : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             axis_tx_tvalid           : out STD_LOGIC;
             axis_tx_tready           : in  STD_LOGIC;
-            axis_tx_tkeep            : out STD_LOGIC_VECTOR(63 downto 0);
+            axis_tx_tkeep            : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
             axis_tx_tlast            : out STD_LOGIC
         );
-    end component macifudpsender;
+    end component macifudpsender400g;
 
-    component macifudpreceiver is
+    component macifudpreceiver400g is
         generic(
             G_SLOT_WIDTH      : natural                          := 4;
             -- The address width is log2(2048/(512/8))=5 bits wide
-            G_ADDR_WIDTH      : natural                          := 5
+            G_ADDR_WIDTH      : natural                          := 5;
+            G_DATA_WIDTH      : natural                          := 512
         );
         port(
             axis_clk                 : in  STD_LOGIC;
@@ -146,21 +148,21 @@ architecture rtl of macifudpserver400g is
             RingBufferDataRead       : in  STD_LOGIC;
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
-            RingBufferDataEnable     : out STD_LOGIC_VECTOR(63 downto 0);
-            RingBufferDataOut        : out STD_LOGIC_VECTOR(511 downto 0);
+            RingBufferDataEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            RingBufferDataOut        : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             RingBufferAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             --Inputs from AXIS bus of the MAC side
-            axis_rx_tdata            : in  STD_LOGIC_VECTOR(511 downto 0);
+            axis_rx_tdata            : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             axis_rx_tvalid           : in  STD_LOGIC;
             axis_rx_tuser            : in  STD_LOGIC;
-            axis_rx_tkeep            : in  STD_LOGIC_VECTOR(63 downto 0);
+            axis_rx_tkeep            : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
             axis_rx_tlast            : in  STD_LOGIC
         );
-    end component macifudpreceiver;
+    end component macifudpreceiver400g;
 
 begin
 
-    UDPSender_i : macifudpsender
+    UDPSender_i : macifudpsender400g
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
             G_ADDR_WIDTH => G_ADDR_WIDTH
@@ -185,7 +187,7 @@ begin
             axis_tx_tlast            => axis_tx_tlast
         );
 
-    UDPReceiver_i : macifudpreceiver
+    UDPReceiver_i : macifudpreceiver400g
         generic map(
             G_SLOT_WIDTH      => G_SLOT_WIDTH,
             G_ADDR_WIDTH      => G_ADDR_WIDTH

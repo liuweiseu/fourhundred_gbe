@@ -7,7 +7,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity axioffseter is
+entity axioffseter400g is
     generic(
         G_AXIS_DATA_WIDTH : natural := 1024;
         G_OFFSET_BYTES : natural := 42;
@@ -31,9 +31,9 @@ entity axioffseter is
         axim_tlast   : out STD_LOGIC
     );
 
-end entity axioffseter;
+end entity axioffseter400g;
 
-architecture rtl of axioffseter is
+architecture rtl of axioffseter400g is
     -- TODO: This module is not imported to the project,
     --       so we may not need it.
     COMPONENT axioffseter_ila    

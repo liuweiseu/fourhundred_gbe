@@ -20,7 +20,7 @@ use ieee.numeric_std.all;
 entity cpumacifudpreceiver400g is
     generic(
         G_SLOT_WIDTH         : natural := 4;
-        G_AXIS_DATA_WIDTH    : natural := 512;
+        G_AXIS_DATA_WIDTH    : natural := 1024;
         -- The address width is log2(2048/8))=11 bits wide
         G_ADDR_WIDTH         : natural := 11
     );
@@ -70,7 +70,7 @@ architecture rtl of cpumacifudpreceiver400g is
             -- The address width is log2(16384/(512/8))=8 bits wide
             -- 64 x (16KBRAM) per slot = 32 x 4 = 128 (32K BRAMS)! 
             -- G_ADDR_WIDTH      : natural                          := 5
-            G_AXIS_DATA_WIDTH : natural := 512
+            G_AXIS_DATA_WIDTH : natural := 1024
         );
         port(
             axis_clk               : in  STD_LOGIC;
@@ -108,7 +108,7 @@ architecture rtl of cpumacifudpreceiver400g is
             G_SLOT_WIDTH  : natural := 4;
             constant G_RX_ADDR_WIDTH : natural := 5;
             constant G_TX_ADDR_WIDTH : natural := 11;
-            constant G_RX_DATA_WIDTH : natural := 512;
+            constant G_RX_DATA_WIDTH : natural := 1024;
             constant G_TX_DATA_WIDTH : natural := 8            
             );
         port(

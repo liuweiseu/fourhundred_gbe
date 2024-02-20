@@ -20,7 +20,7 @@ use ieee.numeric_std.all;
 entity cpumacifudpsender400g is
     generic(
         G_SLOT_WIDTH      : natural := 4;
-        G_AXIS_DATA_WIDTH : natural := 512;
+        G_AXIS_DATA_WIDTH : natural := 1024;
         G_CPU_DATA_WIDTH  : natural := 8;
         -- The address width is log2(2048/8))=11 bits wide
         G_ADDR_WIDTH      : natural := 11
@@ -71,7 +71,7 @@ architecture rtl of cpumacifudpsender400g is
         constant G_RX_ADDR_WIDTH : natural := 11;
         constant G_TX_ADDR_WIDTH : natural := 5;
         constant G_RX_DATA_WIDTH : natural := 8;
-        constant G_TX_DATA_WIDTH : natural := 512
+        constant G_TX_DATA_WIDTH : natural := 1024
     );
     port(
         RxClk                  : in  STD_LOGIC;
@@ -100,12 +100,13 @@ architecture rtl of cpumacifudpsender400g is
     );
     end component cpuifsenderpacketringbuffer;
 
-    component macifudpsender is
+    component macifudpsender400g is
         generic(
             G_SLOT_WIDTH : natural := 4;
             --G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
             -- The address width is log2(2048/(512/8))=5 bits wide
-            G_ADDR_WIDTH : natural := 5
+            G_ADDR_WIDTH : natural := 5;
+            G_DATA_WIDTH : natural := 1024
         );
         port(
             axis_clk                 : in  STD_LOGIC;
@@ -133,7 +134,7 @@ architecture rtl of cpumacifudpsender400g is
             axis_tx_tkeep            : out STD_LOGIC_VECTOR(63 downto 0);
             axis_tx_tlast            : out STD_LOGIC
         );
-    end component macifudpsender;
+    end component macifudpsender400g;
     -- The egress width is 5 less the ingress width
     -- For normal MTU of 2048 ingress width = 10 (1024* 2 (16 bits))
     -- egress width  = 5 (32 * 64 (512 bits))
@@ -280,10 +281,11 @@ ringbuffer_slot_status <= lringbuffer_slot_status;
             TxPacketSlotStatus      => EgressRingBufferSlotStatus
         );
 
-    TXSENDERi : macifudpsender
+    TXSENDERi : macifudpsender400g
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
-            G_ADDR_WIDTH => G_EGRESS_ADDR_WIDTH
+            G_ADDR_WIDTH => G_EGRESS_ADDR_WIDTH,
+            G_DATA_WIDTH => G_AXIS_DATA_WIDTH
         )
         port map(
             axis_clk                 => axis_clk,

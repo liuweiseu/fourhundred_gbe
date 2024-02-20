@@ -154,7 +154,7 @@ begin
                         if ((axis_tx_tready = '1') and (lpready = '1'))then
                             ltvalid                    <= '1';
                             axis_tx_tdata              <= RingBufferDataIn;
-                            axis_tx_tkeep(63 downto 1) <= RingBufferDataEnable(63 downto 1);
+                            axis_tx_tkeep((G_DATA_WIDTH / 8) - 1 downto 1) <= RingBufferDataEnable((G_DATA_WIDTH / 8) - 1 downto 1);
                             lRingBufferAddress         <= lRingBufferAddress + 1;
 
                             if (RingBufferDataEnable(0) = '1') then

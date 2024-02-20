@@ -20,7 +20,7 @@ entity udpdatastripper400g is
     generic(
         G_SLOT_WIDTH : natural := 4;
         G_ADDR_WIDTH : natural := 5;
-        G_DATA_WIDTH : natural := 512
+        G_DATA_WIDTH : natural := 1024
     );
     port(
         axis_clk                 : in  STD_LOGIC;

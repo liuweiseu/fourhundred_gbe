@@ -374,13 +374,13 @@ begin
                                 --
                                 lPacketAddressCounter          <= (others => '0');
                                 lPacketByteEnable(0)           <= '1';
-                                lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
+                                lPacketByteEnable((G_DATA_WIDTH / 8) - 1 downto 1) <= axis_rx_tkeep((G_DATA_WIDTH / 8) - 1 downto 1);
                             else
                                 -- This is a longer than 64 byte packet
                                 lInPacket                      <= '1';
                                 -- tkeep(0) is always 1 when writing data is valid 
                                 lPacketByteEnable(0)           <= '0';
-                                lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
+                                lPacketByteEnable((G_DATA_WIDTH / 8) - 1 downto 1) <= axis_rx_tkeep((G_DATA_WIDTH / 8) - 1 downto 1);
                                 if (axis_rx_tvalid = '1') then
                                     lPacketAddressCounter <= unsigned(lPacketAddressCounter) + 1;
                                 end if;

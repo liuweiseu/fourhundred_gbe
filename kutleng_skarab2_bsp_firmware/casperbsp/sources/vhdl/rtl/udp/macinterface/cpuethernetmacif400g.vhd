@@ -20,7 +20,7 @@ use ieee.numeric_std.all;
 entity cpuethernetmacif400g is
     generic(
         G_SLOT_WIDTH               : natural := 4;
-        G_AXIS_DATA_WIDTH          : natural := 512;
+        G_AXIS_DATA_WIDTH          : natural := 1024;
         G_CPU_TX_DATA_BUFFER_ASIZE : natural := 13;
         G_CPU_RX_DATA_BUFFER_ASIZE : natural := 13
     );
@@ -89,7 +89,7 @@ architecture rtl of cpuethernetmacif400g is
     component cpumacifudpsender400g is
         generic(
             G_SLOT_WIDTH      : natural := 4;
-            G_AXIS_DATA_WIDTH : natural := 512;
+            G_AXIS_DATA_WIDTH : natural := 1024;
             -- The address width is log2(2048/(512/8))=5 bits wide
             G_ADDR_WIDTH      : natural := 5
         );
@@ -131,7 +131,7 @@ architecture rtl of cpuethernetmacif400g is
     component cpumacifudpreceiver400g is
         generic(
             G_SLOT_WIDTH         : natural := 4;
-            G_AXIS_DATA_WIDTH    : natural := 512;
+            G_AXIS_DATA_WIDTH    : natural := 1024;
             -- The address width is log2(2048/8))=11 bits wide
             G_ADDR_WIDTH         : natural := 11
         );

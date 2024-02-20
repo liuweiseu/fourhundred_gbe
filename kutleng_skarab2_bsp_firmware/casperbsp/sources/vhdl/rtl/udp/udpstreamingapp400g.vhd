@@ -25,7 +25,7 @@ entity udpstreamingapp400g is
         G_ADDR_WIDTH      : natural := 8
     );
     port(
-        -- Axis clock is the Ethernet module clock running at 322.625MHz
+        -- Axis clock is the Ethernet module clock running at 390.625MHz
         axis_clk                                    : in  STD_LOGIC;
         -- Axis reset is the global synchronous reset to the highest clock
         axis_reset                                  : in  STD_LOGIC;
@@ -117,7 +117,7 @@ architecture rtl of udpstreamingapp400g is
             G_SLOT_WIDTH : natural := 4;
             -- The address width is log2(2048/(512/8))=5 bits wide
             G_ADDR_WIDTH : natural := 5;
-            G_AXIS_DATA_WIDTH : natural := 1024
+            G_AXIS_DATA_WIDTH : natural := 512
         );
         port(
             axis_clk                       : in  STD_LOGIC;
@@ -209,7 +209,8 @@ architecture rtl of udpstreamingapp400g is
             G_SLOT_WIDTH      : natural := 4;
             G_ARP_CACHE_ASIZE : natural := 13;
             G_ARP_DATA_WIDTH  : natural := 32; -- The address width is log2(2048/(512/8))=5 bits wide
-            G_ADDR_WIDTH      : natural := 5
+            G_ADDR_WIDTH      : natural := 5;
+            G_AXIS_DATA_WIDTH : natural := 512
         );
         port(
             axis_clk                       : in  STD_LOGIC;
@@ -341,7 +342,8 @@ begin
             G_SLOT_WIDTH      => G_SLOT_WIDTH,
             G_ARP_CACHE_ASIZE => G_ARP_CACHE_ASIZE,
             G_ARP_DATA_WIDTH  => G_ARP_DATA_WIDTH,
-            G_ADDR_WIDTH      => G_ADDR_WIDTH
+            G_ADDR_WIDTH      => G_ADDR_WIDTH,
+            G_AXIS_DATA_WIDTH => G_AXIS_DATA_WIDTH
         )
         port map(
             axis_clk                       => axis_clk,
@@ -406,7 +408,8 @@ begin
     UDPDATAApp_i : macifudpserver400g
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
-            G_ADDR_WIDTH => G_ADDR_WIDTH
+            G_ADDR_WIDTH => G_ADDR_WIDTH,
+            G_AXIS_DATA_WIDTH => G_AXIS_DATA_WIDTH
         )
         port map(
             axis_clk                       => axis_clk,

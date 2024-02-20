@@ -330,9 +330,9 @@ architecture rtl of udpdatapacker400g is
     COMPONENT ila_0
     PORT (
       clk : IN STD_LOGIC;
-      probe0 : IN STD_LOGIC_VECTOR(127 DOWNTO 0); 
+      probe0 : IN STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 DOWNTO 0); 
       probe1 : IN STD_LOGIC_VECTOR(0 DOWNTO 0); 
-      probe2 : IN STD_LOGIC_VECTOR(1023 DOWNTO 0); 
+      probe2 : IN STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 DOWNTO 0); 
       probe3 : IN STD_LOGIC_VECTOR(4 DOWNTO 0); 
       probe4 : IN STD_LOGIC_VECTOR(0 DOWNTO 0); 
       probe5 : IN STD_LOGIC_VECTOR(3 DOWNTO 0); 
@@ -391,8 +391,12 @@ begin
         empty => open
   );
     
-    udpoffseter_i : axioffseter400g
-      PORT MAP (
+  udpoffseter_i : axioffseter400g
+    GENERIC MAP (
+        G_AXIS_DATA_WIDTH => G_AXIS_DATA_WIDTH,
+        G_OFFSET_BYTES => 42
+    )
+    PORT MAP (
         axis_clk     => axis_clk,
         axis_rst     => axis_reset,
         axis_tuser   => fifo_axis_tuser,
@@ -645,12 +649,12 @@ begin
                             lPacketData                    <= offset_axis_tdata;
                             lPacketByteEnable(0)           <= offset_axis_tlast;
                             lPacketSlotType                <= offset_axis_tlast;
-                            lPacketByteEnable(127 downto 1) <= offset_axis_tkeep(127 downto 1);
+                            lPacketByteEnable((G_AXIS_DATA_WIDTH / 8) - 1 downto 1) <= offset_axis_tkeep((G_AXIS_DATA_WIDTH / 8) - 1 downto 1);
                             -- Point to next address when data is valid from source
                             lUDPLength <= X"001e"; -- Assume this word is 64 bytes, 34 of which are headers on top of UDP
                             lIPLength <= X"0032"; --Assume this word is 64 bytes, 14 of which are headers on top of IP 
                             lPacketAddress <= (others => '0');
-                            lFirstWord <= offset_axis_tdata(1023 downto 336); -- store the first word so we can write it again when we have the headers
+                            lFirstWord <= offset_axis_tdata(G_AXIS_DATA_WIDTH - 1 downto 336); -- store the first word so we can write it again when we have the headers
                             StateVariable <= WriteUdpPayloadSt;
                         end if;
                                            
@@ -666,7 +670,7 @@ begin
                         -- Enable(0) is special for TLAST mapping
                         lPacketByteEnable(0)           <= offset_axis_tlast;
                         lPacketSlotType                <= offset_axis_tlast;
-                        lPacketByteEnable(127 downto 1) <= offset_axis_tkeep(127 downto 1);
+                        lPacketByteEnable((G_AXIS_DATA_WIDTH / 8) - 1 downto 1) <= offset_axis_tkeep((G_AXIS_DATA_WIDTH / 8) - 1 downto 1);
                         -- Point to next address when data is valid from source
                         if (offset_axis_tvalid = '1') then
                             -- Assumes that we keep bytes from LSB up to MSB-n
@@ -745,7 +749,7 @@ begin
                         lPacketData(272 + 4*8  - 1 downto 272 + 2*8) <= byteswap(lDestinationUDPPort);
                         lPacketData(272 + 6*8  - 1 downto 272 + 4*8) <= std_logic_vector(byteswap(lUDPLength));
                         lPacketData(272 + 8*8  - 1 downto 272 + 6*8) <= byteswap(lUDPChecksum);
-                        lPacketData(1023 downto 336) <= lFirstWord;
+                        lPacketData(G_AXIS_DATA_WIDTH - 1 downto 336) <= lFirstWord;
                         lPacketByteEnable <= X"fffffffffffffffffffffffffffffffe"; -- write 42 bytes. zero LSB because that's used for end-of-frame
 
                         StateVariable <= CloseBufferSt;
