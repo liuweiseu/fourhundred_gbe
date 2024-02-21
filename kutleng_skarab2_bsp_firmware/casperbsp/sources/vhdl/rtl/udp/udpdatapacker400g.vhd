@@ -118,7 +118,7 @@ architecture rtl of udpdatapacker400g is
     );
     end component;
 
-    COMPONENT dest_address_fifo
+    COMPONENT dest_address_fifo_400g
     PORT (
         rst : IN STD_LOGIC;
         wr_clk : IN STD_LOGIC;
@@ -378,7 +378,7 @@ begin
         m_axis_tuser(0) => fifo_axis_tuser
       );
       
-  dest_ip_port_fifo_i : dest_address_fifo
+  dest_ip_port_fifo_i : dest_address_fifo_400g
       PORT MAP (
         rst => axis_reset,
         wr_clk => axis_app_clk,
