@@ -123,7 +123,8 @@
 		output wire [31:0] axis_streaming_data_tx_destination_ip,  				// reg38 rw
         output wire [31:0] axis_streaming_data_tx_destination_udp_port,			// reg39 rw
         output wire [31:0] axis_streaming_data_tx_source_udp_port,				// reg40 rw
-        output wire [31:0] axis_streaming_data_tx_packet_length 				// reg41 rw
+        output wire [31:0] axis_streaming_data_tx_packet_length, 				// reg41 rw
+		output wire axis_data_gen_enable										// reg42[0:0] rw
 	);
 
 	// AXI4LITE signals
@@ -1828,6 +1829,7 @@
 	assign axis_streaming_data_tx_destination_udp_port = slv_reg39;
 	assign axis_streaming_data_tx_source_udp_port = slv_reg40;
 	assign axis_streaming_data_tx_packet_length = slv_reg41;
+	assign axis_data_gen_enable = slv_reg42[0:0];
 	// User logic ends
 
 	endmodule
