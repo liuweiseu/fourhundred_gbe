@@ -62,8 +62,8 @@ entity macifudpserver400g is
         SenderRingBufferDataRead       : out STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
-        SenderRingBufferDataEnable     : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH / 8) - 1 downto 0);
-        SenderRingBufferDataIn         : in  STD_LOGIC_VECTOR(G_DATA_WIDTH downto 0);
+        SenderRingBufferDataEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+        SenderRingBufferDataIn         : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
         SenderRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         --Inputs from AXIS bus of the MAC side
         --Outputs to AXIS bus MAC side 
@@ -165,7 +165,8 @@ begin
     UDPSender_i : macifudpsender400g
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
-            G_ADDR_WIDTH => G_ADDR_WIDTH
+            G_ADDR_WIDTH => G_ADDR_WIDTH,
+            G_DATA_WIDTH => G_DATA_WIDTH
         )
         port map(
             axis_clk                 => axis_clk,
@@ -190,7 +191,8 @@ begin
     UDPReceiver_i : macifudpreceiver400g
         generic map(
             G_SLOT_WIDTH      => G_SLOT_WIDTH,
-            G_ADDR_WIDTH      => G_ADDR_WIDTH
+            G_ADDR_WIDTH      => G_ADDR_WIDTH,
+            G_DATA_WIDTH      => G_DATA_WIDTH
         )
         port map(
             axis_clk                 => axis_clk,

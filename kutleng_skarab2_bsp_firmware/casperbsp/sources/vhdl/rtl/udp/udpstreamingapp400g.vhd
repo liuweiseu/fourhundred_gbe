@@ -117,7 +117,7 @@ architecture rtl of udpstreamingapp400g is
             G_SLOT_WIDTH : natural := 4;
             -- The address width is log2(2048/(512/8))=5 bits wide
             G_ADDR_WIDTH : natural := 5;
-            G_AXIS_DATA_WIDTH : natural := 512
+            G_DATA_WIDTH : natural := 1024
         );
         port(
             axis_clk                       : in  STD_LOGIC;
@@ -409,7 +409,7 @@ begin
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
             G_ADDR_WIDTH => G_ADDR_WIDTH,
-            G_AXIS_DATA_WIDTH => G_AXIS_DATA_WIDTH
+            G_DATA_WIDTH => G_AXIS_DATA_WIDTH
         )
         port map(
             axis_clk                       => axis_clk,

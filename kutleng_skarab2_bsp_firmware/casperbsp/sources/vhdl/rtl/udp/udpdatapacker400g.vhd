@@ -245,7 +245,7 @@ architecture rtl of udpdatapacker400g is
     signal lUDPLength : unsigned(15 downto 0);
     signal lIPLength : unsigned(15 downto 0);
     
-    signal lFirstWord : std_logic_vector(175 downto 0); -- store the first word so it can be written at the end.
+    signal lFirstWord : std_logic_vector(G_AXIS_DATA_WIDTH - 337 downto 0); -- store the first word so it can be written at the end.
 
 
     function byteswap(DataIn : in unsigned)
