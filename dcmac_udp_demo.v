@@ -471,7 +471,9 @@ wire [127:0] axis_streaming_data_tx_tkeep;      // input
 wire axis_streaming_data_tx_tlast;              // input
 wire axis_streaming_data_tx_tready;              // output
 wire axis_streaming_arst;
+wire axis_streaming_data_clk;
 
+assign axis_streaming_data_clk = pl0_ref_clk_0;
 assign axis_streaming_arst = ~pl0_resetn_0;
 
 axis_data_gen #(
@@ -532,7 +534,7 @@ wire [31:0] gmac_arp_cache_read_address;                        // input
 wire [31:0] gmac_arp_cache_read_data;                           // output
 
 axi_regs #(
-    
+
 ) axi_regs_inst(
     .s_araddr     (s_axi_araddr_reg),	
     .s_arprot     (		),	
@@ -603,11 +605,10 @@ axi_regs #(
 
 wire aximm_clk;
 wire axis_reset;
-wire axis_streaming_data_clk;
+
 
 assign aximm_clk = pl0_ref_clk_0;
 assign axis_reset = ~pl0_resetn_0;
-assign axis_streaming_data_clk = pl0_ref_clk_0;
 assign s_axi_aclk = pl0_ref_clk_0;
 assign s_axi_aresetn = pl0_resetn_0;
 
