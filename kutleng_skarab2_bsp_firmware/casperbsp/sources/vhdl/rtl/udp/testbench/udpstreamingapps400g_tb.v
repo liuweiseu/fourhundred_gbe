@@ -103,6 +103,7 @@ begin
         s_axis_tuser <= 0;
 end
 // s_axis_tdata
+/*
 always @(posedge s_axis_aclk)
 begin
     if(~s_axis_aresetn)
@@ -112,7 +113,21 @@ begin
     else
         s_axis_tdata <= 0;
 end
-
+*/
+genvar i;
+generate for (i = 0; i < G_AXIS_DATA_WIDTH/8; i = i + 1)
+    begin
+    always @(posedge s_axis_aclk)
+    begin
+        if(~s_axis_aresetn)
+            s_axis_tdata[i*8 +: 8] <= 0;
+        else if(s_axis_tvalid)
+            s_axis_tdata[i*8 +: 8] <= i;
+        else
+            s_axis_tdata[i*8 +: 8] <= 0;
+    end
+end
+endgenerate
 //-------------udpipinterfacepr400g_inst------------
 udpstreamingapps400g#(
     .G_AXIS_DATA_WIDTH(G_AXIS_DATA_WIDTH)
