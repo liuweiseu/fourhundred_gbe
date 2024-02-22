@@ -474,6 +474,8 @@ wire axis_streaming_arst;
 wire axis_streaming_data_clk;
 
 wire axis_data_gen_enable;
+wire [15:0] pkt_length;
+wire [15:0] period;
 
 assign axis_streaming_data_clk = pl0_ref_clk_0;
 assign axis_streaming_arst = ~pl0_resetn_0;
@@ -484,6 +486,8 @@ axis_data_gen #(
     .axis_streaming_data_clk(axis_streaming_data_clk),
     .axis_streaming_arst(axis_streaming_arst),
     .axis_data_gen_enable(axis_data_gen_enable),
+    .pkt_length(pkt_length),
+    .period(period),
     .axis_streaming_data_tx_tdata(axis_streaming_data_tx_tdata),
     .axis_streaming_data_tx_tvalid(axis_streaming_data_tx_tvalid),
     .axis_streaming_data_tx_tuser(axis_streaming_data_tx_tuser),
@@ -601,7 +605,9 @@ axi_regs #(
     .gmac_arp_cache_write_address(gmac_arp_cache_write_address),
     .gmac_arp_cache_read_address(gmac_arp_cache_read_address),
     .gmac_arp_cache_read_data(gmac_arp_cache_read_data),
-    .axis_data_gen_enable(axis_data_gen_enable)
+    .axis_data_gen_enable(axis_data_gen_enable),
+    .pkt_length(pkt_length),
+    .period(period)
 );
 
 
