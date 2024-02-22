@@ -120,7 +120,7 @@ module dcmactop#(
 /*--------------------------------------------------------------------------------------*/
 // TODO: implement static registers in this 400G core.
 /*--------------------------------------------------------------------------------------*/
-assign gmac_reg_core_type           = 32'h0;
+assign gmac_reg_core_type           = 32'h5a5a;
 assign gmac_reg_phy_status_h        = 32'h0;
 assign gmac_reg_phy_status_l        = 32'h0;
 assign gmac_reg_tx_packet_rate      = 32'h0;

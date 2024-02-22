@@ -1,7 +1,7 @@
 
 `timescale 1 ns / 1 ps
 
-	module axi_regs #
+	module axi_regs # 
 	(
 		// Users to add parameters here
 
@@ -126,7 +126,7 @@
         output wire [31:0] axis_streaming_data_tx_packet_length, 				// reg41 rw
 		output wire axis_data_gen_enable,										// reg42[0:0] rw
 		output wire [15:0] pkt_length,											// reg43[15:0] rw
-		output wire [15:5] period												// reg44[15:5] rw
+		output wire [15:5] period												// reg44[15:0] rw
 	);
 
 	// AXI4LITE signals
