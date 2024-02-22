@@ -92,7 +92,7 @@ entity casper400gethernetblock_no_cpu is
         -- axis_streaming_data_rx_tlast                : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
         -- axis_streaming_data_rx_tuser                : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
 
-        yellow_block_rx_data            : out  STD_LOGIC_VECTOR(511 downto 0);
+        yellow_block_rx_data            : out  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         yellow_block_rx_valid           : out  STD_LOGIC;
         yellow_block_rx_eof             : out  STD_LOGIC;
         yellow_block_rx_overrun         : out  STD_LOGIC;

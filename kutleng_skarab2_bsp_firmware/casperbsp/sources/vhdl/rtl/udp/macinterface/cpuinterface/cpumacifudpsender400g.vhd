@@ -122,16 +122,16 @@ architecture rtl of cpumacifudpsender400g is
             RingBufferDataRead       : out STD_LOGIC;
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
-            RingBufferDataEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
-            RingBufferDataIn         : in  STD_LOGIC_VECTOR(511 downto 0);
+            RingBufferDataEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            RingBufferDataIn         : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             RingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             --Inputs from AXIS bus of the MAC side
             --Outputs to AXIS bus MAC side 
             axis_tx_tpriority        : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-            axis_tx_tdata            : out STD_LOGIC_VECTOR(511 downto 0);
+            axis_tx_tdata            : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             axis_tx_tvalid           : out STD_LOGIC;
             axis_tx_tready           : in  STD_LOGIC;
-            axis_tx_tkeep            : out STD_LOGIC_VECTOR(63 downto 0);
+            axis_tx_tkeep            : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
             axis_tx_tlast            : out STD_LOGIC
         );
     end component macifudpsender400g;

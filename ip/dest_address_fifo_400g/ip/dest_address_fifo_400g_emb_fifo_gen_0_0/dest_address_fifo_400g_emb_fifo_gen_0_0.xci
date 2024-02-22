@@ -162,7 +162,7 @@
       },
       "project_parameters": {
         "ARCHITECTURE": [ { "value": "versal" } ],
-        "BASE_BOARD_PART": [ { "value": "" } ],
+        "BASE_BOARD_PART": [ { "value": "xilinx.com:vpk180:part0:1.1" } ],
         "BOARD_CONNECTIONS": [ { "value": "" } ],
         "DEVICE": [ { "value": "xcvp1802" } ],
         "PACKAGE": [ { "value": "lsvc4072" } ],

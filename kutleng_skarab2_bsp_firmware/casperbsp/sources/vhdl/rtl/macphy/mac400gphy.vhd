@@ -211,14 +211,14 @@ architecture rtl of mac400gphy is
             axis_rx_tuser                : in  STD_LOGIC;
             -- TX Bus
             axis_tx_clkout               : out STD_LOGIC;
-            axis_tx_tdata                : out STD_LOGIC_VECTOR(511 downto 0);
+            axis_tx_tdata                : out STD_LOGIC_VECTOR(1023 downto 0);
             axis_tx_tvalid               : out STD_LOGIC;
-            axis_tx_tkeep                : out STD_LOGIC_VECTOR(63 downto 0);
+            axis_tx_tkeep                : out STD_LOGIC_VECTOR(127 downto 0);
             axis_tx_tlast                : out STD_LOGIC;
             -- User signal for errors and dropping of packets
             axis_tx_tuser                : out STD_LOGIC;
             yellow_block_user_clk        : in STD_LOGIC;
-            yellow_block_rx_data         : out  STD_LOGIC_VECTOR(511 downto 0);
+            yellow_block_rx_data         : out  STD_LOGIC_VECTOR(1023 downto 0);
             yellow_block_rx_valid        : out  STD_LOGIC;
             yellow_block_rx_eof          : out  STD_LOGIC;
             yellow_block_rx_overrun      : out STD_LOGIC;
@@ -327,7 +327,7 @@ architecture rtl of mac400gphy is
         );
     end component axis_stream_data_tx_ila_400g;
 
-    signal axis_tdata       : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH downto 0);
+    signal axis_tdata       : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1  downto 0);
     signal axis_tvalid      : STD_LOGIC;
     signal axis_tready      : STD_LOGIC;
     signal axis_tkeep       : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
