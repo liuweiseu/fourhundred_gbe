@@ -619,8 +619,8 @@ wire axis_reset;
 
 assign aximm_clk = pl0_ref_clk_0;
 assign axis_reset = ~pl0_resetn_0;
-assign s_axi_aclk = pl0_ref_clk_0;
-assign s_axi_aresetn = pl0_resetn_0;
+assign s_axi_aclk_dcmac = pl0_ref_clk_0;
+assign s_axi_aresetn_dcmac = pl0_resetn_0;
 
 // added casper400gethernetblock_no_cpu module here
 casper400gethernetblock_no_cpu #(
