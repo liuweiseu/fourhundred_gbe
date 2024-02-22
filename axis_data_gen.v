@@ -59,7 +59,7 @@ begin
                     st_next = LOOP;
             end
             LOOP: begin
-                if(cnt == period - 1)
+                if(cnt == period - 2)
                     st_next = IDLE;
                 else
                     st_next = LOOP;

@@ -12,11 +12,11 @@ reg enable;
 initial 
 begin
     clk = 0;
-    rst = 1;
+    rst = 0;
     enable = 0;
-    #10 rst = 0;
+    #10 rst = 1;
     #10 enable = 1;
-    #100 enable = 0;
+    #300 enable = 0;
 end
 //-----------------clock generation-----------------
 // 100MHz clock
