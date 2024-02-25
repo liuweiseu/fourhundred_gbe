@@ -210,7 +210,7 @@ assign axis_tx_tlast = casper_rx_tlast;
 assign axis_tx_tuser = casper_rx_tuser;
 assign casper_rx_tready = 1'b1;
 // dcmac tx in
-wire [2:0] dcmac_tx_id;
+wire [5:0] dcmac_tx_id;
 wire [11:0] dcmac_tx_ena;
 wire [11:0] dcmac_tx_sop;
 wire [11:0] dcmac_tx_eop;
@@ -234,7 +234,8 @@ wire [1535:0] dcmac_rx_dat;
 wire [335:0] dcmac_rx_preamble;
 wire [5:0] dcmac_rx_vld;
 // 400g adapter instance
-fhg_axis_adapter(
+/*
+fhg_axis_adapter fhg_adapter_inst(
     .clk(axis_clk),
     .rst(Reset),
     // casper tx in
@@ -276,6 +277,98 @@ fhg_axis_adapter(
     .dcmac_rx_preamble(dcmac_rx_preamble),    // 336 bits
     .dcmac_rx_vld(dcmac_rx_vld)               // 6 bits
 );
+*/
+
+wire lbus_tx_rdyout;
+// when all of the segments are ready, then the lbus_tx_rdyout is high.
+assign lbus_tx_rdyoyt = dcmac_tx_tready[0] & 
+                        dcmac_tx_tready[1] & 
+                        dcmac_tx_tready[2] & 
+                        dcmac_tx_tready[3] & 
+                        dcmac_tx_tready[4] & 
+                        dcmac_tx_tready[5];
+// we don't need to use the tx_id, so we can assign it to 0.
+assign dcmac_tx_id = 6'b000000;
+// lets set dcmac_rx_preamble[55:0] to 0x555...., other bits are 0.
+assign dcmac_rx_preamble = 336'h55555555555555;
+
+lbustxaxisrx400g fhg_axis_adapter(
+  .lbus_txclk(axis_clk),
+  .lbus_txreset(Reset),
+  // axis tx 
+  .axis_rx_tdata(casper_tx_tdata),
+  .axis_rx_tvalid(casper_tx_tvalid),
+  .axis_rx_tready(casper_tx_tready),
+  .axis_rx_tkeep(casper_tx_tkeep),
+  .axis_rx_tlast(casper_tx_tlast),
+  .axis_rx_tuser(casper_tx_tuser),
+  // lbus ready
+  .lbus_tx_rdyout(lbus_tx_rdyoyt),
+  // segment 0
+  .lbus_txdataout0(dcmac_tx_dat[127:0]),
+  .lbus_txenaout0(dcmac_tx_ena[0]),
+  .lbus_txsopout0(dcmac_tx_sop[0]),
+  .lbus_txeopout0(dcmac_tx_eop[0]),
+  .lbus_txerrout0(dcmac_tx_err[0]),
+  .lbus_txmtyout0(dcmac_tx_mty[3:0]),
+  // segment 1
+  .lbus_txdataout1(dcmac_tx_dat[255:128]),
+  .lbus_txenaout1(dcmac_tx_ena[1]),
+  .lbus_txsopout1(dcmac_tx_sop[1]),
+  .lbus_txeopout1(dcmac_tx_eop[1]),
+  .lbus_txerrout1(dcmac_tx_err[1]),
+  .lbus_txmtyout1(dcmac_tx_mty[7:4]),
+  // segment 2
+  .lbus_txdataout2(dcmac_tx_dat[383:256]),
+  .lbus_txenaout2(dcmac_tx_ena[2]),
+  .lbus_txsopout2(dcmac_tx_sop[2]),
+  .lbus_txeopout2(dcmac_tx_eop[2]),
+  .lbus_txerrout2(dcmac_tx_err[2]),
+  .lbus_txmtyout2(dcmac_tx_mty[11:8]),
+  // segment 3
+  .lbus_txdataout3(dcmac_tx_dat[511:384]),
+  .lbus_txenaout3(dcmac_tx_ena[3]),
+  .lbus_txsopout3(dcmac_tx_sop[3]),
+  .lbus_txeopout3(dcmac_tx_eop[3]),
+  .lbus_txerrout3(dcmac_tx_err[3]),
+  .lbus_txmtyout3(dcmac_tx_mty[15:12]),
+  // segment 4
+  .lbus_txdataout4(dcmac_tx_dat[639:512]),
+  .lbus_txenaout4(dcmac_tx_ena[4]),
+  .lbus_txsopout4(dcmac_tx_sop[4]),
+  .lbus_txeopout4(dcmac_tx_eop[4]),
+  .lbus_txerrout4(dcmac_tx_err[4]),
+  .lbus_txmtyout4(dcmac_tx_mty[19:16]),
+  // segment 5
+  .lbus_txdataout5(dcmac_tx_dat[767:640]),
+  .lbus_txenaout5(dcmac_tx_ena[5]),
+  .lbus_txsopout5(dcmac_tx_sop[5]),
+  .lbus_txeopout5(dcmac_tx_eop[5]),
+  .lbus_txerrout5(dcmac_tx_err[5]),
+  .lbus_txmtyout5(dcmac_tx_mty[23:20]),
+  // setment 6
+  .lbus_txdataout6(dcmac_tx_dat[895:768]),
+  .lbus_txenaout6(dcmac_tx_ena[6]),
+  .lbus_txsopout6(dcmac_tx_sop[6]),
+  .lbus_txeopout6(dcmac_tx_eop[6]),
+  .lbus_txerrout6(dcmac_tx_err[6]),
+  .lbus_txmtyout6(dcmac_tx_mty[27:24]),
+  // segment 7
+  .lbus_txdataout7(dcmac_tx_dat[1023:896]),
+  .lbus_txenaout7(dcmac_tx_ena[7]),
+  .lbus_txsopout7(dcmac_tx_sop[7]),
+  .lbus_txeopout7(dcmac_tx_eop[7]),
+  .lbus_txerrout7(dcmac_tx_err[7]),
+  .lbus_txmtyout7(dcmac_tx_mty[31:28])
+);
+
+// segment 8-11 are not used
+assign dcmac_tx_dat[1535:1024] = 512'h0;
+assign dcmac_tx_ena[11:8] = 4'h0;
+assign dcmac_tx_sop[11:8] = 4'h0;
+assign dcmac_tx_eop[11:8] = 4'h0;
+assign dcmac_tx_err[11:8] = 4'h0;
+assign dcmac_tx_mty[47:32] = 16'h0;
 
 /*--------------------------------------------------------------------------------------*/
 // DCMAC core signales 
