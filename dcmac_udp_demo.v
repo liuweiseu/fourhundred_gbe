@@ -196,6 +196,7 @@ wire [31:0] s_axi_rdata_reg;      // output
 wire [1:0] s_axi_rresp_reg;       // output
 wire s_axi_rvalid_reg;            // output
 wire s_axi_rready_reg;            // input
+wire [3:0] s_axi_wstrb_reg;       // input
 //----------------------------------------------------------------------------------------------------
 // added cips for control
 dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
@@ -296,7 +297,7 @@ dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
     .M00_AXI_2_rvalid     (s_axi_rvalid_reg),
     .M00_AXI_2_wdata      (s_axi_wdata_reg),	
     .M00_AXI_2_wready     (s_axi_wready_reg),
-    .M00_AXI_2_wstrb      (		),	
+    .M00_AXI_2_wstrb      (s_axi_wstrb_reg),	
     .M00_AXI_2_wvalid     (s_axi_wvalid_reg),		
 	
     .M00_AXI_3_araddr     (		),	
@@ -565,7 +566,7 @@ axi_regs #(
     .s_axi_rvalid     (s_axi_rvalid_reg),
     .s_axi_wdata      (s_axi_wdata_reg),	
     .s_axi_wready     (s_axi_wready_reg),
-    .s_axi_wstrb      (		),	
+    .s_axi_wstrb      (s_axi_wstrb_reg),	
     .s_axi_wvalid     (s_axi_wvalid_reg),	
     // -- ip & port info
     .axis_streaming_data_tx_destination_ip( axis_streaming_data_tx_destination_ip),
