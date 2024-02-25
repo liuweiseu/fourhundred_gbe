@@ -478,13 +478,13 @@ wire [15:0] pkt_length;
 wire [15:0] period;
 
 assign axis_streaming_data_clk = pl0_ref_clk_0;
-assign axis_streaming_arst = ~pl0_resetn_0;
+assign axis_streaming_rst = ~pl0_resetn_0;
 
 axis_data_gen #(
     .G_AXIS_DATA_WIDTH (1024)
 ) axis_data_gen_inst(
     .axis_streaming_data_clk(axis_streaming_data_clk),
-    .axis_streaming_arst(axis_streaming_arst),
+    .axis_streaming_rst(axis_streaming_rst),
     .axis_data_gen_enable(axis_data_gen_enable),
     .pkt_length(pkt_length),
     .period(period),
@@ -540,9 +540,14 @@ wire [31:0] gmac_arp_cache_write_address;                       // input
 wire [31:0] gmac_arp_cache_read_address;                        // input    
 wire [31:0] gmac_arp_cache_read_data;                           // output
 
-axi_regs #(
+assign s_axi_aclk_reg = pl0_ref_clk_0;
+assign s_axi_aresetn_reg = pl0_resetn_0;
 
+axi_regs #(
+    .C_S_AXI_DATA_WIDTH(32)
 ) axi_regs_inst(
+    .s_axi_aclk       (s_axi_aclk_reg),
+    .s_axi_aresetn    (s_axi_aresetn_reg),
     .s_axi_araddr     (s_axi_araddr_reg),	
     .s_axi_arprot     (		),	
     .s_axi_arready    (s_axi_arready_reg),

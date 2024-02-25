@@ -1,12 +1,12 @@
 #include <xparameters.h>
 #include "fhg_regs.h"
 
-unsigned int dcmac_read_reg(unsigned int addr)
+uint32_t dcmac_read_reg(uint32_t addr)
 {
-    return *(volatile unsigned int *)(addr);
+    return *(uint32_t *)(addr);
 }
 
-void dcmac_write_reg(unsigned int addr, unsigned int data)
+void dcmac_write_reg(uint32_t addr, uint32_t data)
 {
-    *(volatile unsigned int *)(addr) = data;
+    *(uint32_t *)(addr) = data;
 }

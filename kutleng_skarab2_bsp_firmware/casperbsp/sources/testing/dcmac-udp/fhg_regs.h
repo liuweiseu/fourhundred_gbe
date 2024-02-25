@@ -1,6 +1,7 @@
 #ifndef _FHG_REGS_H_
 #define _FHG_REGS_H_
 
+#include <stdint.h>
 #define AXI_REG_BASE            0xA4B00000
 
 // 400G regs
@@ -51,7 +52,7 @@
 #define AXIS_PKT_LEN            AXI_REG_BASE + (43 * 4)
 #define AXIS_PKT_CYC            AXI_REG_BASE + (44 * 4)
 
-unsigned int dcmac_read_reg(unsigned int addr);
-void dcmac_write_reg(unsigned int addr, unsigned int data);
+uint32_t dcmac_read_reg(uint32_t addr);
+void dcmac_write_reg(uint32_t addr, uint32_t data);
 
 #endif

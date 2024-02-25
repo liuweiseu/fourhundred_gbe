@@ -2,7 +2,7 @@ module axis_data_gen # (
     parameter G_AXIS_DATA_WIDTH = 1024
 )(
     input axis_streaming_data_clk,
-    input axis_streaming_arst,
+    input axis_streaming_rst,
     input axis_data_gen_enable,
     input [15:0] pkt_length,
     input [15:0] period,
@@ -26,7 +26,7 @@ reg [15:0] cnt;
 
 always @(posedge axis_streaming_data_clk) 
 begin
-    if (~axis_streaming_arst) begin
+    if (axis_streaming_rst) begin
         st_cur      <= 5'b0 ;
     end
     else begin
@@ -36,7 +36,7 @@ end
 
 always @(*)
 begin
-    if(~axis_streaming_arst)
+    if(axis_streaming_rst)
         st_next = IDLE;
     else
         case(st_cur)
@@ -69,7 +69,7 @@ end
 
 always @(posedge axis_streaming_data_clk)
 begin
-   if(~axis_streaming_arst)
+   if(axis_streaming_rst)
    begin
          axis_streaming_data_tx_tvalid <= 0;
          axis_streaming_data_tx_tlast <= 0;

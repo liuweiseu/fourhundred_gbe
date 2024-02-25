@@ -7,6 +7,8 @@
 #include "xgpio.h"
 #include "sleep.h"
 
+#include "dcmac_config.h"
+
 //Channel enable;
 uint8_t ch_en[6] = {0,0,0,0,0,0};
 uint8_t client_rate[6] = {0,0,0,0,0,0};
@@ -537,19 +539,19 @@ int release_channel_resets(uint8_t client, uint8_t client_rate){
 //
 int config_mac()
 {
-	//uint32_t pdata;
+	uint32_t pdata;
 
 	xil_printf("Started MAC configuration \n\r");
 	for ( int i = 0x01; i <= 0x06 ; i++ ) {
            *(U32* )(ADDR_AXI4_BASE + 0x00000004 + (i << 12) ) = 0x25800042;
-           //pdata = *(U32* )(ADDR_AXI4_BASE + 0x00000004 + (i << 12) );
-           //xil_printf("config_mac :: Wrote %x to address %x\n\r", pdata, (ADDR_AXI4_BASE + 0x00000004 + (i << 12) ));
+           pdata = *(U32* )(ADDR_AXI4_BASE + 0x00000004 + (i << 12) );
+           xil_printf("config_mac :: Wrote %x to address %x\n\r", pdata, (ADDR_AXI4_BASE + 0x00000004 + (i << 12) ));
            wait(10);
 	}
 	for ( int i = 0x01; i <= 0x06 ; i++ ) {
            *(U32* )(ADDR_AXI4_BASE + 0x00000000 + (i << 12) ) = 0x00000C21;
-           //pdata = *(U32* )(ADDR_AXI4_BASE + 0x00000000 + (i << 12) );
-           //xil_printf("config_mac :: Wrote %x to address %x\n\r", pdata, (ADDR_AXI4_BASE + 0x00000000 + (i << 12) ));
+           pdata = *(U32* )(ADDR_AXI4_BASE + 0x00000000 + (i << 12) );
+           xil_printf("config_mac :: Wrote %x to address %x\n\r", pdata, (ADDR_AXI4_BASE + 0x00000000 + (i << 12) ));
            wait(10);
 	}
 	//for ( int i = 0x01; i <= 0x28 ; i++ ) {
@@ -703,6 +705,7 @@ int set_data_rate(uint8_t* rate)
 
 // 23: wait_for_alignment
 //
+int wait_for_alignment()
 {
 	uint32_t pr_data = 0;
 	uint8_t aligned = 0;
@@ -940,8 +943,10 @@ int wait_gt_txresetdone (int lane_cnt){
 	if (time_out>= 20000000)
 	{
 		xil_printf("INFO : GT TX Reset Done not achieved (Read GT Status = 0x%x) \n\r", ReadData_GT_TX);
+		return 0;
 	} else {
 		xil_printf("INFO : GT TX Reset Done achieved\n\r");
+		return 1;
 	}
 }
 
@@ -964,8 +969,10 @@ int wait_gt_rxresetdone (int lane_cnt){
 	if (time_out>= 20000000)
 	{
 		xil_printf("INFO : GT RX Reset Done not acheived (Read GT Status = 0x%x) \n\r", ReadData_GT_RX);
+		return 0;
 	} else {
 		xil_printf("INFO : GT RX Reset Done acheived\n\r");
+		return 1;
 	}
 }
 
@@ -1000,12 +1007,13 @@ int deassert_rx_port_reset()
 // 34: dcmac_rx_port_reset
 //
 int dcmac_rx_port_reset (){
-       // DCMAC RX Resets
-        xil_printf("INFO : Toggle DCMAC RX Port Reset  \n\r");
-        assert_rx_port_reset();
-        wait(200);
-        deassert_rx_port_reset();
-        wait(200);
+	// DCMAC RX Resets
+    xil_printf("INFO : Toggle DCMAC RX Port Reset  \n\r");
+    assert_rx_port_reset();
+    wait(200);
+    deassert_rx_port_reset();
+    wait(200);
+    return 1;
 }
 
 // 35: stats_test_check
@@ -1041,6 +1049,7 @@ int stats_test_check() {
 	if (stat_match_flag == cal_stat_match())
 	{
 		xil_printf( "INFO : Test Completed Successfully and Passed  \n\r" );
+		return 1;
 	} else {
 		xil_printf( "INFO : Test Completed but Failed   \n\r" );
 
@@ -1053,41 +1062,76 @@ int stats_test_check() {
 // 36: set_gt_pcs_loopback_and_reset_static
 //
    
-int set_gt_pcs_loopback_and_reset_static() {
-        ////////////////////////////////////////////////////////////////////////
+int set_gt_pcs_loopback_and_reset_static(int mode) {
+    ////////////////////////////////////////////////////////////////////////
 	// Apply GT Reset all, set NE PCS Loopback and rxcdrhold
-        //   This specific process is needed for the GT internal Reset FSM for
-        //   NE PCS loopback
-        ////////////////////////////////////////////////////////////////////////
+    //   This specific process is needed for the GT internal Reset FSM for
+    //   NE PCS loopback
+    ////////////////////////////////////////////////////////////////////////
 
-        //Add variable to select if NE PCS loopback or External loopback
-	//*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x00000000;
+    //Add variable to select if NE PCS loopback or External loopback
+	// [0] reset all
+	// [8:1] line rate
+	// [11:9] loopback
+	// [17:12] txprecursor
+	// [23:18] txpostcursor
+	// [30:24] maincursor
+	// [31]: rxcdrhold
+	// for NE PCS loopback, rxcdrhold has to be 1; for NE PMA loopback or external loopback, rxcdrhold has to be 0
+
+	// Setting NE PCS loopback - For External loopback comment the following line -- rxcdrhold = 1
+	//*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243001;
+    //wait(100);
+	//*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243000;
+	//wait(100);
+	//xil_printf( "INFO : Setting NE PCS loopback   \n\r" );
+	//*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0xCB243200;
+    // 
+	// Setting NE PMA loopback or external loopback -- rxcdrhold = 1
 	*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243001;
-         wait(100);
+    wait(100);
 	*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243000;
-         wait(100);
-         // Setting NE PCS loopback - For External loopback comment the following line
-	 xil_printf( "INFO : Setting NE PCS loopback   \n\r" );
-	 *(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0xCB243200;
-         wait(100);
+	wait(100);
+	// NE PMA loopback
+	//xil_printf( "INFO : Setting NE PMA loopback   \n\r" );
+	//*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243400;
+	// external loopback
+	//xil_printf( "INFO : Setting External loopback (Normal mode)   \n\r" );
+	//*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243000;
+    //wait(100);
 	 /*
 	 [0]: gt_reset_all = 1'b1
 	 [8:1]: gt_line_rate = 8'h0
-	 [11:9]: gt_loopback = 3'b000 (External: 3'b000; Near-End PCS: 3'b001)
+	 [11:9]: gt_loopback = 3'b000 (External: 3'b000; 	Near-end PCS: 3'b001; Near-end PMA: 3'b010)
 	 [17:12]: gt_txprecursor = 6'd3
 	 [23:18]: gt_txpostcursor = 6'd9
 	 [30:24]: gt_maincursor = 7'd75
 	 [31]: gt_rxcdrhold
 	 */
-
-        // Ensure the GT TX Datapath Reset is not asserted
+	if(mode == 0) // external mode
+	{
+		xil_printf( "INFO : Setting External loopback (Normal mode)   \n\r" );
+		*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243000;
+	}
+	else if(mode == 1) // NE PCS loopback
+	{
+		xil_printf( "INFO : Setting NE PCS loopback   \n\r" );
+		*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0xCB243200;
+	}
+	else if(mode == 2) // NE PMA loopback
+	{
+		xil_printf( "INFO : Setting NE PMA loopback   \n\r" );
+		*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243400;
+	}
+    // Ensure the GT TX Datapath Reset is not asserted
 	*(U32 *) (DCMAC_0_GT_TX_DATAPATH_RESET) = 0x000000;
-        /*
+    /*
 	[23:0]: gt_reset_tx_datapath_in
-        [26:24]: config_switch
+    [26:24]: config_switch
 	*/
-
 	wait(5000);
+
+	return 1;
 
    }
 
@@ -1096,17 +1140,17 @@ int set_gt_pcs_loopback_and_reset_static() {
 int program_dcmac (){
 
 
-        // Set Rate and enable IEEE std error indications and enable alignment marker flip
-        xil_printf( "Setting the DCMAC GLOBAL_MODE_REG ... \n\r" );
+    // Set Rate and enable IEEE std error indications and enable alignment marker flip
+    xil_printf( "Setting the DCMAC GLOBAL_MODE_REG ... \n\r" );
 
 	*(U32* )(GLOBAL_MODE_REG ) = 0x07330000;
-        // Config the MAC C0-C5 CHANNEL_CONTROL_REG_RX/TX
+    // Config the MAC C0-C5 CHANNEL_CONTROL_REG_RX/TX
 	config_mac();
 
-        // Set DCMAC rates
+    // Set DCMAC rates
 	set_data_rate(client_rate);
 
-
+	return 1;
 }
 
 // 38: test_fixe_sanity
@@ -1136,4 +1180,12 @@ int test_fixe_sanity(uint8_t ch_en_str)
 		//xil_printf("1x400GE Mode :: Test Completed but Failed \n\r");
 		return 0;
 	}
+}
+
+// 39: read rev id
+int read_rev_id(){
+	uint32_t rev_id;
+	rev_id = *(U32 *)(REV_ID_REG);
+	xil_printf("DCMAC Revision ID: 0x%x \n\r", rev_id);
+	return 1;
 }

@@ -19,6 +19,7 @@
 
 // Refer PG369 for additional user specific port/channel register sequencing information
 /* DCMAC Register Addresses */
+#define REV_ID_REG_OFFSET 0x00000
 #define GLOBAL_MODE_OFFSET 0x00004
 #define MAC_CONFIG_REG_TX_WR_OFFSET 0x00038
 #define GLOBAL_CONTROL_REG_RX_OFFSET  0x000f0
@@ -200,6 +201,7 @@
 #define C4_STAT_PORT_RX_FEC_STATUS_OFFSET    0x05c34
 #define C5_STAT_PORT_RX_FEC_STATUS_OFFSET    0x06c34
 /* REG MAP */
+#define REV_ID_REG                                  ADDR_AXI4_BASE + REV_ID_REG_OFFSET
 #define GLOBAL_MODE_REG                             ADDR_AXI4_BASE + GLOBAL_MODE_OFFSET
 #define MAC_CONFIG_REG_TX_WR_REG                    ADDR_AXI4_BASE + MAC_CONFIG_REG_TX_WR_OFFSET
 #define GLOBAL_CONTROL_REG_RX_REG                   ADDR_AXI4_BASE + GLOBAL_CONTROL_REG_RX_OFFSET
@@ -431,9 +433,9 @@ int assert_rx_port_reset();
 int deassert_rx_port_reset();
 int dcmac_rx_port_reset();
 int stats_test_check();
-int set_gt_pcs_loopback_and_reset_static();
+int set_gt_pcs_loopback_and_reset_static(int mode);
 int program_dcmac();
 int test_fixe_sanity(uint8_t ch_en_str);
-
+int read_rev_id();
 
 #endif
