@@ -437,5 +437,6 @@ int set_gt_pcs_loopback_and_reset_static(int mode);
 int program_dcmac();
 int test_fixe_sanity(uint8_t ch_en_str);
 int read_rev_id();
+int change_loopback_mode(int mode);
 
 #endif

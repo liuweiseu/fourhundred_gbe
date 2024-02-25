@@ -1189,3 +1189,22 @@ int read_rev_id(){
 	xil_printf("DCMAC Revision ID: 0x%x \n\r", rev_id);
 	return 1;
 }
+
+int change_loopback_mode(int mode)
+{
+	if(mode == 0) // external mode
+	{
+		xil_printf( "INFO : Setting External loopback (Normal mode)   \n\r" );
+		*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243000;
+	}
+	else if(mode == 1) // NE PCS loopback
+	{
+		xil_printf( "INFO : Setting NE PCS loopback   \n\r" );
+		*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0xCB243200;
+	}
+	else if(mode == 2) // NE PMA loopback
+	{
+		xil_printf( "INFO : Setting NE PMA loopback   \n\r" );
+		*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243400;
+	}
+}

@@ -54,5 +54,7 @@
 
 uint32_t dcmac_read_reg(uint32_t addr);
 void dcmac_write_reg(uint32_t addr, uint32_t data);
+void write_arp(uint32_t addr, uint32_t data);
+uint32_t read_arp(uint32_t addr);
 
 #endif
