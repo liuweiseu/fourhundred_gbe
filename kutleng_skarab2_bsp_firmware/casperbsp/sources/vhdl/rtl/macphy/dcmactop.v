@@ -290,7 +290,7 @@ assign lbus_tx_rdyoyt = dcmac_tx_tready[0] &
 // we don't need to use the tx_id, so we can assign it to 0.
 assign dcmac_tx_id = 6'b000000;
 // lets set dcmac_rx_preamble[55:0] to 0x555...., other bits are 0.
-assign dcmac_rx_preamble = 336'h55555555555555;
+assign dcmac_tx_preamble = 336'h55555555555555;
 
 lbustxaxisrx400g fhg_axis_adapter(
   .lbus_txclk(axis_clk),
@@ -369,6 +369,8 @@ assign dcmac_tx_sop[11:8] = 4'h0;
 assign dcmac_tx_eop[11:8] = 4'h0;
 assign dcmac_tx_err[11:8] = 4'h0;
 assign dcmac_tx_mty[47:32] = 16'h0;
+assign dcmac_tx_vld [0] = casper_tx_tvalid;
+assign dcmac_tx_vld[5:1] = 5'h0;
 
 /*--------------------------------------------------------------------------------------*/
 // DCMAC core signales 
