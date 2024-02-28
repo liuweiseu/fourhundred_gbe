@@ -432,6 +432,8 @@ begin
             if (axis_reset = '1') then
                 lSlotClear <= '0';
                 lSlotSet   <= '0';
+                lSlotSetBuffer <= (others => '0');   -- added by Wei. Why not reset this buffer?
+                lSlotClearBuffer <= (others => '0'); -- added by Wei. Why not reset this buffer?
             else
                 lSlotSetBuffer   <= lSlotSetBuffer(1) & lPacketSlotSet;
                 lSlotClearBuffer <= lSlotClearBuffer(1) & SenderRingBufferSlotClear;

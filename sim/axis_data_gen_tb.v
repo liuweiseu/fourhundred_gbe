@@ -8,15 +8,18 @@ parameter CYC = 128;
 reg clk;
 reg rst;
 reg enable;
+reg tready;
 //-----------------reset & clk init-----------------
 initial 
 begin
     clk = 0;
     rst = 0;
+    tready = 1;
     enable = 0;
     #10 rst = 1;
     #10 enable = 1;
-    #300 enable = 0;
+    #50 tready = 0;
+    #100 tready = 1;
 end
 //-----------------clock generation-----------------
 // 100MHz clock
@@ -35,7 +38,7 @@ axis_data_gen #(
     .G_AXIS_DATA_WIDTH(G_AXIS_DATA_WIDTH)
 ) axis_data_gen_inst(
     .axis_streaming_data_clk(clk),
-    .axis_streaming_arst(rst),
+    .axis_streaming_rst(~rst),
     .axis_data_gen_enable(enable),
     .pkt_length(PKT_SIZE),
     .period(CYC),
@@ -44,7 +47,7 @@ axis_data_gen #(
     .axis_streaming_data_tx_tuser(axis_streaming_data_tx_tuser),
     .axis_streaming_data_tx_tkeep(axis_streaming_data_tx_tkeep),
     .axis_streaming_data_tx_tlast(axis_streaming_data_tx_tlast),
-    .axis_streaming_data_tx_tready(1'b1)
+    .axis_streaming_data_tx_tready(tready)
 );
 
 endmodule

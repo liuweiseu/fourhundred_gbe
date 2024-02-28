@@ -470,7 +470,7 @@ wire axis_streaming_data_tx_tvalid;             // input
 wire axis_streaming_data_tx_tuser;              // input
 wire [127:0] axis_streaming_data_tx_tkeep;      // input
 wire axis_streaming_data_tx_tlast;              // input
-wire axis_streaming_data_tx_tready;              // output
+wire axis_streaming_data_tx_tready;             // output
 wire axis_streaming_arst;
 wire axis_streaming_data_clk;
 
@@ -615,8 +615,6 @@ axi_regs #(
     .pkt_length(pkt_length),
     .period(period)
 );
-
-
 
 
 wire aximm_clk;

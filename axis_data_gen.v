@@ -103,11 +103,12 @@ begin
                     end
                 else
                     begin
-                        axis_streaming_data_tx_tvalid <= axis_streaming_data_tx_tvalid;
+                        axis_streaming_data_tx_tvalid <= 0;
                         axis_streaming_data_tx_tlast <= axis_streaming_data_tx_tlast;
                         axis_streaming_data_tx_tkeep <= axis_streaming_data_tx_tkeep;
                         axis_streaming_data_tx_tuser <= axis_streaming_data_tx_tuser;
                         axis_streaming_data_tx_tdata <= axis_streaming_data_tx_tdata;
+                        cnt <= cnt;
                     end
             end
             SEND: 
@@ -123,11 +124,12 @@ begin
                     end
                 else
                     begin
-                        axis_streaming_data_tx_tvalid <= axis_streaming_data_tx_tvalid;
+                        axis_streaming_data_tx_tvalid <= 0;
                         axis_streaming_data_tx_tlast <= axis_streaming_data_tx_tlast;
                         axis_streaming_data_tx_tkeep <= axis_streaming_data_tx_tkeep;
                         axis_streaming_data_tx_tuser <= axis_streaming_data_tx_tuser;
                         axis_streaming_data_tx_tdata <= axis_streaming_data_tx_tdata;
+                        cnt <= cnt;
                     end
             end
             LAST: 
@@ -143,11 +145,12 @@ begin
                     end
                 else
                     begin
-                        axis_streaming_data_tx_tvalid <= axis_streaming_data_tx_tvalid;
+                        axis_streaming_data_tx_tvalid <= 0;
                         axis_streaming_data_tx_tlast <= axis_streaming_data_tx_tlast;
                         axis_streaming_data_tx_tkeep <= axis_streaming_data_tx_tkeep;
                         axis_streaming_data_tx_tuser <= axis_streaming_data_tx_tuser;
                         axis_streaming_data_tx_tdata <= axis_streaming_data_tx_tdata;
+                        cnt <= cnt;
                     end
             end
             LOOP: 

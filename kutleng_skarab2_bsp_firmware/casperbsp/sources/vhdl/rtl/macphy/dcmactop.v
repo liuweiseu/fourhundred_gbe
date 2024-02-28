@@ -362,6 +362,15 @@ lbustxaxisrx400g fhg_axis_adapter(
   .lbus_txmtyout7(dcmac_tx_mty[31:28])
 );
 
+reg casper_tx_tvalid_d1;
+always @(posedge axis_clk)
+begin
+  if(Reset)
+    casper_tx_tvalid_d1 <= 1'b0;
+  else
+    casper_tx_tvalid_d1 <= casper_tx_tvalid; 
+end
+
 // segment 8-11 are not used
 assign dcmac_tx_dat[1535:1024] = 512'h0;
 assign dcmac_tx_ena[11:8] = 4'h0;
@@ -369,7 +378,8 @@ assign dcmac_tx_sop[11:8] = 4'h0;
 assign dcmac_tx_eop[11:8] = 4'h0;
 assign dcmac_tx_err[11:8] = 4'h0;
 assign dcmac_tx_mty[47:32] = 16'h0;
-assign dcmac_tx_vld [0] = casper_tx_tvalid;
+assign dcmac_tx_vld [0] = casper_tx_tvalid_d1;
+assign dcmac_tx_vld[11:1] = 11'h0;
 assign dcmac_tx_vld[5:1] = 5'h0;
 
 /*--------------------------------------------------------------------------------------*/
