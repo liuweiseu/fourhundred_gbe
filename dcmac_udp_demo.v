@@ -97,6 +97,9 @@ module dcmac_udp_demo (
     input wire lpddr4_clk2_clk_p
 );
 
+
+parameter D = 2;
+
 wire             gt_reset_all_in;
 wire [31:0]      gt_gpo;
 wire             gt_reset_done;
@@ -123,6 +126,7 @@ wire [1 : 0]     s_axi_rresp;
 wire             s_axi_rvalid;
 wire             s_axi_rready;    
 wire             pl0_ref_clk_0;
+wire             pl0_ref_clk_ori;
 wire             pl0_resetn_0;    
 wire [31:0]      APB_M2_prdata;
 wire [0:0]       APB_M2_pready;
@@ -243,7 +247,7 @@ dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
     .M00_AXI_0_wready   (s_axi_wready),   
     .M00_AXI_0_wstrb    (),               
     .M00_AXI_0_wvalid   (s_axi_wvalid),   
-    .pl0_ref_clk_0      (pl0_ref_clk_0),
+    .pl0_ref_clk_0      (pl0_ref_clk_ori),
     .gt_reset_all_in    (gt_reset_all_in),
     .gt_line_rate       (gt_line_rate),
     .gt_loopback        (gt_loopback),
@@ -463,6 +467,13 @@ dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
     .lpddr4_clk2_clk_p(lpddr4_clk2_clk_p)
 );
 
+/*
+   BUFG BUFG_inst (
+      .O(pl0_ref_clk_0), // 1-bit output: Clock output.
+      .I(pl0_ref_clk_ori)  // 1-bit input: Clock input.
+   );
+   */
+  assign pl0_ref_clk_0 = pl0_ref_clk_ori;
 //----------------------------------------------------------------------------------------------------
 // add axis data creater module here
 wire [1023:0] axis_streaming_data_tx_tdata;     // input
@@ -475,8 +486,28 @@ wire axis_streaming_arst;
 wire axis_streaming_data_clk;
 
 wire axis_data_gen_enable;
-wire [15:0] pkt_length;
-wire [15:0] period;
+wire [15:0] pkt_length, pkt_length_d;
+wire [15:0] period, period_d;
+
+delay #(
+    .D(D),
+    .BITWIDTH(16)
+) delay_pkt_length (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(pkt_length),
+    .dout(pkt_length_d)
+);
+
+delay #(
+    .D(D),
+    .BITWIDTH(16)
+) delay_period (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(period),
+    .dout(period_d)
+);
 
 assign axis_streaming_data_clk = pl0_ref_clk_0;
 assign axis_streaming_rst = ~pl0_resetn_0;
@@ -487,8 +518,8 @@ axis_data_gen #(
     .axis_streaming_data_clk(axis_streaming_data_clk),
     .axis_streaming_rst(axis_streaming_rst),
     .axis_data_gen_enable(axis_data_gen_enable),
-    .pkt_length(pkt_length),
-    .period(period),
+    .pkt_length(pkt_length_d),
+    .period(period_d),
     .axis_streaming_data_tx_tdata(axis_streaming_data_tx_tdata),
     .axis_streaming_data_tx_tvalid(axis_streaming_data_tx_tvalid),
     .axis_streaming_data_tx_tuser(axis_streaming_data_tx_tuser),
@@ -616,6 +647,500 @@ axi_regs #(
     .period(period)
 );
 
+// input
+//1
+wire [31:0] axis_streaming_data_tx_destination_ip_d;              // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_axis_streaming_data_tx_destination_ip (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(axis_streaming_data_tx_destination_ip),
+    .dout(axis_streaming_data_tx_destination_ip_d)
+);
+
+//2
+wire [15:0] axis_streaming_data_tx_destination_udp_port_d;        // input
+delay #(
+    .D(D),
+    .BITWIDTH(16)
+) delay_axis_streaming_data_tx_destination_udp_port (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(axis_streaming_data_tx_destination_udp_port),
+    .dout(axis_streaming_data_tx_destination_udp_port_d)
+);
+
+//3
+wire [15:0] axis_streaming_data_tx_source_udp_port_d;             // input
+delay #(
+    .D(D),
+    .BITWIDTH(16)
+) delay_axis_streaming_data_tx_source_udp_port (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(axis_streaming_data_tx_source_udp_port),
+    .dout(axis_streaming_data_tx_source_udp_port_d)
+);
+
+//4
+wire [15:0] axis_streaming_data_tx_packet_length_d;               // input
+delay #(
+    .D(D),
+    .BITWIDTH(16)
+) delay_axis_streaming_data_tx_packet_length (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(axis_streaming_data_tx_packet_length),
+    .dout(axis_streaming_data_tx_packet_length_d)
+);
+
+//5
+wire [31:0] gmac_reg_phy_control_h_d;                             // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_phy_control_h (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_phy_control_h),
+    .dout(gmac_reg_phy_control_h_d)
+);
+
+//6
+wire [31:0] gmac_reg_phy_control_l_d;                             // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_phy_control_l (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_phy_control_l),
+    .dout(gmac_reg_phy_control_l_d)
+);
+
+//7
+wire [31:0] gmac_reg_mac_address_h_d;                             // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_mac_address_h (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_mac_address_h),
+    .dout(gmac_reg_mac_address_h_d)
+);
+
+//8
+wire [31:0] gmac_reg_mac_address_l_d;                             // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_mac_address_l (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_mac_address_l),
+    .dout(gmac_reg_mac_address_l_d)
+);
+
+//9
+wire [31:0] gmac_reg_local_ip_address_d;                          // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_local_ip_address (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_local_ip_address),
+    .dout(gmac_reg_local_ip_address_d)
+);
+
+//10
+wire [31:0] gmac_reg_local_ip_netmask_d;                          // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_local_ip_netmask (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_local_ip_netmask),
+    .dout(gmac_reg_local_ip_netmask_d)
+);
+
+//11
+wire [31:0] gmac_reg_gateway_ip_address_d;                        // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_gateway_ip_address (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_gateway_ip_address),
+    .dout(gmac_reg_gateway_ip_address_d)
+);
+
+//12
+wire [31:0] gmac_reg_multicast_ip_address_d;                      // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_multicast_ip_address (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_multicast_ip_address),
+    .dout(gmac_reg_multicast_ip_address_d)
+);
+
+//13
+wire [31:0] gmac_reg_multicast_ip_mask_d;                         // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_multicast_ip_mask (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_multicast_ip_mask),
+    .dout(gmac_reg_multicast_ip_mask_d)
+);
+
+//14
+wire [31:0] gmac_reg_udp_port_d;                                  // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_udp_port (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_udp_port),
+    .dout(gmac_reg_udp_port_d)
+);
+
+//15
+wire [31:0] gmac_reg_core_ctrl_d;                                 // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_core_ctrl (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_core_ctrl),
+    .dout(gmac_reg_core_ctrl_d)
+);
+
+//16
+wire [31:0] gmac_reg_count_reset_d;                               // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_count_reset (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_count_reset),
+    .dout(gmac_reg_count_reset_d)
+);
+
+//17
+wire [31:0] gmac_arp_cache_write_enable_d;                        // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_arp_cache_write_enable (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_arp_cache_write_enable),
+    .dout(gmac_arp_cache_write_enable_d)
+);
+
+//18
+wire [31:0] gmac_arp_cache_read_enable_d;                         // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_arp_cache_read_enable (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_arp_cache_read_enable),
+    .dout(gmac_arp_cache_read_enable_d)
+);
+
+//19
+wire [31:0] gmac_arp_cache_write_data_d;                          // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_arp_cache_write_data (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_arp_cache_write_data),
+    .dout(gmac_arp_cache_write_data_d)
+);
+
+//20
+wire [31:0] gmac_arp_cache_write_address_d;                       // input
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_arp_cache_write_address (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_arp_cache_write_address),
+    .dout(gmac_arp_cache_write_address_d)
+);
+
+//21
+wire [31:0] gmac_arp_cache_read_address_d;                        // input    
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_arp_cache_read_address (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_arp_cache_read_address),
+    .dout(gmac_arp_cache_read_address_d)
+);
+
+// output
+//22
+wire [31:0] gmac_reg_core_type_d;                                 // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_core_type (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_core_type_d),
+    .dout(gmac_reg_core_type)
+);
+
+//23
+wire [31:0] gmac_reg_phy_status_h_d;                              // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_ (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_phy_status_h_d),
+    .dout(gmac_reg_phy_status_h)
+);
+
+//24
+wire [31:0] gmac_reg_phy_status_l_d;                              // output     
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_phy_status_l (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din( gmac_reg_phy_status_l_d),
+    .dout( gmac_reg_phy_status_l)
+);
+
+//25
+wire [31:0] gmac_reg_tx_packet_rate_d;                            // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_tx_packet_rate (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_tx_packet_rate_d),
+    .dout(gmac_reg_tx_packet_rate)
+);
+
+//26
+wire [31:0] gmac_reg_tx_packet_count_d;                           // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_tx_packet_count (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_tx_packet_count_d),
+    .dout(gmac_reg_tx_packet_count)
+);
+
+//27
+wire [31:0] gmac_reg_tx_valid_rate_d;                             // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_tx_valid_rate (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_tx_valid_rate_d),
+    .dout(gmac_reg_tx_valid_rate)
+);
+
+//28
+wire [31:0] gmac_reg_tx_valid_count_d;                            // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_tx_valid_count (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_tx_valid_count_d),
+    .dout(gmac_reg_tx_valid_count)
+);
+
+//29
+wire [31:0] gmac_reg_tx_overflow_count_d;                         // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_tx_overflow_count (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_tx_overflow_count_d),
+    .dout(gmac_reg_tx_overflow_count)
+);
+
+
+//30
+wire [31:0] gmac_reg_tx_almost_full_count_d;                      // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_tx_almost_full_count (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_tx_almost_full_count_d),
+    .dout(gmac_reg_tx_almost_full_count)
+);
+
+//31
+wire [31:0] gmac_reg_rx_packet_rate_d;                            // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_rx_packet_rate (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_rx_packet_rate_d),
+    .dout(gmac_reg_rx_packet_rate)
+);
+
+//32
+wire [31:0] gmac_reg_rx_packet_count_d;                           // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_rx_packet_count (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_rx_packet_count_d),
+    .dout(gmac_reg_rx_packet_count)
+);
+
+//33
+wire [31:0] gmac_reg_rx_valid_rate_d;                             // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_rx_valid_rate (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_rx_valid_rate_d),
+    .dout(gmac_reg_rx_valid_rate)
+);
+
+//34
+wire [31:0] gmac_reg_rx_valid_count_d;                            // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_rx_valid_count (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_rx_valid_count_d),
+    .dout(gmac_reg_rx_valid_count)
+);
+
+//35
+wire [31:0] gmac_reg_rx_overflow_count_d;                         // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_rx_overflow_count (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_rx_overflow_count_d),
+    .dout(gmac_reg_rx_overflow_count)
+);
+
+//36
+wire [31:0] gmac_reg_rx_almost_full_count_d;                      // output       
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_rx_almost_full_count (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_rx_almost_full_count_d),
+    .dout(gmac_reg_rx_almost_full_count)
+);
+
+//37
+wire [31:0] gmac_reg_rx_bad_packet_count_d;                       // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_rx_bad_packet_count (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_rx_bad_packet_count_d),
+    .dout(gmac_reg_rx_bad_packet_count)
+);
+
+//38
+wire [31:0] gmac_reg_arp_size_d;                                  // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_arp_size (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_arp_size_d),
+    .dout(gmac_reg_arp_size)
+);
+
+//39
+wire [31:0] gmac_reg_word_size_d;                                 // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_word_size (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_word_size_d),
+    .dout(gmac_reg_word_size)
+);
+
+//40
+wire [31:0] gmac_reg_buffer_max_size_d;                           // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_reg_buffer_max_size (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_reg_buffer_max_size_d),
+    .dout(gmac_reg_buffer_max_size)
+);
+
+//41
+wire [31:0] gmac_arp_cache_read_data_d;                           // output
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_gmac_arp_cache_read_data (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .din(gmac_arp_cache_read_data_d),
+    .dout(gmac_arp_cache_read_data)
+);
 
 wire aximm_clk;
 wire axis_reset;
@@ -707,47 +1232,47 @@ casper400gethernetblock_no_cpu #(
     .axis_streaming_data_tx_tlast(axis_streaming_data_tx_tlast),
     .axis_streaming_data_tx_tready(axis_streaming_data_tx_tready),
 
-    .axis_streaming_data_tx_destination_ip( axis_streaming_data_tx_destination_ip),
-    .axis_streaming_data_tx_destination_udp_port( axis_streaming_data_tx_destination_udp_port),
-    .axis_streaming_data_tx_source_udp_port( axis_streaming_data_tx_source_udp_port),
-    .axis_streaming_data_tx_packet_length( axis_streaming_data_tx_packet_length),   
+    .axis_streaming_data_tx_destination_ip( axis_streaming_data_tx_destination_ip_d),
+    .axis_streaming_data_tx_destination_udp_port( axis_streaming_data_tx_destination_udp_port_d),
+    .axis_streaming_data_tx_source_udp_port( axis_streaming_data_tx_source_udp_port_d),
+    .axis_streaming_data_tx_packet_length( axis_streaming_data_tx_packet_length_d),   
     // -- Software controlled register IO
-    .gmac_reg_phy_control_h(gmac_reg_phy_control_h),
-    .gmac_reg_phy_control_l(gmac_reg_phy_control_l),
-    .gmac_reg_mac_address_h(gmac_reg_mac_address_h),
-    .gmac_reg_mac_address_l(gmac_reg_mac_address_l),
-    .gmac_reg_local_ip_address(gmac_reg_local_ip_address),
-    .gmac_reg_local_ip_netmask(gmac_reg_local_ip_netmask),
-    .gmac_reg_gateway_ip_address(gmac_reg_gateway_ip_address),
-    .gmac_reg_multicast_ip_address(gmac_reg_multicast_ip_address),
-    .gmac_reg_multicast_ip_mask(gmac_reg_multicast_ip_mask),
-    .gmac_reg_udp_port(gmac_reg_udp_port),
-    .gmac_reg_core_ctrl(gmac_reg_core_ctrl),
-    .gmac_reg_core_type(gmac_reg_core_type),
-    .gmac_reg_phy_status_h(gmac_reg_phy_status_h),
-    .gmac_reg_phy_status_l(gmac_reg_phy_status_l),
-    .gmac_reg_tx_packet_rate(gmac_reg_tx_packet_rate),
-    .gmac_reg_tx_packet_count(gmac_reg_tx_packet_count),
-    .gmac_reg_tx_valid_rate(gmac_reg_tx_valid_rate),
-    .gmac_reg_tx_valid_count(gmac_reg_tx_valid_count),
-    .gmac_reg_tx_overflow_count(gmac_reg_tx_overflow_count),
-    .gmac_reg_tx_almost_full_count(gmac_reg_tx_almost_full_count),
-    .gmac_reg_rx_packet_rate(gmac_reg_rx_packet_rate),
-    .gmac_reg_rx_packet_count(gmac_reg_rx_packet_count),
-    .gmac_reg_rx_valid_rate(gmac_reg_rx_valid_rate),
-    .gmac_reg_rx_valid_count(gmac_reg_rx_valid_count),
-    .gmac_reg_rx_overflow_count(gmac_reg_rx_overflow_count),
-    .gmac_reg_rx_almost_full_count(gmac_reg_rx_almost_full_count),
-    .gmac_reg_rx_bad_packet_count(gmac_reg_rx_bad_packet_count),
-    .gmac_reg_arp_size(gmac_reg_arp_size),
-    .gmac_reg_word_size(gmac_reg_word_size),
-    .gmac_reg_buffer_max_size(gmac_reg_buffer_max_size),
-    .gmac_reg_count_reset(gmac_reg_count_reset),
-    .gmac_arp_cache_write_enable(gmac_arp_cache_write_enable),
-    .gmac_arp_cache_read_enable(gmac_arp_cache_read_enable),
-    .gmac_arp_cache_write_data(gmac_arp_cache_write_data),
-    .gmac_arp_cache_write_address(gmac_arp_cache_write_address),
-    .gmac_arp_cache_read_address(gmac_arp_cache_read_address),
-    .gmac_arp_cache_read_data(gmac_arp_cache_read_data)
+    .gmac_reg_phy_control_h(gmac_reg_phy_control_h_d),
+    .gmac_reg_phy_control_l(gmac_reg_phy_control_l_d),
+    .gmac_reg_mac_address_h(gmac_reg_mac_address_h_d),
+    .gmac_reg_mac_address_l(gmac_reg_mac_address_l_d),
+    .gmac_reg_local_ip_address(gmac_reg_local_ip_address_d),
+    .gmac_reg_local_ip_netmask(gmac_reg_local_ip_netmask_d),
+    .gmac_reg_gateway_ip_address(gmac_reg_gateway_ip_address_d),
+    .gmac_reg_multicast_ip_address(gmac_reg_multicast_ip_address_d),
+    .gmac_reg_multicast_ip_mask(gmac_reg_multicast_ip_mask_d),
+    .gmac_reg_udp_port(gmac_reg_udp_port_d),
+    .gmac_reg_core_ctrl(gmac_reg_core_ctrl_d),
+    .gmac_reg_core_type(gmac_reg_core_type_d),
+    .gmac_reg_phy_status_h(gmac_reg_phy_status_h_d),
+    .gmac_reg_phy_status_l(gmac_reg_phy_status_l_d),
+    .gmac_reg_tx_packet_rate(gmac_reg_tx_packet_rate_d),
+    .gmac_reg_tx_packet_count(gmac_reg_tx_packet_count_d),
+    .gmac_reg_tx_valid_rate(gmac_reg_tx_valid_rate_d),
+    .gmac_reg_tx_valid_count(gmac_reg_tx_valid_count_d),
+    .gmac_reg_tx_overflow_count(gmac_reg_tx_overflow_count_d),
+    .gmac_reg_tx_almost_full_count(gmac_reg_tx_almost_full_count_d),
+    .gmac_reg_rx_packet_rate(gmac_reg_rx_packet_rate_d),
+    .gmac_reg_rx_packet_count(gmac_reg_rx_packet_count_d),
+    .gmac_reg_rx_valid_rate(gmac_reg_rx_valid_rate_d),
+    .gmac_reg_rx_valid_count(gmac_reg_rx_valid_count_d),
+    .gmac_reg_rx_overflow_count(gmac_reg_rx_overflow_count_d),
+    .gmac_reg_rx_almost_full_count(gmac_reg_rx_almost_full_count_d),
+    .gmac_reg_rx_bad_packet_count(gmac_reg_rx_bad_packet_count_d),
+    .gmac_reg_arp_size(gmac_reg_arp_size_d),
+    .gmac_reg_word_size(gmac_reg_word_size_d),
+    .gmac_reg_buffer_max_size(gmac_reg_buffer_max_size_d),
+    .gmac_reg_count_reset(gmac_reg_count_reset_d),
+    .gmac_arp_cache_write_enable(gmac_arp_cache_write_enable_d),
+    .gmac_arp_cache_read_enable(gmac_arp_cache_read_enable_d),
+    .gmac_arp_cache_write_data(gmac_arp_cache_write_data_d),
+    .gmac_arp_cache_write_address(gmac_arp_cache_write_address_d),
+    .gmac_arp_cache_read_address(gmac_arp_cache_read_address_d),
+    .gmac_arp_cache_read_data(gmac_arp_cache_read_data_d)
 );
 endmodule

@@ -153,6 +153,14 @@ dcmac_0_clk_wiz_0 i_dcmac_0_clk_wiz_0 (
   .clk_out3   (ts_clk)          // 350MHz
 );
 
+/*
+core_clk core_clk_inst(
+  .reset      (clk_wiz_reset),
+  .clk_in1	  (clk_wiz_in),     // 156.25MHz
+  .locked     (),
+  .clk_out1   (core_clk) // 782MHz
+);
+*/
 /*--------------------------------------------------------------------------------------*/
 // axis tx clock, which is 390.625MHz 
 /*--------------------------------------------------------------------------------------*/
@@ -379,7 +387,7 @@ assign dcmac_tx_eop[11:8] = 4'h0;
 assign dcmac_tx_err[11:8] = 4'h0;
 assign dcmac_tx_mty[47:32] = 16'h0;
 assign dcmac_tx_vld [0] = casper_tx_tvalid_d1;
-assign dcmac_tx_vld[11:1] = 11'h0;
+assign dcmac_tx_vld[5:1] = 5'h0;
 assign dcmac_tx_vld[5:1] = 5'h0;
 
 /*--------------------------------------------------------------------------------------*/
