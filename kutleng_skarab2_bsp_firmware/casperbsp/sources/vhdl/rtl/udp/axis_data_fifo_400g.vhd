@@ -35,7 +35,7 @@ architecture rtl of axis_data_fifo_400g is
     generic (
         CASCADE_HEIGHT          : natural :=  0;                -- DECIMAL
         CDC_SYNC_STAGES         : natural :=  2;                -- DECIMAL
-        CLOCKING_MODE           : string  := "common_clock";    -- String
+        CLOCKING_MODE           : string  := "independent_clock";    -- String
         ECC_MODE                : string  := "no_ecc";          -- String
         FIFO_DEPTH              : natural :=  64;               -- DECIMAL
         FIFO_MEMORY_TYPE        : string  := "auto";            -- String
@@ -95,7 +95,8 @@ begin
         TDEST_WIDTH             => 1,
         TID_WIDTH               => 1,
         TUSER_WIDTH             => 1,
-        WR_DATA_COUNT_WIDTH     => 1
+        WR_DATA_COUNT_WIDTH     => 1,
+        CLOCKING_MODE           => "independent_clock"
     )
     port map(
         almost_empty_axis   => open,

@@ -2,19 +2,21 @@
 
 module udpipinterfacepr400g_phy_tb;
 
-parameter PERIOD = 2;
+parameter PERIOD = 8;
+parameter PERIOD_AXIS = 2;
 parameter G_AXIS_DATA_WIDTH = 1024;
 parameter PKT_LEN = 8192;
 parameter BYTES_PER_BUS = 128;
 parameter CYC = 128;
 
-reg clk, rst;
+reg clk, rst, axis_clk;
 reg mac_enable;
 reg enable;
 //-----------------reset & clk init-----------------
 initial 
 begin
     clk = 0;
+    axis_clk = 0;
     rst = 1;
     mac_enable = 0;
     enable = 0;
@@ -27,6 +29,11 @@ end
 always #(PERIOD/2)
 begin
     clk = ~clk;
+end
+
+always #(PERIOD_AXIS/2)
+begin
+    axis_clk =~axis_clk;
 end
 
 wire [1023:0] axis_streaming_data_tx_tdata;
@@ -60,7 +67,7 @@ wire axis_tuser;
 udpipinterfacepr400g #(
     .G_AXIS_DATA_WIDTH(G_AXIS_DATA_WIDTH)
 ) udpipinterfacepr400g_inst(
-    .axis_clk(clk),
+    .axis_clk(axis_clk),
     .aximm_clk(clk),
     .icap_clk(1'b0),
     .axis_reset(rst),
@@ -173,7 +180,7 @@ udpipinterfacepr400g #(
 
     .axis_tx_tdata (axis_tdata),
     .axis_tx_tvalid (axis_tvalid),
-    .axis_tx_tready(1'b1),
+    .axis_tx_tready(axis_tready),
     .axis_tx_tkeep(axis_tkeep),
     .axis_tx_tlast(axis_tlast),
     .axis_tx_tuser(axis_tuser),
