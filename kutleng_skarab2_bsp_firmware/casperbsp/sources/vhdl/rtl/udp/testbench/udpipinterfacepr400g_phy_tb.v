@@ -201,7 +201,7 @@ wire axis_tready_fifo;
 
 axispacketbufferfifo400g fifo_inst
 (
-    .s_aclk(clk),
+    .s_aclk(axis_clk),
     .s_aresetn(~rst),
     .s_axis_tvalid(axis_tvalid),
     .s_axis_tready(axis_tready),
@@ -239,7 +239,7 @@ assign dcmac_tx_vld [0] = casper_tx_tvalid_d1;
 assign dcmac_tx_vld[7:1] = 0;
 
 lbustxaxisrx400g fhg_axis_adapter(
-  .lbus_txclk(clk),
+  .lbus_txclk(axis_clk),
   .lbus_txreset(rst),
   // axis tx 
   .axis_rx_tdata(axis_tdata_fifo),
