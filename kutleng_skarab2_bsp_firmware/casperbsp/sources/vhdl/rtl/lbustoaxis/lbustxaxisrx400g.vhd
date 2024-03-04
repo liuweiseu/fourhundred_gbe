@@ -17,6 +17,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 entity lbustxaxisrx400g is
+    generic(
+        DATASWAP : boolean := false
+    );
     port(
         lbus_txclk      : in  STD_LOGIC;
         lbus_txreset    : in  STD_LOGIC;
@@ -97,13 +100,13 @@ architecture rtl of lbustxaxisrx400g is
         );
     end component maptokeeptomty;
 
-    component mapaxisdatatolbus is
+    component mapaxisdatatolbus400g is
         port(
             lbus_txclk   : in  STD_LOGIC;
             axis_data    : in  STD_LOGIC_VECTOR(127 downto 0);
             lbus_dataout : out STD_LOGIC_VECTOR(127 downto 0)
         );
-    end component mapaxisdatatolbus;
+    end component mapaxisdatatolbus400g;
     signal paxis_tvalid : std_logic;
 
 begin
@@ -119,20 +122,21 @@ begin
     lbus_txsopout5 <= '0';
     lbus_txsopout6 <= '0';
     lbus_txsopout7 <= '0';
-
+    
     seg0mtymapping_i : maptokeeptomty
         port map(
             lbus_txclk  => lbus_txclk,
             axis_tkeep  => axis_rx_tkeep(15 downto 0),
             lbus_mtyout => lbus_txmtyout0
         );
+    
+    seg0datamapping_i : mapaxisdatatolbus400g
+            port map(
+                lbus_txclk   => lbus_txclk,
+                axis_data    => axis_rx_tdata(127 downto 0),
+                lbus_dataout => lbus_txdataout0
+            );
 
-    seg0datamapping_i : mapaxisdatatolbus
-        port map(
-            lbus_txclk   => lbus_txclk,
-            axis_data    => axis_rx_tdata(127 downto 0),
-            lbus_dataout => lbus_txdataout0
-        );
 
     seg1mtymapping_i : maptokeeptomty
         port map(
@@ -141,7 +145,7 @@ begin
             lbus_mtyout => lbus_txmtyout1
         );
 
-    seg1datamapping_i : mapaxisdatatolbus
+    seg1datamapping_i : mapaxisdatatolbus400g
         port map(
             lbus_txclk   => lbus_txclk,
             axis_data    => axis_rx_tdata(255 downto 128),
@@ -155,7 +159,7 @@ begin
             lbus_mtyout => lbus_txmtyout2
         );
 
-    seg2datamapping_i : mapaxisdatatolbus
+    seg2datamapping_i : mapaxisdatatolbus400g
         port map(
             lbus_txclk   => lbus_txclk,
             axis_data    => axis_rx_tdata(383 downto 256),
@@ -169,7 +173,7 @@ begin
             lbus_mtyout => lbus_txmtyout3
         );
 
-    seg3datamapping_i : mapaxisdatatolbus
+    seg3datamapping_i : mapaxisdatatolbus400g
         port map(
             lbus_txclk   => lbus_txclk,
             axis_data    => axis_rx_tdata(511 downto 384),
@@ -183,7 +187,7 @@ begin
             lbus_mtyout => lbus_txmtyout4
         );
     
-    seg4datamapping_i : mapaxisdatatolbus
+    seg4datamapping_i : mapaxisdatatolbus400g
         port map(
             lbus_txclk   => lbus_txclk,
             axis_data    => axis_rx_tdata(639 downto 512),
@@ -197,7 +201,7 @@ begin
             lbus_mtyout => lbus_txmtyout5
         );
 
-    seg5datamapping_i : mapaxisdatatolbus
+    seg5datamapping_i : mapaxisdatatolbus400g
         port map(
             lbus_txclk   => lbus_txclk,
             axis_data    => axis_rx_tdata(767 downto 640),
@@ -211,7 +215,7 @@ begin
             lbus_mtyout => lbus_txmtyout6
         );
 
-    seg6datamapping_i : mapaxisdatatolbus
+    seg6datamapping_i : mapaxisdatatolbus400g
         port map(
             lbus_txclk   => lbus_txclk,
             axis_data    => axis_rx_tdata(895 downto 768),
@@ -225,7 +229,7 @@ begin
             lbus_mtyout => lbus_txmtyout7
         );
 
-    seg7datamapping_i : mapaxisdatatolbus
+    seg7datamapping_i : mapaxisdatatolbus400g
         port map(
             lbus_txclk   => lbus_txclk,
             axis_data    => axis_rx_tdata(1023 downto 896),
@@ -430,7 +434,7 @@ begin
                                             lbus_txerrout6 <= '0';
                                             lbus_txerrout7 <= '0';
                                         else
-                                            if(axis_rx_tkeep(127 downto 112) = X"000000") then
+                                            if(axis_rx_tkeep(127 downto 112) = X"0000") then
                                                 -- Segment 0 to 6 are activated
                                                 lbus_txeopout0 <= '0';
                                                 lbus_txeopout1 <= '0';

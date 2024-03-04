@@ -653,8 +653,10 @@ begin
                             lPacketSlotType                <= offset_axis_tlast;
                             lPacketByteEnable((G_AXIS_DATA_WIDTH / 8) - 1 downto 1) <= offset_axis_tkeep((G_AXIS_DATA_WIDTH / 8) - 1 downto 1);
                             -- Point to next address when data is valid from source
-                            lUDPLength <= X"001e"; -- Assume this word is 64 bytes, 34 of which are headers on top of UDP
-                            lIPLength <= X"0032"; --Assume this word is 64 bytes, 14 of which are headers on top of IP 
+                            --lUDPLength <= X"001e"; -- Assume this word is 64 bytes, 34 of which are headers on top of UDP
+                            -- lIPLength <= X"0032"; --Assume this word is 64 bytes, 14 of which are headers on top of IP 
+                            lUDPLength <= X"005e"; -- for 400g, it's 128 bytes, not 64 bytes in each seg 
+                            lIPLength <= X"0072"; -- for 400g, it's 128 bytes, not 64 bytes in each seg
                             lPacketAddress <= (others => '0');
                             lFirstWord <= offset_axis_tdata(G_AXIS_DATA_WIDTH - 1 downto 336); -- store the first word so we can write it again when we have the headers
                             StateVariable <= WriteUdpPayloadSt;

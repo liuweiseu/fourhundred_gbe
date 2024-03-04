@@ -289,12 +289,8 @@ fhg_axis_adapter fhg_adapter_inst(
 
 wire lbus_tx_rdyout;
 // when all of the segments are ready, then the lbus_tx_rdyout is high.
-assign lbus_tx_rdyoyt = dcmac_tx_tready[0] & 
-                        dcmac_tx_tready[1] & 
-                        dcmac_tx_tready[2] & 
-                        dcmac_tx_tready[3] & 
-                        dcmac_tx_tready[4] & 
-                        dcmac_tx_tready[5];
+assign lbus_tx_rdyoyt = dcmac_tx_tready[0];
+
 // we don't need to use the tx_id, so we can assign it to 0.
 assign dcmac_tx_id = 6'b000000;
 // lets set dcmac_rx_preamble[55:0] to 0x555...., other bits are 0.

@@ -227,7 +227,7 @@ wire [31:0] dcmac_tx_mty;
 wire [7:0] dcmac_tx_vld;
 
 reg casper_tx_tvalid_d1;
-always @(posedge clk)
+always @(posedge axis_clk)
 begin
   if(rst)
     casper_tx_tvalid_d1 <= 1'b0;
