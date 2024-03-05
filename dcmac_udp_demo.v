@@ -98,7 +98,7 @@ module dcmac_udp_demo (
 );
 
 
-parameter D = 2;
+parameter D = 4;
 
 wire             gt_reset_all_in;
 wire [31:0]      gt_gpo;
@@ -572,6 +572,118 @@ wire [31:0] gmac_arp_cache_write_address;                       // input
 wire [31:0] gmac_arp_cache_read_address;                        // input    
 wire [31:0] gmac_arp_cache_read_data;                           // output
 
+wire [31:0] axis_streaming_data_tx_destination_ip_d;              // input
+wire [15:0] axis_streaming_data_tx_destination_udp_port_d;        // input
+wire [15:0] axis_streaming_data_tx_source_udp_port_d;             // input
+wire [15:0] axis_streaming_data_tx_packet_length_d;               // input
+wire [31:0] gmac_reg_phy_control_h_d;                             // input
+wire [31:0] gmac_reg_phy_control_l_d;                             // input        
+wire [31:0] gmac_reg_mac_address_h_d;                             // input
+wire [31:0] gmac_reg_mac_address_l_d;                             // input
+wire [31:0] gmac_reg_local_ip_address_d;                          // input
+wire [31:0] gmac_reg_local_ip_netmask_d;                          // input
+wire [31:0] gmac_reg_gateway_ip_address_d;                        // input    
+wire [31:0] gmac_reg_multicast_ip_address_d;                      // input
+wire [31:0] gmac_reg_multicast_ip_mask_d;                         // input
+wire [31:0] gmac_reg_udp_port_d;                                  // input
+wire [31:0] gmac_reg_core_ctrl_d;                                 // input
+wire [31:0] gmac_reg_core_type_d;                                 // output
+wire [31:0] gmac_reg_phy_status_h_d;                              // output
+wire [31:0] gmac_reg_phy_status_l_d;                              // output     
+wire [31:0] gmac_reg_tx_packet_rate_d;                            // output
+wire [31:0] gmac_reg_tx_packet_count_d;                           // output
+wire [31:0] gmac_reg_tx_valid_rate_d;                             // output
+wire [31:0] gmac_reg_tx_valid_count_d;                            // output
+wire [31:0] gmac_reg_tx_overflow_count_d;                         // output
+wire [31:0] gmac_reg_tx_almost_full_count_d;                      // output
+wire [31:0] gmac_reg_rx_packet_rate_d;                            // output
+wire [31:0] gmac_reg_rx_packet_count_d;                           // output
+wire [31:0] gmac_reg_rx_valid_rate_d;                             // output
+wire [31:0] gmac_reg_rx_valid_count_d;                            // output
+wire [31:0] gmac_reg_rx_overflow_count_d;                         // output
+wire [31:0] gmac_reg_rx_almost_full_count_d;                      // output       
+wire [31:0] gmac_reg_rx_bad_packet_count_d;                       // output
+wire [31:0] gmac_reg_arp_size_d;                                  // output
+wire [31:0] gmac_reg_word_size_d;                                 // output
+wire [31:0] gmac_reg_buffer_max_size_d;                           // output
+wire [31:0] gmac_reg_count_reset_d;                               // input
+wire [31:0] gmac_arp_cache_write_enable_d;                        // input
+wire [31:0] gmac_arp_cache_read_enable_d;                         // input
+wire [31:0] gmac_arp_cache_write_data_d;                          // input
+wire [31:0] gmac_arp_cache_write_address_d;                       // input
+wire [31:0] gmac_arp_cache_read_address_d;                        // input    
+wire [31:0] gmac_arp_cache_read_data_d;                           // output
+
+// am setting
+wire [15:0] ctl_port_ctl_rx_custom_vl_length_minus1;
+wire [15:0] ctl_port_ctl_tx_custom_vl_length_minus1;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id0;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id1;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id2;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id3;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id4;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id5;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id6;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id7;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id8;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id9;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id10;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id11;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id12;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id13;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id14;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id15;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id16;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id17;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id18;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id19;
+// ports connect the axi reg
+wire [15:0] rx_custom_vl_length_minus1;
+wire [15:0] tx_custom_vl_length_minus1;
+wire [31:0] vl_marker_id0_lsb;
+wire [31:0] vl_marker_id0_msb;
+wire [31:0] vl_marker_id1_lsb;
+wire [31:0] vl_marker_id1_msb;
+wire [31:0] vl_marker_id2_lsb;
+wire [31:0] vl_marker_id2_msb;
+wire [31:0] vl_marker_id3_lsb;
+wire [31:0] vl_marker_id3_msb;
+wire [31:0] vl_marker_id4_lsb;
+wire [31:0] vl_marker_id4_msb;
+wire [31:0] vl_marker_id5_lsb;
+wire [31:0] vl_marker_id5_msb;
+wire [31:0] vl_marker_id6_lsb;
+wire [31:0] vl_marker_id6_msb;
+wire [31:0] vl_marker_id7_lsb;
+wire [31:0] vl_marker_id7_msb;
+wire [31:0] vl_marker_id8_lsb;
+wire [31:0] vl_marker_id8_msb;
+wire [31:0] vl_marker_id9_lsb;
+wire [31:0] vl_marker_id9_msb;
+wire [31:0] vl_marker_id10_lsb;
+wire [31:0] vl_marker_id10_msb;
+wire [31:0] vl_marker_id11_lsb;
+wire [31:0] vl_marker_id11_msb;
+wire [31:0] vl_marker_id12_lsb;
+wire [31:0] vl_marker_id12_msb;
+wire [31:0] vl_marker_id13_lsb;
+wire [31:0] vl_marker_id13_msb;
+wire [31:0] vl_marker_id14_lsb;
+wire [31:0] vl_marker_id14_msb;
+wire [31:0] vl_marker_id15_lsb;
+wire [31:0] vl_marker_id15_msb;
+wire [31:0] vl_marker_id16_lsb;
+wire [31:0] vl_marker_id16_msb;
+wire [31:0] vl_marker_id17_lsb;
+wire [31:0] vl_marker_id17_msb;
+wire [31:0] vl_marker_id18_lsb;
+wire [31:0] vl_marker_id18_msb;
+wire [31:0] vl_marker_id19_lsb;
+wire [31:0] vl_marker_id19_msb;
+
+assign ctl_port_ctl_rx_custom_vl_length_minus1 = rx_custom_vl_length_minus1;
+assign ctl_port_ctl_tx_custom_vl_length_minus1 = tx_custom_vl_length_minus1;
+
 assign s_axi_aclk_reg = pl0_ref_clk_0;
 assign s_axi_aresetn_reg = pl0_resetn_0;
 
@@ -644,508 +756,234 @@ axi_regs #(
     .gmac_arp_cache_read_data(gmac_arp_cache_read_data),
     .axis_data_gen_enable(axis_data_gen_enable),
     .pkt_length(pkt_length),
-    .period(period)
+    .period(period),
+    .rx_custom_vl_length_minus1(rx_custom_vl_length_minus1),							// reg45[15:0] tw
+    .tx_custom_vl_length_minus1(tx_custom_vl_length_minus1),							// reg46[15:0] rw
+    .vl_marker_id0_lsb(vl_marker_id0_lsb),									// reg47[31:0] rw
+    .vl_marker_id0_msb(vl_marker_id0_msb),									// reg48[31:0] rw
+    .vl_marker_id1_lsb(vl_marker_id1_lsb),									// reg49[31:0] rw
+    .vl_marker_id1_msb(vl_marker_id1_msb),									// reg50[31:0] rw
+    .vl_marker_id2_lsb(vl_marker_id2_lsb),									// reg51[31:0] rw
+    .vl_marker_id2_msb(vl_marker_id2_msb),									// reg52[31:0] rw
+    .vl_marker_id3_lsb(vl_marker_id3_lsb),									// reg53[31:0] rw
+    .vl_marker_id3_msb(vl_marker_id3_msb),									// reg54[31:0] rw
+    .vl_marker_id4_lsb(vl_marker_id4_lsb),									// reg55[31:0] rw
+    .vl_marker_id4_msb(vl_marker_id4_msb),									// reg56[31:0] rw
+    .vl_marker_id5_lsb(vl_marker_id5_lsb),									// reg57[31:0] rw
+    .vl_marker_id5_msb(vl_marker_id5_msb),									// reg58[31:0] rw
+    .vl_marker_id6_lsb(vl_marker_id6_lsb),									// reg59[31:0] rw
+    .vl_marker_id6_msb(vl_marker_id6_msb),									// reg60[31:0] rw
+    .vl_marker_id7_lsb(vl_marker_id7_lsb),									// reg61[31:0] rw
+    .vl_marker_id7_msb(vl_marker_id7_msb),									// reg62[31:0] rw
+    .vl_marker_id8_lsb(vl_marker_id8_lsb),									// reg63[31:0] rw
+    .vl_marker_id8_msb(vl_marker_id8_msb),									// reg64[31:0] rw
+    .vl_marker_id9_lsb(vl_marker_id9_lsb),									// reg65[31:0] rw
+    .vl_marker_id9_msb(vl_marker_id9_msb),									// reg66[31:0] rw
+    .vl_marker_id10_lsb(vl_marker_id10_lsb),									// reg67[31:0] rw
+    .vl_marker_id10_msb(vl_marker_id10_msb),									// reg68[31:0] rw
+    .vl_marker_id11_lsb(vl_marker_id11_lsb),									// reg69[31:0] rw
+    .vl_marker_id11_msb(vl_marker_id11_msb),									// reg70[31:0] rw
+    .vl_marker_id12_lsb(vl_marker_id12_lsb),									// reg71[31:0] rw
+    .vl_marker_id12_msb(vl_marker_id12_msb),									// reg72[31:0] rw
+    .vl_marker_id13_lsb(vl_marker_id13_lsb),									// reg73[31:0] rw
+    .vl_marker_id13_msb(vl_marker_id13_msb),									// reg74[31:0] rw
+    .vl_marker_id14_lsb(vl_marker_id14_lsb),									// reg75[31:0] rw
+    .vl_marker_id14_msb(vl_marker_id14_msb),									// reg76[31:0] rw
+    .vl_marker_id15_lsb(vl_marker_id15_lsb),									// reg77[31:0] rw
+    .vl_marker_id15_msb(vl_marker_id15_msb),									// reg78[31:0] rw
+    .vl_marker_id16_lsb(vl_marker_id16_lsb),									// reg79[31:0] rw
+    .vl_marker_id16_msb(vl_marker_id16_msb),									// reg80[31:0] rw
+    .vl_marker_id17_lsb(vl_marker_id17_lsb),									// reg81[31:0] rw
+    .vl_marker_id17_msb(vl_marker_id17_msb),									// reg82[31:0] rw
+    .vl_marker_id18_lsb(vl_marker_id18_lsb),									// reg83[31:0] rw
+    .vl_marker_id18_msb(vl_marker_id18_msb),									// reg84[31:0] rw
+    .vl_marker_id19_lsb(vl_marker_id19_lsb),									// reg85[31:0] rw	
+    .vl_marker_id19_msb(vl_marker_id19_msb)									// reg86[31:0] rw
 );
 
-// input
-//1
-wire [31:0] axis_streaming_data_tx_destination_ip_d;              // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_axis_streaming_data_tx_destination_ip (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(axis_streaming_data_tx_destination_ip),
-    .dout(axis_streaming_data_tx_destination_ip_d)
-);
+assign ctl_port_ctl_tx_vl_marker_id0 = {vl_marker_id0_msb, vl_marker_id0_lsb};
+assign ctl_port_ctl_tx_vl_marker_id1 = {vl_marker_id1_msb, vl_marker_id1_lsb};
+assign ctl_port_ctl_tx_vl_marker_id2 = {vl_marker_id2_msb, vl_marker_id2_lsb};
+assign ctl_port_ctl_tx_vl_marker_id3 = {vl_marker_id3_msb, vl_marker_id3_lsb};
+assign ctl_port_ctl_tx_vl_marker_id4 = {vl_marker_id4_msb, vl_marker_id4_lsb};
+assign ctl_port_ctl_tx_vl_marker_id5 = {vl_marker_id5_msb, vl_marker_id5_lsb};
+assign ctl_port_ctl_tx_vl_marker_id6 = {vl_marker_id6_msb, vl_marker_id6_lsb};
+assign ctl_port_ctl_tx_vl_marker_id7 = {vl_marker_id7_msb, vl_marker_id7_lsb};
+assign ctl_port_ctl_tx_vl_marker_id8 = {vl_marker_id8_msb, vl_marker_id8_lsb};
+assign ctl_port_ctl_tx_vl_marker_id9 = {vl_marker_id9_msb, vl_marker_id9_lsb};
+assign ctl_port_ctl_tx_vl_marker_id10 = {vl_marker_id10_msb, vl_marker_id10_lsb};
+assign ctl_port_ctl_tx_vl_marker_id11 = {vl_marker_id11_msb, vl_marker_id11_lsb};
+assign ctl_port_ctl_tx_vl_marker_id12 = {vl_marker_id12_msb, vl_marker_id12_lsb};
+assign ctl_port_ctl_tx_vl_marker_id13 = {vl_marker_id13_msb, vl_marker_id13_lsb};
+assign ctl_port_ctl_tx_vl_marker_id14 = {vl_marker_id14_msb, vl_marker_id14_lsb};
+assign ctl_port_ctl_tx_vl_marker_id15 = {vl_marker_id15_msb, vl_marker_id15_lsb};
+assign ctl_port_ctl_tx_vl_marker_id16 = {vl_marker_id16_msb, vl_marker_id16_lsb};
+assign ctl_port_ctl_tx_vl_marker_id17 = {vl_marker_id17_msb, vl_marker_id17_lsb};
+assign ctl_port_ctl_tx_vl_marker_id18 = {vl_marker_id18_msb, vl_marker_id18_lsb};
+assign ctl_port_ctl_tx_vl_marker_id19 = {vl_marker_id19_msb, vl_marker_id19_lsb};
 
-//2
-wire [15:0] axis_streaming_data_tx_destination_udp_port_d;        // input
-delay #(
-    .D(D),
-    .BITWIDTH(16)
-) delay_axis_streaming_data_tx_destination_udp_port (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(axis_streaming_data_tx_destination_udp_port),
-    .dout(axis_streaming_data_tx_destination_udp_port_d)
-);
-
-//3
-wire [15:0] axis_streaming_data_tx_source_udp_port_d;             // input
-delay #(
-    .D(D),
-    .BITWIDTH(16)
-) delay_axis_streaming_data_tx_source_udp_port (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(axis_streaming_data_tx_source_udp_port),
-    .dout(axis_streaming_data_tx_source_udp_port_d)
-);
-
-//4
-wire [15:0] axis_streaming_data_tx_packet_length_d;               // input
-delay #(
-    .D(D),
-    .BITWIDTH(16)
-) delay_axis_streaming_data_tx_packet_length (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(axis_streaming_data_tx_packet_length),
-    .dout(axis_streaming_data_tx_packet_length_d)
-);
-
-//5
-wire [31:0] gmac_reg_phy_control_h_d;                             // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_phy_control_h (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_phy_control_h),
-    .dout(gmac_reg_phy_control_h_d)
-);
-
-//6
-wire [31:0] gmac_reg_phy_control_l_d;                             // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_phy_control_l (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_phy_control_l),
-    .dout(gmac_reg_phy_control_l_d)
-);
-
-//7
-wire [31:0] gmac_reg_mac_address_h_d;                             // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_mac_address_h (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_mac_address_h),
-    .dout(gmac_reg_mac_address_h_d)
-);
-
-//8
-wire [31:0] gmac_reg_mac_address_l_d;                             // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_mac_address_l (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_mac_address_l),
-    .dout(gmac_reg_mac_address_l_d)
-);
-
-//9
-wire [31:0] gmac_reg_local_ip_address_d;                          // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_local_ip_address (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_local_ip_address),
-    .dout(gmac_reg_local_ip_address_d)
-);
-
-//10
-wire [31:0] gmac_reg_local_ip_netmask_d;                          // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_local_ip_netmask (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_local_ip_netmask),
-    .dout(gmac_reg_local_ip_netmask_d)
-);
-
-//11
-wire [31:0] gmac_reg_gateway_ip_address_d;                        // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_gateway_ip_address (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_gateway_ip_address),
-    .dout(gmac_reg_gateway_ip_address_d)
-);
-
-//12
-wire [31:0] gmac_reg_multicast_ip_address_d;                      // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_multicast_ip_address (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_multicast_ip_address),
-    .dout(gmac_reg_multicast_ip_address_d)
-);
-
-//13
-wire [31:0] gmac_reg_multicast_ip_mask_d;                         // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_multicast_ip_mask (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_multicast_ip_mask),
-    .dout(gmac_reg_multicast_ip_mask_d)
-);
-
-//14
-wire [31:0] gmac_reg_udp_port_d;                                  // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_udp_port (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_udp_port),
-    .dout(gmac_reg_udp_port_d)
-);
-
-//15
-wire [31:0] gmac_reg_core_ctrl_d;                                 // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_core_ctrl (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_core_ctrl),
-    .dout(gmac_reg_core_ctrl_d)
-);
-
-//16
-wire [31:0] gmac_reg_count_reset_d;                               // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_count_reset (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_count_reset),
-    .dout(gmac_reg_count_reset_d)
-);
-
-//17
-wire [31:0] gmac_arp_cache_write_enable_d;                        // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_arp_cache_write_enable (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_arp_cache_write_enable),
-    .dout(gmac_arp_cache_write_enable_d)
-);
-
-//18
-wire [31:0] gmac_arp_cache_read_enable_d;                         // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_arp_cache_read_enable (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_arp_cache_read_enable),
-    .dout(gmac_arp_cache_read_enable_d)
-);
-
-//19
-wire [31:0] gmac_arp_cache_write_data_d;                          // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_arp_cache_write_data (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_arp_cache_write_data),
-    .dout(gmac_arp_cache_write_data_d)
-);
-
-//20
-wire [31:0] gmac_arp_cache_write_address_d;                       // input
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_arp_cache_write_address (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_arp_cache_write_address),
-    .dout(gmac_arp_cache_write_address_d)
-);
-
-//21
-wire [31:0] gmac_arp_cache_read_address_d;                        // input    
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_arp_cache_read_address (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_arp_cache_read_address),
-    .dout(gmac_arp_cache_read_address_d)
-);
-
-// output
-//22
-wire [31:0] gmac_reg_core_type_d;                                 // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_core_type (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_core_type_d),
-    .dout(gmac_reg_core_type)
-);
-
-//23
-wire [31:0] gmac_reg_phy_status_h_d;                              // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_ (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_phy_status_h_d),
-    .dout(gmac_reg_phy_status_h)
-);
-
-//24
-wire [31:0] gmac_reg_phy_status_l_d;                              // output     
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_phy_status_l (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din( gmac_reg_phy_status_l_d),
-    .dout( gmac_reg_phy_status_l)
-);
-
-//25
-wire [31:0] gmac_reg_tx_packet_rate_d;                            // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_tx_packet_rate (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_tx_packet_rate_d),
-    .dout(gmac_reg_tx_packet_rate)
-);
-
-//26
-wire [31:0] gmac_reg_tx_packet_count_d;                           // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_tx_packet_count (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_tx_packet_count_d),
-    .dout(gmac_reg_tx_packet_count)
-);
-
-//27
-wire [31:0] gmac_reg_tx_valid_rate_d;                             // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_tx_valid_rate (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_tx_valid_rate_d),
-    .dout(gmac_reg_tx_valid_rate)
-);
-
-//28
-wire [31:0] gmac_reg_tx_valid_count_d;                            // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_tx_valid_count (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_tx_valid_count_d),
-    .dout(gmac_reg_tx_valid_count)
-);
-
-//29
-wire [31:0] gmac_reg_tx_overflow_count_d;                         // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_tx_overflow_count (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_tx_overflow_count_d),
-    .dout(gmac_reg_tx_overflow_count)
-);
-
-
-//30
-wire [31:0] gmac_reg_tx_almost_full_count_d;                      // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_tx_almost_full_count (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_tx_almost_full_count_d),
-    .dout(gmac_reg_tx_almost_full_count)
-);
-
-//31
-wire [31:0] gmac_reg_rx_packet_rate_d;                            // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_rx_packet_rate (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_rx_packet_rate_d),
-    .dout(gmac_reg_rx_packet_rate)
-);
-
-//32
-wire [31:0] gmac_reg_rx_packet_count_d;                           // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_rx_packet_count (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_rx_packet_count_d),
-    .dout(gmac_reg_rx_packet_count)
-);
-
-//33
-wire [31:0] gmac_reg_rx_valid_rate_d;                             // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_rx_valid_rate (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_rx_valid_rate_d),
-    .dout(gmac_reg_rx_valid_rate)
-);
-
-//34
-wire [31:0] gmac_reg_rx_valid_count_d;                            // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_rx_valid_count (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_rx_valid_count_d),
-    .dout(gmac_reg_rx_valid_count)
-);
-
-//35
-wire [31:0] gmac_reg_rx_overflow_count_d;                         // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_rx_overflow_count (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_rx_overflow_count_d),
-    .dout(gmac_reg_rx_overflow_count)
-);
-
-//36
-wire [31:0] gmac_reg_rx_almost_full_count_d;                      // output       
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_rx_almost_full_count (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_rx_almost_full_count_d),
-    .dout(gmac_reg_rx_almost_full_count)
-);
-
-//37
-wire [31:0] gmac_reg_rx_bad_packet_count_d;                       // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_rx_bad_packet_count (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_rx_bad_packet_count_d),
-    .dout(gmac_reg_rx_bad_packet_count)
-);
-
-//38
-wire [31:0] gmac_reg_arp_size_d;                                  // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_arp_size (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_arp_size_d),
-    .dout(gmac_reg_arp_size)
-);
-
-//39
-wire [31:0] gmac_reg_word_size_d;                                 // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_word_size (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_word_size_d),
-    .dout(gmac_reg_word_size)
-);
-
-//40
-wire [31:0] gmac_reg_buffer_max_size_d;                           // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_reg_buffer_max_size (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_reg_buffer_max_size_d),
-    .dout(gmac_reg_buffer_max_size)
-);
-
-//41
-wire [31:0] gmac_arp_cache_read_data_d;                           // output
-delay #(
-    .D(D),
-    .BITWIDTH(32)
-) delay_gmac_arp_cache_read_data (
-    .clk(pl0_ref_clk_0),
-    .rst(~pl0_resetn_0),
-    .din(gmac_arp_cache_read_data_d),
-    .dout(gmac_arp_cache_read_data)
-);
+wire [15:0] ctl_port_ctl_rx_custom_vl_length_minus1_d;
+wire [15:0] ctl_port_ctl_tx_custom_vl_length_minus1_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id0_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id1_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id2_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id3_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id4_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id5_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id6_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id7_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id8_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id9_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id10_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id11_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id12_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id13_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id14_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id15_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id16_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id17_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id18_d;
+wire [63:0] ctl_port_ctl_tx_vl_marker_id19_d;
 
 wire aximm_clk;
 wire axis_reset;
 
 
+reg_delay #(
+    .D(D)
+) delay_axi_regs (
+    .clk(pl0_ref_clk_0),
+    .rst(~pl0_resetn_0),
+    .axis_streaming_data_tx_destination_ip(axis_streaming_data_tx_destination_ip),
+    .axis_streaming_data_tx_destination_udp_port(axis_streaming_data_tx_destination_udp_port),
+    .axis_streaming_data_tx_source_udp_port(axis_streaming_data_tx_source_udp_port),
+    .axis_streaming_data_tx_packet_length(axis_streaming_data_tx_packet_length),
+    .gmac_reg_phy_control_h(gmac_reg_phy_control_h),
+    .gmac_reg_phy_control_l(gmac_reg_phy_control_l),
+    .gmac_reg_mac_address_h(gmac_reg_mac_address_h),
+    .gmac_reg_mac_address_l(gmac_reg_mac_address_l),
+    .gmac_reg_local_ip_address(gmac_reg_local_ip_address),
+    .gmac_reg_local_ip_netmask(gmac_reg_local_ip_netmask),
+    .gmac_reg_gateway_ip_address(gmac_reg_gateway_ip_address),
+    .gmac_reg_multicast_ip_address(gmac_reg_multicast_ip_address),
+    .gmac_reg_multicast_ip_mask(gmac_reg_multicast_ip_mask),
+    .gmac_reg_udp_port(gmac_reg_udp_port),
+    .gmac_reg_core_ctrl(gmac_reg_core_ctrl),
+    .gmac_reg_count_reset(gmac_reg_count_reset),
+    .gmac_arp_cache_write_enable(gmac_arp_cache_write_enable),
+    .gmac_arp_cache_read_enable(gmac_arp_cache_read_enable),
+    .gmac_arp_cache_write_data(gmac_arp_cache_write_data),
+    .gmac_arp_cache_write_address(gmac_arp_cache_write_address),
+    .gmac_arp_cache_read_address(gmac_arp_cache_read_address),
+    .gmac_reg_core_type_d(gmac_reg_core_type_d),
+    .gmac_reg_phy_status_h_d(gmac_reg_phy_status_h_d),
+    .gmac_reg_phy_status_l_d(gmac_reg_phy_status_l_d),
+    .gmac_reg_tx_packet_rate_d(gmac_reg_tx_packet_rate_d),
+    .gmac_reg_tx_packet_count_d(gmac_reg_tx_packet_count_d),
+    .gmac_reg_tx_valid_rate_d(gmac_reg_tx_valid_rate_d),
+    .gmac_reg_tx_valid_count_d(gmac_reg_tx_valid_count_d),
+    .gmac_reg_tx_overflow_count_d(gmac_reg_tx_overflow_count_d),
+    .gmac_reg_tx_almost_full_count_d(gmac_reg_tx_almost_full_count_d),
+    .gmac_reg_rx_packet_rate_d(gmac_reg_rx_packet_rate_d),
+    .gmac_reg_rx_packet_count_d(gmac_reg_rx_packet_count_d),
+    .gmac_reg_rx_valid_rate_d(gmac_reg_rx_valid_rate_d),
+    .gmac_reg_rx_valid_count_d(gmac_reg_rx_valid_count_d),
+    .gmac_reg_rx_overflow_count_d(gmac_reg_rx_overflow_count_d),
+    .gmac_reg_rx_almost_full_count_d(gmac_reg_rx_almost_full_count_d),
+    .gmac_reg_rx_bad_packet_count_d(gmac_reg_rx_bad_packet_count_d),
+    .gmac_reg_arp_size_d(gmac_reg_arp_size_d),
+    .gmac_reg_word_size_d(gmac_reg_word_size_d),
+    .gmac_reg_buffer_max_size_d(gmac_reg_buffer_max_size_d),
+    .gmac_arp_cache_read_data_d(gmac_arp_cache_read_data_d),
+
+    .axis_streaming_data_tx_destination_ip_d(axis_streaming_data_tx_destination_ip_d),
+    .axis_streaming_data_tx_destination_udp_port_d(axis_streaming_data_tx_destination_udp_port_d),
+    .axis_streaming_data_tx_source_udp_port_d(axis_streaming_data_tx_source_udp_port_d),
+    .axis_streaming_data_tx_packet_length_d(axis_streaming_data_tx_packet_length_d),
+    .gmac_reg_phy_control_h_d(gmac_reg_phy_control_h_d),
+    .gmac_reg_phy_control_l_d(gmac_reg_phy_control_l_d),
+    .gmac_reg_mac_address_h_d(gmac_reg_mac_address_h_d),
+    .gmac_reg_mac_address_l_d(gmac_reg_mac_address_l_d),
+    .gmac_reg_local_ip_address_d(gmac_reg_local_ip_address_d),
+    .gmac_reg_local_ip_netmask_d(gmac_reg_local_ip_netmask_d),
+    .gmac_reg_gateway_ip_address_d(gmac_reg_gateway_ip_address_d),
+    .gmac_reg_multicast_ip_address_d(gmac_reg_multicast_ip_address_d),
+    .gmac_reg_multicast_ip_mask_d(gmac_reg_multicast_ip_mask_d),
+    .gmac_reg_udp_port_d(gmac_reg_udp_port_d),
+    .gmac_reg_core_ctrl_d(gmac_reg_core_ctrl_d),
+    .gmac_reg_count_reset_d(gmac_reg_count_reset_d),
+    .gmac_arp_cache_write_enable_d(gmac_arp_cache_write_enable_d),
+    .gmac_arp_cache_read_enable_d(gmac_arp_cache_read_enable_d),
+    .gmac_arp_cache_write_data_d(gmac_arp_cache_write_data_d),
+    .gmac_arp_cache_write_address_d(gmac_arp_cache_write_address_d),
+    .gmac_arp_cache_read_address_d(gmac_arp_cache_read_address_d),
+    .gmac_reg_core_type(gmac_reg_core_type),
+    .gmac_reg_phy_status_h(gmac_reg_phy_status_h),
+    .gmac_reg_phy_status_l(gmac_reg_phy_status_l),
+    .gmac_reg_tx_packet_rate(gmac_reg_tx_packet_rate),
+    .gmac_reg_tx_packet_count(gmac_reg_tx_packet_count),
+    .gmac_reg_tx_valid_rate(gmac_reg_tx_valid_rate),
+    .gmac_reg_tx_valid_count(gmac_reg_tx_valid_count),
+    .gmac_reg_tx_overflow_count(gmac_reg_tx_overflow_count),
+    .gmac_reg_tx_almost_full_count(gmac_reg_tx_almost_full_count),
+    .gmac_reg_rx_packet_rate(gmac_reg_rx_packet_rate),
+    .gmac_reg_rx_packet_count(gmac_reg_rx_packet_count),
+    .gmac_reg_rx_valid_rate(gmac_reg_rx_valid_rate),
+    .gmac_reg_rx_valid_count(gmac_reg_rx_valid_count),
+    .gmac_reg_rx_overflow_count(gmac_reg_rx_overflow_count),
+    .gmac_reg_rx_almost_full_count(gmac_reg_rx_almost_full_count),
+    .gmac_reg_rx_bad_packet_count(gmac_reg_rx_bad_packet_count),
+    .gmac_reg_arp_size(gmac_reg_arp_size),
+    .gmac_reg_word_size(gmac_reg_word_size),
+    .gmac_reg_buffer_max_size(gmac_reg_buffer_max_size),
+    .gmac_arp_cache_read_data(gmac_arp_cache_read_data),
+
+        // am settings
+    .ctl_port_ctl_rx_custom_vl_length_minus1(ctl_port_ctl_rx_custom_vl_length_minus1),
+    .ctl_port_ctl_tx_custom_vl_length_minus1(ctl_port_ctl_tx_custom_vl_length_minus1),
+    .ctl_port_ctl_tx_vl_marker_id0(ctl_port_ctl_tx_vl_marker_id0),
+    .ctl_port_ctl_tx_vl_marker_id1(ctl_port_ctl_tx_vl_marker_id1),
+    .ctl_port_ctl_tx_vl_marker_id2(ctl_port_ctl_tx_vl_marker_id2),
+    .ctl_port_ctl_tx_vl_marker_id3(ctl_port_ctl_tx_vl_marker_id3),
+    .ctl_port_ctl_tx_vl_marker_id4(ctl_port_ctl_tx_vl_marker_id4),
+    .ctl_port_ctl_tx_vl_marker_id5(ctl_port_ctl_tx_vl_marker_id5),
+    .ctl_port_ctl_tx_vl_marker_id6(ctl_port_ctl_tx_vl_marker_id6),
+    .ctl_port_ctl_tx_vl_marker_id7(ctl_port_ctl_tx_vl_marker_id7),
+    .ctl_port_ctl_tx_vl_marker_id8(ctl_port_ctl_tx_vl_marker_id8),
+    .ctl_port_ctl_tx_vl_marker_id9(ctl_port_ctl_tx_vl_marker_id9),
+    .ctl_port_ctl_tx_vl_marker_id10(ctl_port_ctl_tx_vl_marker_id10),
+    .ctl_port_ctl_tx_vl_marker_id11(ctl_port_ctl_tx_vl_marker_id11),
+    .ctl_port_ctl_tx_vl_marker_id12(ctl_port_ctl_tx_vl_marker_id12),
+    .ctl_port_ctl_tx_vl_marker_id13(ctl_port_ctl_tx_vl_marker_id13),
+    .ctl_port_ctl_tx_vl_marker_id14(ctl_port_ctl_tx_vl_marker_id14),
+    .ctl_port_ctl_tx_vl_marker_id15(ctl_port_ctl_tx_vl_marker_id15),
+    .ctl_port_ctl_tx_vl_marker_id16(ctl_port_ctl_tx_vl_marker_id16),
+    .ctl_port_ctl_tx_vl_marker_id17(ctl_port_ctl_tx_vl_marker_id17),
+    .ctl_port_ctl_tx_vl_marker_id18(ctl_port_ctl_tx_vl_marker_id18),
+    .ctl_port_ctl_tx_vl_marker_id19(ctl_port_ctl_tx_vl_marker_id19),
+    .ctl_port_ctl_rx_custom_vl_length_minus1_d(ctl_port_ctl_rx_custom_vl_length_minus1_d),
+    .ctl_port_ctl_tx_custom_vl_length_minus1_d(ctl_port_ctl_tx_custom_vl_length_minus1_d),
+    .ctl_port_ctl_tx_vl_marker_id0_d(ctl_port_ctl_tx_vl_marker_id0_d),
+    .ctl_port_ctl_tx_vl_marker_id1_d(ctl_port_ctl_tx_vl_marker_id1_d),
+    .ctl_port_ctl_tx_vl_marker_id2_d(ctl_port_ctl_tx_vl_marker_id2_d),
+    .ctl_port_ctl_tx_vl_marker_id3_d(ctl_port_ctl_tx_vl_marker_id3_d),
+    .ctl_port_ctl_tx_vl_marker_id4_d(ctl_port_ctl_tx_vl_marker_id4_d),
+    .ctl_port_ctl_tx_vl_marker_id5_d(ctl_port_ctl_tx_vl_marker_id5_d),
+    .ctl_port_ctl_tx_vl_marker_id6_d(ctl_port_ctl_tx_vl_marker_id6_d),
+    .ctl_port_ctl_tx_vl_marker_id7_d(ctl_port_ctl_tx_vl_marker_id7_d),
+    .ctl_port_ctl_tx_vl_marker_id8_d(ctl_port_ctl_tx_vl_marker_id8_d),
+    .ctl_port_ctl_tx_vl_marker_id9_d(ctl_port_ctl_tx_vl_marker_id9_d),
+    .ctl_port_ctl_tx_vl_marker_id10_d(ctl_port_ctl_tx_vl_marker_id10_d),
+    .ctl_port_ctl_tx_vl_marker_id11_d(ctl_port_ctl_tx_vl_marker_id11_d),
+    .ctl_port_ctl_tx_vl_marker_id12_d(ctl_port_ctl_tx_vl_marker_id12_d),
+    .ctl_port_ctl_tx_vl_marker_id13_d(ctl_port_ctl_tx_vl_marker_id13_d),
+    .ctl_port_ctl_tx_vl_marker_id14_d(ctl_port_ctl_tx_vl_marker_id14_d),
+    .ctl_port_ctl_tx_vl_marker_id15_d(ctl_port_ctl_tx_vl_marker_id15_d),
+    .ctl_port_ctl_tx_vl_marker_id16_d(ctl_port_ctl_tx_vl_marker_id16_d),
+    .ctl_port_ctl_tx_vl_marker_id17_d(ctl_port_ctl_tx_vl_marker_id17_d),
+    .ctl_port_ctl_tx_vl_marker_id18_d(ctl_port_ctl_tx_vl_marker_id18_d),
+    .ctl_port_ctl_tx_vl_marker_id19_d(ctl_port_ctl_tx_vl_marker_id19_d)
+);
 assign aximm_clk = pl0_ref_clk_0;
 assign axis_reset = ~pl0_resetn_0;
 assign s_axi_aclk_dcmac = pl0_ref_clk_0;
@@ -1273,6 +1111,28 @@ casper400gethernetblock_no_cpu #(
     .gmac_arp_cache_write_data(gmac_arp_cache_write_data_d),
     .gmac_arp_cache_write_address(gmac_arp_cache_write_address_d),
     .gmac_arp_cache_read_address(gmac_arp_cache_read_address_d),
-    .gmac_arp_cache_read_data(gmac_arp_cache_read_data_d)
+    .gmac_arp_cache_read_data(gmac_arp_cache_read_data_d),
+    .ctl_port_ctl_rx_custom_vl_length_minus1(ctl_port_ctl_rx_custom_vl_length_minus1_d),
+    .ctl_port_ctl_tx_custom_vl_length_minus1(ctl_port_ctl_tx_custom_vl_length_minus1_d),
+    .ctl_port_ctl_tx_vl_marker_id0(ctl_port_ctl_tx_vl_marker_id0_d),
+    .ctl_port_ctl_tx_vl_marker_id1(ctl_port_ctl_tx_vl_marker_id1_d),
+    .ctl_port_ctl_tx_vl_marker_id2(ctl_port_ctl_tx_vl_marker_id2_d),
+    .ctl_port_ctl_tx_vl_marker_id3(ctl_port_ctl_tx_vl_marker_id3_d),
+    .ctl_port_ctl_tx_vl_marker_id4(ctl_port_ctl_tx_vl_marker_id4_d),
+    .ctl_port_ctl_tx_vl_marker_id5(ctl_port_ctl_tx_vl_marker_id5_d),
+    .ctl_port_ctl_tx_vl_marker_id6(ctl_port_ctl_tx_vl_marker_id6_d),
+    .ctl_port_ctl_tx_vl_marker_id7(ctl_port_ctl_tx_vl_marker_id7_d),
+    .ctl_port_ctl_tx_vl_marker_id8(ctl_port_ctl_tx_vl_marker_id8_d),
+    .ctl_port_ctl_tx_vl_marker_id9(ctl_port_ctl_tx_vl_marker_id9_d),
+    .ctl_port_ctl_tx_vl_marker_id10(ctl_port_ctl_tx_vl_marker_id10_d),
+    .ctl_port_ctl_tx_vl_marker_id11(ctl_port_ctl_tx_vl_marker_id11_d),
+    .ctl_port_ctl_tx_vl_marker_id12(ctl_port_ctl_tx_vl_marker_id12_d),
+    .ctl_port_ctl_tx_vl_marker_id13(ctl_port_ctl_tx_vl_marker_id13_d),
+    .ctl_port_ctl_tx_vl_marker_id14(ctl_port_ctl_tx_vl_marker_id14_d),
+    .ctl_port_ctl_tx_vl_marker_id15(ctl_port_ctl_tx_vl_marker_id15_d),
+    .ctl_port_ctl_tx_vl_marker_id16(ctl_port_ctl_tx_vl_marker_id16_d),
+    .ctl_port_ctl_tx_vl_marker_id17(ctl_port_ctl_tx_vl_marker_id17_d),
+    .ctl_port_ctl_tx_vl_marker_id18(ctl_port_ctl_tx_vl_marker_id18_d),
+    .ctl_port_ctl_tx_vl_marker_id19(ctl_port_ctl_tx_vl_marker_id19_d)
 );
 endmodule

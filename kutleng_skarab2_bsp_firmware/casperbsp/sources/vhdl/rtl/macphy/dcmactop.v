@@ -114,7 +114,30 @@ module dcmactop#(
     input [5:0] tx_serdes_reset,
     // reset_done_dyn
     output [7:0] gt_tx_reset_done_out,
-    output [7:0] gt_rx_reset_done_out
+    output [7:0] gt_rx_reset_done_out,
+    // ports for am settings
+    input [15:0] ctl_port_ctl_rx_custom_vl_length_minus1,
+    input [15:0] ctl_port_ctl_tx_custom_vl_length_minus1,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id0,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id1,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id2,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id3,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id4,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id5,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id6,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id7,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id8,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id9,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id10,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id11,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id12,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id13,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id14,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id15,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id16,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id17,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id18,
+    input [63:0] ctl_port_ctl_tx_vl_marker_id19
 );
 
 /*--------------------------------------------------------------------------------------*/
@@ -551,6 +574,7 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .ch3_txrate_1(sw_reg_gt_line_rate[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
   .gtpowergood_0(gtpowergood_0),             // output-[0:0]-gt--connected to gtpowergood -- ok
   .gtpowergood_1(gtpowergood_1),             // output-[0:0]-gt--dont't care -- ok
+  /*
   .ctl_port_ctl_rx_custom_vl_length_minus1(default_vl_length_200GE_or_400GE), // input-fixed-256-[15:0]-dcmac -- ok
   .ctl_port_ctl_tx_custom_vl_length_minus1(default_vl_length_200GE_or_400GE), // input-fixed-256-[15:0]-dcmac -- ok
   .ctl_port_ctl_vl_marker_id0(ctl_tx_vl_marker_id0_100ge), // input-fixed-[63:0]-dcmac -- ok
@@ -573,6 +597,29 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .ctl_port_ctl_vl_marker_id17(ctl_tx_vl_marker_id17_100ge), // input-fixed-[63:0]-dcmac -- ok
   .ctl_port_ctl_vl_marker_id18(ctl_tx_vl_marker_id18_100ge), // input-fixed-[63:0]-dcmac -- ok
   .ctl_port_ctl_vl_marker_id19(ctl_tx_vl_marker_id19_100ge), // input-fixed-[63:0]-dcmac -- ok
+  */
+  .ctl_port_ctl_rx_custom_vl_length_minus1(ctl_port_ctl_rx_custom_vl_length_minus1), // input-fixed-256-[15:0]-dcmac -- ok
+  .ctl_port_ctl_tx_custom_vl_length_minus1(ctl_port_ctl_tx_custom_vl_length_minus1), // input-fixed-256-[15:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id0(ctl_port_ctl_tx_vl_marker_id0), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id1(ctl_port_ctl_tx_vl_marker_id1), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id2(ctl_port_ctl_tx_vl_marker_id2), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id3(ctl_port_ctl_tx_vl_marker_id3), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id4(ctl_port_ctl_tx_vl_marker_id4), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id5(ctl_port_ctl_tx_vl_marker_id5), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id6(ctl_port_ctl_tx_vl_marker_id6), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id7(ctl_port_ctl_tx_vl_marker_id7), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id8(ctl_port_ctl_tx_vl_marker_id8), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id9(ctl_port_ctl_tx_vl_marker_id9), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id10(ctl_port_ctl_tx_vl_marker_id10), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id11(ctl_port_ctl_tx_vl_marker_id11), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id12(ctl_port_ctl_tx_vl_marker_id12), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id13(ctl_port_ctl_tx_vl_marker_id13), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id14(ctl_port_ctl_tx_vl_marker_id14), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id15(ctl_port_ctl_tx_vl_marker_id15), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id16(ctl_port_ctl_tx_vl_marker_id16), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id17(ctl_port_ctl_tx_vl_marker_id17), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id18(ctl_port_ctl_tx_vl_marker_id18), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id19(ctl_port_ctl_tx_vl_marker_id19), // input-fixed-[63:0]-dcmac -- ok
   .ctl_txrx_port0_ctl_tx_lane0_vlm_bip7_override(1'b0),      // input-fixed-0-[0:0]-dcmac -- ok
   .ctl_txrx_port0_ctl_tx_lane0_vlm_bip7_override_value(8'd0),// input-fixed-0-[7:0]-dcmac -- ok
   .ctl_txrx_port0_ctl_tx_send_idle_in(1'b0),                 // input-fixed-0-[0:0]-dcmac -- ok

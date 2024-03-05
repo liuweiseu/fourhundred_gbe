@@ -77,10 +77,19 @@ int print_port0_statistics() {
 	tx_total_good_bytes_0 =(uint64_t) tx_total_good_bytes_0_MSB << 32 | tx_total_good_bytes_0_LSB;
 	rx_total_good_bytes_0 =(uint64_t) rx_total_good_bytes_0_MSB << 32 | rx_total_good_bytes_0_LSB;
 
-	xil_printf("  STAT_TX_TOTAL_PACKETS           = %d,     \t STAT_RX_TOTAL_PACKETS           = %d\n\r\n\r", tx_total_pkt_0,rx_total_pkt_0);
-	xil_printf("  STAT_TX_TOTAL_GOOD_PACKETS      = %d,     \t STAT_RX_TOTAL_GOOD_PACKETS      = %d\n\r\n\r", tx_total_good_pkts_0,rx_total_good_pkts_0);
-	xil_printf("  STAT_TX_TOTAL_BYTES             = %d,     \t STAT_RX_BYTES                   = %d\n\r\n\r", tx_total_bytes_0,rx_total_bytes_0);
-	xil_printf("  STAT_TX_TOTAL_GOOD_BYTES        = %d,     \t STAT_RX_TOTAL_GOOD_BYTES        = %d\n\r\n\r", tx_total_good_bytes_0,rx_total_good_bytes_0);
+
+	// other statics info
+	uint32_t tx_pkt_err_lsb, tx_pkt_err_msb;
+	uint64_t tx_pkt_err;
+	tx_pkt_err_lsb = *(U32 *) (C0_STAT_TX_FRAME_ERROR_LSB_REG);
+	tx_pkt_err_msb = *(U32 *) (C0_STAT_TX_FRAME_ERROR_MSB_REG);
+	tx_pkt_err = (uint64_t) tx_pkt_err_msb << 32 | tx_pkt_err_lsb;
+
+	xil_printf("  STAT_TX_TOTAL_PACKETS           = %lld,     \t STAT_RX_TOTAL_PACKETS           = %lld\n\r\n\r", tx_total_pkt_0,rx_total_pkt_0);
+	xil_printf("  STAT_TX_TOTAL_GOOD_PACKETS      = %lld,     \t STAT_RX_TOTAL_GOOD_PACKETS      = %lld\n\r\n\r", tx_total_good_pkts_0,rx_total_good_pkts_0);
+	xil_printf("  STAT_TX_TOTAL_BYTES             = %lld,     \t STAT_RX_BYTES                   = %lld\n\r\n\r", tx_total_bytes_0,rx_total_bytes_0);
+	xil_printf("  STAT_TX_TOTAL_GOOD_BYTES        = %lld,     \t STAT_RX_TOTAL_GOOD_BYTES        = %lld\n\r\n\r", tx_total_good_bytes_0,rx_total_good_bytes_0);
+	xil_printf("  STAT_TX_ERR_PACKETS             = %lld\n\r\n\r", tx_pkt_err);
 
 	if ( (tx_total_pkt_0 != 0) && (tx_total_pkt_0 == rx_total_pkt_0) && (tx_total_bytes_0 == rx_total_bytes_0) && (tx_total_good_pkts_0 == rx_total_good_pkts_0) && (tx_total_good_bytes_0 == rx_total_good_bytes_0) )
         {
@@ -345,10 +354,10 @@ int latch_all()
 	*(U32* )(C4_PORT_TICK_REG_TX_REG) = 0x00000001;
 	*(U32* )(C5_PORT_TICK_REG_TX_REG) = 0x00000001;
 	//wait(50);
-	*(U32* )(ADDR_APB3_2_BASE + 0x0000020C) = 0xFFFFFFFF;
-	*(U32* )(ADDR_APB3_2_BASE + 0x00000210) = 0xFFFFFFFF;
-	*(U32* )(ADDR_APB3_2_BASE + 0x00000214) = 0xFFFFFFFF;
-	*(U32* )(ADDR_APB3_2_BASE + 0x00000218) = 0xFFFFFFFF;
+	//*(U32* )(ADDR_APB3_2_BASE + 0x0000020C) = 0xFFFFFFFF;
+	//*(U32* )(ADDR_APB3_2_BASE + 0x00000210) = 0xFFFFFFFF;
+	//*(U32* )(ADDR_APB3_2_BASE + 0x00000214) = 0xFFFFFFFF;
+	//*(U32* )(ADDR_APB3_2_BASE + 0x00000218) = 0xFFFFFFFF;
 	wait(5);
 	return 1;
 }
@@ -674,8 +683,8 @@ int set_data_rate(uint8_t* rate)
 			wdata_tx = wdata_tx | ( 1 << 4 );
 			wdata_rx = wdata_rx | ( 1 << 11 );
 
-			wdata_tx = wdata_tx | ( 1 << 10 );
-			wdata_rx = wdata_rx | ( 1 << 13 );
+			wdata_tx = wdata_tx | ( 1 << 10 ); 
+			wdata_rx = wdata_rx | ( 1 << 13 ); 
 			switch(rate[i]){
 				case R_100G:
 				wdata_tx = (wdata_tx & 0xFFE0FFFF) | (0x04 << 16 );
@@ -710,7 +719,8 @@ int wait_for_alignment()
 	uint32_t pr_data = 0;
 	uint8_t aligned = 0;
 	uint32_t time_out = 0;
-
+	int gt_lanes = 8;
+	
 	xil_printf("Waiting for active channels Alignment... \n\r");
 
 
@@ -719,7 +729,13 @@ int wait_for_alignment()
 
 	do
 	{
+		gt_rx_datapathonly_reset();
+	    wait_gt_rxresetdone(gt_lanes);
 
+        wait(2000);
+        // DCMAC RX Port reset
+        dcmac_rx_port_reset();
+        wait(2000);
 		for(int i =0 ; i < 1; i++)
 
 		{
@@ -1190,6 +1206,7 @@ int read_rev_id(){
 	return 1;
 }
 
+// 40: change loopback mode
 int change_loopback_mode(int mode)
 {
 	if(mode == 0) // external mode
@@ -1207,4 +1224,20 @@ int change_loopback_mode(int mode)
 		xil_printf( "INFO : Setting NE PMA loopback   \n\r" );
 		*(U32 *) (DCMAC_0_GT_LINERATE_RESET) = 0x4B243400;
 	}
+	return 0;
+}
+
+// 41: check tx status
+void check_tx_status()
+{
+	uint32_t status;
+	status = *(U32 *) (C0_STAT_PORT_TX_PHY_STATUS_REG);
+	xil_printf("C0 stat port tx phy status: 0x%x \n\r", status);
+	status = *(U32 *) (C0_STAT_PORT_TX_PHY_RT_STATUS_REG);
+	xil_printf("C0 stat port tx phy rt status: 0x%x \n\r", status);
+	status = *(U32 *) (C0_STAT_PORT_TX_FEC_STATUS_REG);
+	xil_printf("C0 stat port tx fec status: 0x%x \n\r", status);
+	status = *(U32 *) (C0_STAT_PORT_TX_STATISTICS_READY_REG);
+	xil_printf("C0 stat port tx statistics ready: 0x%x \n\r", status);
+	return 0;
 }

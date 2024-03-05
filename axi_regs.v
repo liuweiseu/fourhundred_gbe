@@ -126,7 +126,50 @@
         output wire [31:0] axis_streaming_data_tx_packet_length, 				// reg41 rw
 		output wire axis_data_gen_enable,										// reg42[0:0] rw
 		output wire [15:0] pkt_length,											// reg43[15:0] rw
-		output wire [15:5] period												// reg44[15:0] rw
+		output wire [15:5] period,												// reg44[15:0] rw
+		// for am setting
+		output wire [15:0] rx_custom_vl_length_minus1,							// reg45[15:0] tw
+		output wire [15:0] tx_custom_vl_length_minus1,							// reg46[15:0] rw
+		output wire [31:0] vl_marker_id0_lsb,									// reg47[31:0] rw
+		output wire [31:0] vl_marker_id0_msb,									// reg48[31:0] rw
+		output wire [31:0] vl_marker_id1_lsb,									// reg49[31:0] rw
+		output wire [31:0] vl_marker_id1_msb,									// reg50[31:0] rw
+		output wire [31:0] vl_marker_id2_lsb,									// reg51[31:0] rw
+		output wire [31:0] vl_marker_id2_msb,									// reg52[31:0] rw
+		output wire [31:0] vl_marker_id3_lsb,									// reg53[31:0] rw
+		output wire [31:0] vl_marker_id3_msb,									// reg54[31:0] rw
+		output wire [31:0] vl_marker_id4_lsb,									// reg55[31:0] rw
+		output wire [31:0] vl_marker_id4_msb,									// reg56[31:0] rw
+		output wire [31:0] vl_marker_id5_lsb,									// reg57[31:0] rw
+		output wire [31:0] vl_marker_id5_msb,									// reg58[31:0] rw
+		output wire [31:0] vl_marker_id6_lsb,									// reg59[31:0] rw
+		output wire [31:0] vl_marker_id6_msb,									// reg60[31:0] rw
+		output wire [31:0] vl_marker_id7_lsb,									// reg61[31:0] rw
+		output wire [31:0] vl_marker_id7_msb,									// reg62[31:0] rw
+		output wire [31:0] vl_marker_id8_lsb,									// reg63[31:0] rw
+		output wire [31:0] vl_marker_id8_msb,									// reg64[31:0] rw
+		output wire [31:0] vl_marker_id9_lsb,									// reg65[31:0] rw
+		output wire [31:0] vl_marker_id9_msb,									// reg66[31:0] rw
+		output wire [31:0] vl_marker_id10_lsb,									// reg67[31:0] rw
+		output wire [31:0] vl_marker_id10_msb,									// reg68[31:0] rw
+		output wire [31:0] vl_marker_id11_lsb,									// reg69[31:0] rw
+		output wire [31:0] vl_marker_id11_msb,									// reg70[31:0] rw
+		output wire [31:0] vl_marker_id12_lsb,									// reg71[31:0] rw
+		output wire [31:0] vl_marker_id12_msb,									// reg72[31:0] rw
+		output wire [31:0] vl_marker_id13_lsb,									// reg73[31:0] rw
+		output wire [31:0] vl_marker_id13_msb,									// reg74[31:0] rw
+		output wire [31:0] vl_marker_id14_lsb,									// reg75[31:0] rw
+		output wire [31:0] vl_marker_id14_msb,									// reg76[31:0] rw
+		output wire [31:0] vl_marker_id15_lsb,									// reg77[31:0] rw
+		output wire [31:0] vl_marker_id15_msb,									// reg78[31:0] rw
+		output wire [31:0] vl_marker_id16_lsb,									// reg79[31:0] rw
+		output wire [31:0] vl_marker_id16_msb,									// reg80[31:0] rw
+		output wire [31:0] vl_marker_id17_lsb,									// reg81[31:0] rw
+		output wire [31:0] vl_marker_id17_msb,									// reg82[31:0] rw
+		output wire [31:0] vl_marker_id18_lsb,									// reg83[31:0] rw
+		output wire [31:0] vl_marker_id18_msb,									// reg84[31:0] rw
+		output wire [31:0] vl_marker_id19_lsb,									// reg85[31:0] rw	
+		output wire [31:0] vl_marker_id19_msb									// reg86[31:0] rw
 	);
 
 	// AXI4LITE signals
@@ -1834,6 +1877,48 @@
 	assign axis_data_gen_enable = slv_reg42[0:0];
 	assign pkt_length = slv_reg43[15:0];
 	assign period = slv_reg44[15:0];
+	assign rx_custom_vl_length_minus1 = slv_reg45[15:0];
+	assign tx_custom_vl_length_minus1 = slv_reg46[15:0];
+	assign vl_marker_id0_lsb = slv_reg47;
+	assign vl_marker_id0_msb = slv_reg48;
+	assign vl_marker_id1_lsb = slv_reg49;
+	assign vl_marker_id1_msb = slv_reg50;
+	assign vl_marker_id2_lsb = slv_reg51;
+	assign vl_marker_id2_msb = slv_reg52;
+	assign vl_marker_id3_lsb = slv_reg53;
+	assign vl_marker_id3_msb = slv_reg54;
+	assign vl_marker_id4_lsb = slv_reg55;
+	assign vl_marker_id4_msb = slv_reg56;
+	assign vl_marker_id5_lsb = slv_reg57;
+	assign vl_marker_id5_msb = slv_reg58;
+	assign vl_marker_id6_lsb = slv_reg59;
+	assign vl_marker_id6_msb = slv_reg60;
+	assign vl_marker_id7_lsb = slv_reg61;
+	assign vl_marker_id7_msb = slv_reg62;
+	assign vl_marker_id8_lsb = slv_reg63;
+	assign vl_marker_id8_msb = slv_reg64;
+	assign vl_marker_id9_lsb = slv_reg65;
+	assign vl_marker_id9_msb = slv_reg66;
+	assign vl_marker_id10_lsb = slv_reg67;
+	assign vl_marker_id10_msb = slv_reg68;
+	assign vl_marker_id11_lsb = slv_reg69;
+	assign vl_marker_id11_msb = slv_reg70;
+	assign vl_marker_id12_lsb = slv_reg71;
+	assign vl_marker_id12_msb = slv_reg72;
+	assign vl_marker_id13_lsb = slv_reg73;
+	assign vl_marker_id13_msb = slv_reg74;
+	assign vl_marker_id14_lsb = slv_reg75;
+	assign vl_marker_id14_msb = slv_reg76;
+	assign vl_marker_id15_lsb = slv_reg77;
+	assign vl_marker_id15_msb = slv_reg78;
+	assign vl_marker_id16_lsb = slv_reg79;
+	assign vl_marker_id16_msb = slv_reg80;
+	assign vl_marker_id17_lsb = slv_reg81;
+	assign vl_marker_id17_msb = slv_reg82;
+	assign vl_marker_id18_lsb = slv_reg83;
+	assign vl_marker_id18_msb = slv_reg84;
+	assign vl_marker_id19_lsb = slv_reg85;
+	assign vl_marker_id19_msb = slv_reg86;
 	// User logic ends
 
 	endmodule

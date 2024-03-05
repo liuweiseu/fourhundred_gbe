@@ -18,11 +18,56 @@
 #define DST_UDP_PORT        0x5678
 #define SRC_UDP_PORT        0x4321
 
-#define PKT_LEN             8192
+#define PKT_LEN             2048
 #define BUS_WIDTH           128
 
 extern int flag_alignment;
 
+uint32_t rx_tx_vl_len = 256;\
+
+uint32_t vl_marker[40] = {0xc1682100, 0x3e97de00, \
+                          0x9d718e00, 0x628e7100, \
+                          0x594be800, 0xa6b41700, \
+                          0x4d957b00, 0xb26a8400, \
+                          0xf5070900, 0x0af8f600, \
+                          0xdd14c200, 0x22eb3d00, \
+                          0x9a4a2600, 0x65b5d900, \
+                          0x7b456600, 0x84ba9900, \
+                          0xa0247600, 0x5fdb8900, \
+                          0x68c9fb00, 0x97360400, \
+                          0xfd6c9900, 0x02936600, \
+                          0xb9915500, 0x466eaa00, \
+                          0x5cb9b200, 0xa3464d00, \
+                          0x1af8bd00, 0xe5074200, \
+                          0x83c7ca00, 0x7c383500, \
+                          0x3536cd00, 0xcac93200, \
+                          0xc4314c00, 0x3bceb300, \
+                          0xadd6b700, 0x52294800, \
+                          0x5f662a00, 0xa099d500, \
+                          0xc0f0e500, 0x3f0f1a00};
+/*
+uint32_t vl_marker[40] = {0xc16821f4, 0x3e97de0b, \
+                          0x9d718e17, 0x628e71e8, \
+                          0x594be8b0, 0xa6b4174f, \
+                          0x4d957b10, 0xb26a84ef, \
+                          0xf507090b, 0x0af8f6f4, \
+                          0xdd14c250, 0x22eb3daf, \
+                          0x9a4a2615, 0x65b5d9ea, \
+                          0x7b4566fa, 0x84ba9905, \
+                          0xa02476df, 0x5fdb8920, \
+                          0x68c9fb38, 0x973604c7, \
+                          0xfd6c99de, 0x02936621, \
+                          0xb99155b8, 0x466eaa47, \
+                          0x5cb9b2cd, 0xa3464d32, \
+                          0x1af8bdab, 0xe5074254, \
+                          0x83c7cab5, 0x7c38354a, \
+                          0x3536cdeb, 0xcac93214, \
+                          0xc4314c30, 0x3bceb3cf, \
+                          0xadd6b735, 0x522948ca, \
+                          0x5f662a6f, 0xa099d590, \
+                          0xc0f0e5e9, 0x3f0f1a16};                    
+*/
+//uint32_t vl_marker[40] = {0};
 void init_dcmac()
 {
     uint8_t ch_en_str = 0;
@@ -68,7 +113,7 @@ void init_dcmac()
     // Perform a GT RX Datapathonly reset and DCMAC RX Reset
     // -------------------------------------------------------
     // let's ignore rx for now.
-    /*
+
     xil_printf("Resetting GT RX datapath and DCMAC RX... \n\r");
 	do
 	{
@@ -98,8 +143,9 @@ void init_dcmac()
 
     stats_test_check();
 
-	xil_printf("\n\r*******Test Completed        \n\r");
-    */
+	//xil_printf("\n\r*******Test Completed        \n\r");
+
+    latch_all();
 }
 
 
@@ -109,7 +155,8 @@ void main()
 
     // read the core type to make sure the RW is working.
     xil_printf("core type: 0x%08x\r\n", dcmac_read_reg(CORE_TYPE));
-
+    set_tx_rx_vl_length(vl_marker);
+    set_vl_marker(vl_marker);
     // init dcmac and gtm transceivers
     init_dcmac();
 
@@ -117,7 +164,7 @@ void main()
     // write the arp table to FF:FF:FF:FF:FF:FF, 
     // so that all of the NIC should be able to receive the packet
     xil_printf("writing arp table...\r\n");
-    for(i = 0; i < 512; i++)
+    for(i = 0; i < 1024; i++)
     {
         write_arp(i, 0xFFFFFFFF);
     }
@@ -125,18 +172,28 @@ void main()
     // read the arp table back to make sure it's written correctly
     xil_printf("reading arp table...\r\n");
     uint32_t arp_data;
-    for(i = 0; i < 512; i++)
+    uint32_t arp_flag = 0;
+    for(i = 0; i < 1024; i++)
     {
         arp_data = read_arp(i);
         if(arp_data != 0xFFFFFFFF)
         {
             xil_printf("arp table read error: index %d, data 0x%08x\r\n", i, arp_data);
+        	//arp_flag = 1;
         }
     }
+    /*
+    if(arp_flag == 1)
+    	xil_printf("arp_table_read_error\r\n");
+    */
     xil_printf("arp table read.\r\n");
 
+    // set a specific dst mac
+    uint32_t dst_mac[3] = {0xacae6d94, 0x000038f8};
+    write_arp(536, dst_mac[0]);
+    write_arp(537, dst_mac[1]);
     // configure the mac address
-    uint32_t mac_addr[2] = {0x12345678, 0x9ABCDEF0};
+    uint32_t mac_addr[2] = {0x0000946d, 0xaeacf839};
     uint32_t mac_addr_read[2];
     xil_printf("writing mac address...\r\n");
     write_mac_addr(mac_addr);
@@ -340,7 +397,22 @@ void main()
 
     // enable AXIS pkt gen
     xil_printf("enabling AXIS pkt gen...\r\n");
-    enable_axis_pkt_gen(1);
+    //enable_axis_pkt_gen();
+    disable_axis_pkt_gen();
     xil_printf("AXIS pkt gen enabled.\r\n");
+
+
+    while(1)
+    {
+    	usleep(2000000);
+        //disable_axis_pkt_gen();
+    	print_port0_statistics();
+    	latch_all();
+    	//print_port1_statistics();
+    	//print_port2_statistics();
+    	//print_port3_statistics();
+    	//print_port4_statistics();
+    	//print_port5_statistics();
+    }
 
 }

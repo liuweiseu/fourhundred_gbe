@@ -19,6 +19,7 @@ void write_arp(uint32_t addr, uint32_t data)
     dcmac_write_reg(ARP_WR_ADDR, addr);
     dcmac_write_reg(ARP_WR_DATA, data);
     dcmac_write_reg(ARP_WR_EN, 1);
+    usleep(2000);
     dcmac_write_reg(ARP_WR_EN, 0);
 }
 
@@ -27,6 +28,7 @@ uint32_t read_arp(uint32_t addr)
 {
     dcmac_write_reg(ARP_RD_ADDR, addr);
     dcmac_write_reg(ARP_RD_EN, 1);
+    usleep(2000);
     dcmac_write_reg(ARP_RD_EN, 0);
     return dcmac_read_reg(ARP_RD_DATA);
 }
@@ -178,13 +180,13 @@ void disable_core_ctrl()
 }
 
 // enable AXIS pkt gen
-void enable_axis_pkt_gen(uint32_t data)
+void enable_axis_pkt_gen()
 {
     dcmac_write_reg(AXIS_PKT_GEN, 1);
 }
 
 // disable AXIS pkt gen
-void disable_axis_pkt_gen(uint32_t data)
+void disable_axis_pkt_gen()
 {
     dcmac_write_reg(AXIS_PKT_GEN, 0);
 }
@@ -211,4 +213,56 @@ void write_axis_pkt_cyc(uint32_t cyc)
 uint32_t read_axis_pkt_cyc()
 {
     return dcmac_read_reg(AXIS_PKT_CYC);
+}
+
+// set rx tx vl length
+void set_tx_rx_vl_length(uint32_t len)
+{
+    dcmac_write_reg(RX_VL_LEN, len);
+    dcmac_write_reg(TX_VL_LEN, len);
+}
+
+// set vl marker
+void set_vl_marker(uint32_t *marker)
+{
+    dcmac_write_reg(VL_MARKER_ID0_LSB, marker[0]);
+    dcmac_write_reg(VL_MARKER_ID0_MSB, marker[1]);
+    dcmac_write_reg(VL_MARKER_ID1_LSB, marker[2]);
+    dcmac_write_reg(VL_MARKER_ID1_MSB, marker[3]);
+    dcmac_write_reg(VL_MARKER_ID2_LSB, marker[4]);
+    dcmac_write_reg(VL_MARKER_ID2_MSB, marker[5]);
+    dcmac_write_reg(VL_MARKER_ID3_LSB, marker[6]);
+    dcmac_write_reg(VL_MARKER_ID3_MSB, marker[7]);
+    dcmac_write_reg(VL_MARKER_ID4_LSB, marker[8]);
+    dcmac_write_reg(VL_MARKER_ID4_MSB, marker[9]);
+    dcmac_write_reg(VL_MARKER_ID5_LSB, marker[10]);
+    dcmac_write_reg(VL_MARKER_ID5_MSB, marker[11]);
+    dcmac_write_reg(VL_MARKER_ID6_LSB, marker[12]);
+    dcmac_write_reg(VL_MARKER_ID6_MSB, marker[13]);
+    dcmac_write_reg(VL_MARKER_ID7_LSB, marker[14]);
+    dcmac_write_reg(VL_MARKER_ID7_MSB, marker[15]);
+    dcmac_write_reg(VL_MARKER_ID8_LSB, marker[16]);
+    dcmac_write_reg(VL_MARKER_ID8_MSB, marker[17]);
+    dcmac_write_reg(VL_MARKER_ID9_LSB, marker[18]);
+    dcmac_write_reg(VL_MARKER_ID9_MSB, marker[19]);
+    dcmac_write_reg(VL_MARKER_ID10_LSB, marker[20]);
+    dcmac_write_reg(VL_MARKER_ID10_MSB, marker[21]);
+    dcmac_write_reg(VL_MARKER_ID11_LSB, marker[22]);
+    dcmac_write_reg(VL_MARKER_ID11_MSB, marker[23]);
+    dcmac_write_reg(VL_MARKER_ID12_LSB, marker[24]);
+    dcmac_write_reg(VL_MARKER_ID12_MSB, marker[25]);
+    dcmac_write_reg(VL_MARKER_ID13_LSB, marker[26]);
+    dcmac_write_reg(VL_MARKER_ID13_MSB, marker[27]);
+    dcmac_write_reg(VL_MARKER_ID14_LSB, marker[28]);
+    dcmac_write_reg(VL_MARKER_ID14_MSB, marker[29]);
+    dcmac_write_reg(VL_MARKER_ID15_LSB, marker[30]);
+    dcmac_write_reg(VL_MARKER_ID15_MSB, marker[31]);
+    dcmac_write_reg(VL_MARKER_ID16_LSB, marker[32]);
+    dcmac_write_reg(VL_MARKER_ID16_MSB, marker[33]);
+    dcmac_write_reg(VL_MARKER_ID17_LSB, marker[34]);
+    dcmac_write_reg(VL_MARKER_ID17_MSB, marker[35]);
+    dcmac_write_reg(VL_MARKER_ID18_LSB, marker[36]);
+    dcmac_write_reg(VL_MARKER_ID18_MSB, marker[37]);
+    dcmac_write_reg(VL_MARKER_ID19_LSB, marker[38]);
+    dcmac_write_reg(VL_MARKER_ID19_MSB, marker[39]);
 }

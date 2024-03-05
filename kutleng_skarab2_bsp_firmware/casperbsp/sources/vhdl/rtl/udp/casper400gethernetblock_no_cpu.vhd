@@ -188,7 +188,30 @@ entity casper400gethernetblock_no_cpu is
         gmac_arp_cache_write_data              : in STD_LOGIC_VECTOR(31 downto 0);
         gmac_arp_cache_write_address           : in STD_LOGIC_VECTOR(31 downto 0);
         gmac_arp_cache_read_address            : in STD_LOGIC_VECTOR(31 downto 0);
-        gmac_arp_cache_read_data               : out STD_LOGIC_VECTOR(31 downto 0)
+        gmac_arp_cache_read_data               : out STD_LOGIC_VECTOR(31 downto 0);
+        -- am settings
+        ctl_port_ctl_rx_custom_vl_length_minus1 : in STD_LOGIC_VECTOR(15 downto 0);
+        ctl_port_ctl_tx_custom_vl_length_minus1 : in STD_LOGIC_VECTOR(15 downto 0);
+        ctl_port_ctl_tx_vl_marker_id0           : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id1           : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id2           : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id3           : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id4           : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id5           : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id6           : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id7           : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id8           : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id9           : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id10          : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id11          : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id12          : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id13          : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id14          : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id15          : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id16          : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id17          : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id18          : in STD_LOGIC_VECTOR(63 downto 0);
+        ctl_port_ctl_tx_vl_marker_id19          : in STD_LOGIC_VECTOR(63 downto 0)
 
     );
 end entity casper400gethernetblock_no_cpu;
@@ -491,7 +514,30 @@ architecture rtl of casper400gethernetblock_no_cpu is
             tx_serdes_reset              : in  STD_LOGIC_VECTOR(5 downto 0);
             -- reset_done_dyn
             gt_tx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
-            gt_rx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0)
+            gt_rx_reset_done_out         : out STD_LOGIC_VECTOR(7 downto 0);
+            -- am settings
+            ctl_port_ctl_rx_custom_vl_length_minus1 : in STD_LOGIC_VECTOR(15 downto 0);
+            ctl_port_ctl_tx_custom_vl_length_minus1 : in STD_LOGIC_VECTOR(15 downto 0);
+            ctl_port_ctl_tx_vl_marker_id0           : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id1           : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id2           : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id3           : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id4           : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id5           : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id6           : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id7           : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id8           : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id9           : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id10          : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id11          : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id12          : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id13          : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id14          : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id15          : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id16          : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id17          : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id18          : in STD_LOGIC_VECTOR(63 downto 0);
+            ctl_port_ctl_tx_vl_marker_id19          : in STD_LOGIC_VECTOR(63 downto 0)
         );
     end component mac400gphy;
 
@@ -654,7 +700,30 @@ begin
             tx_serdes_reset              => tx_serdes_reset,
             -- reset_done_dyn
             gt_tx_reset_done_out         => gt_tx_reset_done_out,
-            gt_rx_reset_done_out         => gt_rx_reset_done_out
+            gt_rx_reset_done_out         => gt_rx_reset_done_out,
+            -- am settings
+            ctl_port_ctl_rx_custom_vl_length_minus1 => ctl_port_ctl_rx_custom_vl_length_minus1,
+            ctl_port_ctl_tx_custom_vl_length_minus1 => ctl_port_ctl_tx_custom_vl_length_minus1,
+            ctl_port_ctl_tx_vl_marker_id0           => ctl_port_ctl_tx_vl_marker_id0,
+            ctl_port_ctl_tx_vl_marker_id1           => ctl_port_ctl_tx_vl_marker_id1,
+            ctl_port_ctl_tx_vl_marker_id2           => ctl_port_ctl_tx_vl_marker_id2,
+            ctl_port_ctl_tx_vl_marker_id3           => ctl_port_ctl_tx_vl_marker_id3,
+            ctl_port_ctl_tx_vl_marker_id4           => ctl_port_ctl_tx_vl_marker_id4,
+            ctl_port_ctl_tx_vl_marker_id5           => ctl_port_ctl_tx_vl_marker_id5,
+            ctl_port_ctl_tx_vl_marker_id6           => ctl_port_ctl_tx_vl_marker_id6,
+            ctl_port_ctl_tx_vl_marker_id7           => ctl_port_ctl_tx_vl_marker_id7,
+            ctl_port_ctl_tx_vl_marker_id8           => ctl_port_ctl_tx_vl_marker_id8,
+            ctl_port_ctl_tx_vl_marker_id9           => ctl_port_ctl_tx_vl_marker_id9,
+            ctl_port_ctl_tx_vl_marker_id10          => ctl_port_ctl_tx_vl_marker_id10,
+            ctl_port_ctl_tx_vl_marker_id11          => ctl_port_ctl_tx_vl_marker_id11,
+            ctl_port_ctl_tx_vl_marker_id12          => ctl_port_ctl_tx_vl_marker_id12,
+            ctl_port_ctl_tx_vl_marker_id13          => ctl_port_ctl_tx_vl_marker_id13,
+            ctl_port_ctl_tx_vl_marker_id14          => ctl_port_ctl_tx_vl_marker_id14,
+            ctl_port_ctl_tx_vl_marker_id15          => ctl_port_ctl_tx_vl_marker_id15,
+            ctl_port_ctl_tx_vl_marker_id16          => ctl_port_ctl_tx_vl_marker_id16,
+            ctl_port_ctl_tx_vl_marker_id17          => ctl_port_ctl_tx_vl_marker_id17,
+            ctl_port_ctl_tx_vl_marker_id18          => ctl_port_ctl_tx_vl_marker_id18,
+            ctl_port_ctl_tx_vl_marker_id19          => ctl_port_ctl_tx_vl_marker_id19
         );
 
     ----------------------------------------------------------------------------
