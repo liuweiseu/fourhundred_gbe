@@ -75,6 +75,25 @@ module dcmactop#(
     output yellow_block_rx_eof,
     output yellow_block_rx_overrun,
 
+    // ports for gtm transceiver
+    input axi4_lite_aclk,
+    input [31:0]axi4_lite_araddr,
+    input axi4_lite_aresetn,
+    output axi4_lite_arready,
+    input axi4_lite_arvalid,
+    input [31:0]axi4_lite_awaddr,
+    output axi4_lite_awready,
+    input axi4_lite_awvalid,
+    input axi4_lite_bready,
+    output [1:0]axi4_lite_bresp,
+    output axi4_lite_bvalid,
+    output [31:0]axi4_lite_rdata,
+    input axi4_lite_rready,
+    output [1:0]axi4_lite_rresp,
+    output axi4_lite_rvalid,
+    input [31:0]axi4_lite_wdata,
+    output axi4_lite_wready,
+    input axi4_lite_wvalid,
     /* Ports for connecting DCMAC module */
     // axi interface
     input s_axi_aclk,
@@ -840,6 +859,25 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .rx_tsmac_tdm_stats_valid(rx_tsmac_tdm_stats_valid), // output-[0:0]-dcmac--connected to rx_stats_cnt module  -- wired, not used
 
   //// GT APB3 ports // axi-interface-dcmac
+  .axi4_lite_aclk(axi4_lite_aclk),
+  .axi4_lite_araddr(axi4_lite_araddr),
+  .axi4_lite_aresetn(axi4_lite_aresetn),
+  .axi4_lite_arready(axi4_lite_arready),
+  .axi4_lite_arvalid(axi4_lite_arvalid),
+  .axi4_lite_awaddr(axi4_lite_awaddr),
+  .axi4_lite_awready(axi4_lite_awready),
+  .axi4_lite_awvalid(axi4_lite_awvalid),
+  .axi4_lite_bready(axi4_lite_bready),
+  .axi4_lite_bresp(axi4_lite_bresp),
+  .axi4_lite_bvalid(axi4_lite_bvalid),
+  .axi4_lite_rdata(axi4_lite_rdata),
+  .axi4_lite_rready(axi4_lite_rready),
+  .axi4_lite_rresp(axi4_lite_rresp),
+  .axi4_lite_rvalid(axi4_lite_rvalid),
+  .axi4_lite_wdata(axi4_lite_wdata),
+  .axi4_lite_wready(axi4_lite_wready),
+  .axi4_lite_wvalid(axi4_lite_wvalid),
+  // s axi for dcmac
   .apb3clk_quad(s_axi_aclk),      // -- ok                           
   .s_axi_araddr(s_axi_araddr),    // -- ok
   .s_axi_arready(s_axi_arready),  // -- ok
