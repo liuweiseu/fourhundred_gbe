@@ -126,7 +126,7 @@
         output wire [31:0] axis_streaming_data_tx_packet_length, 				// reg41 rw
 		output wire axis_data_gen_enable,										// reg42[0:0] rw
 		output wire [15:0] pkt_length,											// reg43[15:0] rw
-		output wire [15:5] period,												// reg44[15:0] rw
+		output wire [15:0] period,												// reg44[15:0] rw
 		// for am setting
 		output wire [15:0] rx_custom_vl_length_minus1,							// reg45[15:0] tw
 		output wire [15:0] tx_custom_vl_length_minus1,							// reg46[15:0] rw

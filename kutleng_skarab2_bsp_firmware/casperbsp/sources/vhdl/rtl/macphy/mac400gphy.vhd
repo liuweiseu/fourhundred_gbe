@@ -100,6 +100,25 @@ entity mac400gphy is
         yellow_block_rx_valid        : out  STD_LOGIC;
         yellow_block_rx_eof          : out  STD_LOGIC;
         yellow_block_rx_overrun      : out STD_LOGIC;
+         -- GTM transceiver config
+         axi4_lite_aclk               : in STD_LOGIC;
+         axi4_lite_araddr             : in STD_LOGIC_VECTOR(31 downto 0);
+         axi4_lite_aresetn            : in STD_LOGIC;
+         axi4_lite_arready            : out STD_LOGIC;
+         axi4_lite_arvalid            : in STD_LOGIC;
+         axi4_lite_awaddr             : in STD_LOGIC_VECTOR(31 downto 0);
+         axi4_lite_awready            : out STD_LOGIC;
+         axi4_lite_awvalid            : in STD_LOGIC;
+         axi4_lite_bready             : in STD_LOGIC;
+         axi4_lite_bresp              : out STD_LOGIC_VECTOR(1 downto 0);
+         axi4_lite_bvalid             : out STD_LOGIC;
+         axi4_lite_rdata              : out STD_LOGIC_VECTOR(31 downto 0);
+         axi4_lite_rready             : in STD_LOGIC;
+         axi4_lite_rresp              : out STD_LOGIC_VECTOR(1 downto 0);
+         axi4_lite_rvalid             : out STD_LOGIC; 
+         axi4_lite_wdata              : in STD_LOGIC_VECTOR(31 downto 0);
+         axi4_lite_wready             : out STD_LOGIC;
+         axi4_lite_wvalid             : in STD_LOGIC; 
         -- DCMAC core config/rst interfaces
         -- axi interface for DCMAC core configuration
         s_axi_aclk                   : in  STD_LOGIC;    
@@ -245,6 +264,25 @@ architecture rtl of mac400gphy is
             yellow_block_rx_valid        : out  STD_LOGIC;
             yellow_block_rx_eof          : out  STD_LOGIC;
             yellow_block_rx_overrun      : out STD_LOGIC;
+            -- GTM transceiver config
+            axi4_lite_aclk               : in STD_LOGIC;
+            axi4_lite_araddr             : in STD_LOGIC_VECTOR(31 downto 0);
+            axi4_lite_aresetn            : in STD_LOGIC;
+            axi4_lite_arready            : out STD_LOGIC;
+            axi4_lite_arvalid            : in STD_LOGIC;
+            axi4_lite_awaddr             : in STD_LOGIC_VECTOR(31 downto 0);
+            axi4_lite_awready            : out STD_LOGIC;
+            axi4_lite_awvalid            : in STD_LOGIC;
+            axi4_lite_bready             : in STD_LOGIC;
+            axi4_lite_bresp              : out STD_LOGIC_VECTOR(1 downto 0);
+            axi4_lite_bvalid             : out STD_LOGIC;
+            axi4_lite_rdata              : out STD_LOGIC_VECTOR(31 downto 0);
+            axi4_lite_rready             : in STD_LOGIC;
+            axi4_lite_rresp              : out STD_LOGIC_VECTOR(1 downto 0);
+            axi4_lite_rvalid             : out STD_LOGIC; 
+            axi4_lite_wdata              : in STD_LOGIC_VECTOR(31 downto 0);
+            axi4_lite_wready             : out STD_LOGIC;
+            axi4_lite_wvalid             : in STD_LOGIC; 
             -- DCMAC core config/rst interfaces
             -- axi interface for DCMAC core configuration
             s_axi_aclk                   : in  STD_LOGIC;    
@@ -545,6 +583,25 @@ begin
             yellow_block_rx_valid        => yellow_block_rx_valid,
             yellow_block_rx_eof          => yellow_block_rx_eof,
             yellow_block_rx_overrun      => yellow_block_rx_overrun,
+            -- GTM Transceivers config
+            axi4_lite_aclk               => axi4_lite_aclk,
+            axi4_lite_araddr             => axi4_lite_araddr,
+            axi4_lite_aresetn            => axi4_lite_aresetn,
+            axi4_lite_arready            => axi4_lite_arready,
+            axi4_lite_arvalid            => axi4_lite_arvalid,
+            axi4_lite_awaddr             => axi4_lite_awaddr,
+            axi4_lite_awready            => axi4_lite_awready,
+            axi4_lite_awvalid            => axi4_lite_awvalid,
+            axi4_lite_bready             => axi4_lite_bready,
+            axi4_lite_bresp              => axi4_lite_bresp,
+            axi4_lite_bvalid             => axi4_lite_bvalid,
+            axi4_lite_rdata              => axi4_lite_rdata,
+            axi4_lite_rready             => axi4_lite_rready,
+            axi4_lite_rresp              => axi4_lite_rresp,
+            axi4_lite_rvalid             => axi4_lite_rvalid, 
+            axi4_lite_wdata              => axi4_lite_wdata,
+            axi4_lite_wready             => axi4_lite_wready,
+            axi4_lite_wvalid             => axi4_lite_wvalid, 
             -- DCMAC core config/rst interfaces
             -- axi interface for DCMAC core configuration
             s_axi_aclk                   => s_axi_aclk,    

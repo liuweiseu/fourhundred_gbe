@@ -201,6 +201,27 @@ wire [1:0] s_axi_rresp_reg;       // output
 wire s_axi_rvalid_reg;            // output
 wire s_axi_rready_reg;            // input
 wire [3:0] s_axi_wstrb_reg;       // input
+
+// axi for gtm
+wire s_axi_aclk_gtm;              // input
+wire s_axi_aresetn_gtm;           // input
+wire [31:0] s_axi_awaddr_gtm;     // input 
+wire s_axi_awvalid_gtm;           // input
+wire s_axi_awready_gtm;           // output
+wire [31:0] s_axi_wdata_gtm;      // input
+wire s_axi_wvalid_gtm;            // input
+wire s_axi_wready_gtm;            // output
+wire [1:0] s_axi_bresp_gtm;       // output
+wire s_axi_bvalid_gtm;            // output     
+wire s_axi_bready_gtm;            // input
+wire [31:0] s_axi_araddr_gtm;     // input
+wire s_axi_arvalid_gtm;           // input
+wire s_axi_arready_gtm;           // output
+wire [31:0] s_axi_rdata_gtm;      // output
+wire [1:0] s_axi_rresp_gtm;       // output
+wire s_axi_rvalid_gtm;            // output
+wire s_axi_rready_gtm;            // input
+
 //----------------------------------------------------------------------------------------------------
 // added cips for control
 dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
@@ -304,25 +325,26 @@ dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
     .M00_AXI_2_wstrb      (s_axi_wstrb_reg),	
     .M00_AXI_2_wvalid     (s_axi_wvalid_reg),		
 	
-    .M00_AXI_3_araddr     (		),	
+    .M00_AXI_3_araddr     (s_axi_araddr_gtm),	
     .M00_AXI_3_arprot     (		),	
-    .M00_AXI_3_arready    (1'b0	),
-    .M00_AXI_3_arvalid    (		),	
-    .M00_AXI_3_awaddr     (		),	
+    .M00_AXI_3_arready    (s_axi_arready_gtm),
+    .M00_AXI_3_arvalid    (s_axi_arvalid_gtm),	
+    .M00_AXI_3_awaddr     (s_axi_awaddr_gtm),	
     .M00_AXI_3_awprot     (		),	
-    .M00_AXI_3_awready    (1'b0	),
-    .M00_AXI_3_awvalid    (		),	
-    .M00_AXI_3_bready     (		),	
-    .M00_AXI_3_bresp      (2'b00),
-    .M00_AXI_3_bvalid     (1'b0	),
-    .M00_AXI_3_rdata      (32'd0),
-    .M00_AXI_3_rready     (		),	
-    .M00_AXI_3_rresp      (2'b00),
-    .M00_AXI_3_rvalid     (1'b0	),
-    .M00_AXI_3_wdata      (		),	
-    .M00_AXI_3_wready     (1'b0	),
-    .M00_AXI_3_wstrb      (		),	
-    .M00_AXI_3_wvalid     (		),		
+    .M00_AXI_3_awready    (s_axi_awready_gtm),
+    .M00_AXI_3_awvalid    (s_axi_awvalid_gtm),	
+    .M00_AXI_3_bready     (s_axi_bready_gtm),	
+    .M00_AXI_3_bresp      (s_axi_bresp_gtm),
+    .M00_AXI_3_bvalid     (s_axi_bvalid_gtm),
+    .M00_AXI_3_rdata      (s_axi_rdata_gtm),
+    .M00_AXI_3_rready     (s_axi_rready_gtm),	
+    .M00_AXI_3_rresp      (s_axi_rresp_gtm),
+    .M00_AXI_3_rvalid     (s_axi_rvalid_gtm),
+    .M00_AXI_3_wdata      (s_axi_wdata_gtm),	
+    .M00_AXI_3_wready     (s_axi_wready_gtm),
+    .M00_AXI_3_wstrb      (s_axi_wstrb_gtm),	
+    .M00_AXI_3_wvalid     (s_axi_wvalid_gtm),	
+		
     .M00_AXI_4_araddr     (		),	
     .M00_AXI_4_arprot     (		),	
     .M00_AXI_4_arready    (1'b0	),
@@ -988,7 +1010,8 @@ assign aximm_clk = pl0_ref_clk_0;
 assign axis_reset = ~pl0_resetn_0;
 assign s_axi_aclk_dcmac = pl0_ref_clk_0;
 assign s_axi_aresetn_dcmac = pl0_resetn_0;
-
+assign s_axi_aclk_gtm = pl0_ref_clk_0;
+assign s_axi_aresetn_gtm = pl0_resetn_0;
 // added casper400gethernetblock_no_cpu module here
 casper400gethernetblock_no_cpu #(
     .G_AXIS_DATA_WIDTH (1024)
@@ -1021,6 +1044,25 @@ casper400gethernetblock_no_cpu #(
     .yellow_block_rx_eof(),
     .yellow_block_rx_overrun(),
 
+    // gtm transceiver config
+    .axi4_lite_aclk(s_axi_aclk_gtm),
+    .axi4_lite_araddr(s_axi_araddr_gtm),
+    .axi4_lite_aresetn(s_axi_aresetn_gtm),
+    .axi4_lite_arready(s_axi_arready_gtm),
+    .axi4_lite_arvalid(s_axi_arvalid_gtm),
+    .axi4_lite_awaddr(s_axi_awaddr_gtm),
+    .axi4_lite_awready(s_axi_awready_gtm),
+    .axi4_lite_awvalid(s_axi_awvalid_gtm),
+    .axi4_lite_bready(s_axi_bready_gtm),
+    .axi4_lite_bresp(s_axi_bresp_gtm),
+    .axi4_lite_bvalid(s_axi_bvalid_gtm),
+    .axi4_lite_rdata(s_axi_rdata_gtm),
+    .axi4_lite_rready(s_axi_rready_gtm),
+    .axi4_lite_rresp(s_axi_rresp_gtm),
+    .axi4_lite_rvalid(s_axi_rvalid_gtm),
+    .axi4_lite_wdata(s_axi_wdata_gtm),
+    .axi4_lite_wready(s_axi_wready_gtm),
+    .axi4_lite_wvalid(s_axi_wvalid_gtm),
     // DCMAC core config/rst interfaces
     // axi interface for DCMAC core configuration
     // connect to M_AXI1
