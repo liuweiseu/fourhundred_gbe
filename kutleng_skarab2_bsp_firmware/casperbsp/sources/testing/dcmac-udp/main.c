@@ -9,6 +9,7 @@
 
 #include "fhg_regs.h"
 #include "dcmac_config.h"
+#include "gtm_config.h"
 
 #define LOCAL_IP_ADDRESS    0xC0A80301
 #define LOCAL_IP_NETMASK    0xFFFFFF00
@@ -68,7 +69,7 @@ uint32_t vl_marker[40] = {0xc16821f4, 0x3e97de0b, \
                           0xc0f0e5e9, 0x3f0f1a16};                    
 */
 //uint32_t vl_marker[40] = {0};
-void init_dcmac()
+void init_dcmac(int mode)
 {
     uint8_t ch_en_str = 0;
     int gt_lanes = 8;
@@ -85,12 +86,14 @@ void init_dcmac()
     xil_printf("Done.\r\n");
 
     xil_printf("Setting gt pcs loopback and reset static... \n\r");
-    set_gt_pcs_loopback_and_reset_static(2);
+    set_gt_pcs_loopback_and_reset_static(mode);
     xil_printf("Done.\r\n");
 
     // Check/Wait for GT TX and RX resetdone
     xil_printf("Waiting for GT TX and RX resetdone... \n\r");
+    gt_tx_datapathonly_reset();
     wait_gt_txresetdone(gt_lanes);
+    gt_rx_datapathonly_reset();
     wait_gt_rxresetdone(gt_lanes);
     xil_printf("Done.\r\n");
     // -----------------------------------------
@@ -113,7 +116,7 @@ void init_dcmac()
     // Perform a GT RX Datapathonly reset and DCMAC RX Reset
     // -------------------------------------------------------
     // let's ignore rx for now.
-
+    
     xil_printf("Resetting GT RX datapath and DCMAC RX... \n\r");
 	do
 	{
@@ -125,8 +128,7 @@ void init_dcmac()
         // DCMAC RX Port reset
         dcmac_rx_port_reset();
         wait(2000);
-
-
+        
 	    wait_for_alignment();
 	    rst_cnt = rst_cnt + 1;
 	}
@@ -148,18 +150,205 @@ void init_dcmac()
     latch_all();
 }
 
+void change_lane(int mode)
+{
+    if(mode == 0){
+        gtm_write_reg(GTM1_REG_BASE + CH2_TX_PCS_CFG0_OFFSET, 0x041B);
+        gtm_write_reg(GTM1_REG_BASE + CH3_TX_PCS_CFG0_OFFSET, 0x441B);
+        gtm_write_reg(GTM1_REG_BASE + CH2_RX_PCS_CFG0_OFFSET, 0x01E0041B);
+        gtm_write_reg(GTM1_REG_BASE + CH3_RX_PCS_CFG0_OFFSET, 0x01E0441B);
+    }else if(mode == 1) // default mode
+    {
+        gtm_write_reg(GTM1_REG_BASE + CH0_TX_PCS_CFG0_OFFSET, 0x041B);
+        gtm_write_reg(GTM1_REG_BASE + CH1_TX_PCS_CFG0_OFFSET, 0x441B);
+        gtm_write_reg(GTM1_REG_BASE + CH0_RX_PCS_CFG0_OFFSET, 0x01E0041B);
+        gtm_write_reg(GTM1_REG_BASE + CH1_RX_PCS_CFG0_OFFSET, 0x01E0441B);
+    }else if(mode == 2)
+    {
+        gtm_write_reg(GTM1_REG_BASE + CH0_TX_PCS_CFG0_OFFSET, 0x441B);
+        gtm_write_reg(GTM1_REG_BASE + CH1_TX_PCS_CFG0_OFFSET, 0x041B);
+        gtm_write_reg(GTM1_REG_BASE + CH2_TX_PCS_CFG0_OFFSET, 0x441B);
+        gtm_write_reg(GTM1_REG_BASE + CH3_TX_PCS_CFG0_OFFSET, 0x041B);
+        gtm_write_reg(GTM1_REG_BASE + CH0_RX_PCS_CFG0_OFFSET, 0x01E0441B);
+        gtm_write_reg(GTM1_REG_BASE + CH1_RX_PCS_CFG0_OFFSET, 0x01E0041B);
+        gtm_write_reg(GTM1_REG_BASE + CH2_RX_PCS_CFG0_OFFSET, 0x01E0441B);
+        gtm_write_reg(GTM1_REG_BASE + CH3_RX_PCS_CFG0_OFFSET, 0x01E0041B);
+    }else if(mode == 3)
+    {
+        gtm_write_reg(GTM1_REG_BASE + CH0_TX_PCS_CFG0_OFFSET, 0x041B);
+        gtm_write_reg(GTM1_REG_BASE + CH1_TX_PCS_CFG0_OFFSET, 0x441B);
+        gtm_write_reg(GTM1_REG_BASE + CH2_TX_PCS_CFG0_OFFSET, 0x041B);
+        gtm_write_reg(GTM1_REG_BASE + CH3_TX_PCS_CFG0_OFFSET, 0x441B);
+        gtm_write_reg(GTM1_REG_BASE + CH0_RX_PCS_CFG0_OFFSET, 0x01E0041B);
+        gtm_write_reg(GTM1_REG_BASE + CH1_RX_PCS_CFG0_OFFSET, 0x01E0441B);
+        gtm_write_reg(GTM1_REG_BASE + CH2_RX_PCS_CFG0_OFFSET, 0x01E0041B);
+        gtm_write_reg(GTM1_REG_BASE + CH3_RX_PCS_CFG0_OFFSET, 0x01E0441B);
+    }
+}
 
+void get_tx_pcs_cfg()
+{
+    uint32_t status;
+    for(int gtm = 0; gtm < 2; gtm++)
+        for(int ch = 0; ch < 4; ch++)
+        {
+            status = check_tx_pcs_cfg(gtm,ch);
+            xil_printf("gtm %d, ch %d, tx_pcs_cfg0: 0x%08x\r\n", gtm, ch, status);
+        }
+}
+
+void get_rx_pcs_cfg()
+{
+    uint32_t status;
+    for(int gtm = 0; gtm < 2; gtm++)
+        for(int ch = 0; ch < 4; ch++)
+        {
+            status = check_rx_pcs_cfg(gtm,ch);
+            xil_printf("gtm %d, ch %d, rx_pcs_cfg0: 0x%08x\r\n", gtm, ch, status);
+        }
+}
+
+void get_loopback_mode()
+{
+    uint32_t status;
+     for(int gtm = 0; gtm < 2; gtm++)
+        for(int ch = 0; ch < 4; ch++)
+        {
+            status = check_loopback_mode(gtm,ch);
+            xil_printf("gtm %d, ch %d, loopback mode: 0x%08x\r\n", gtm, ch, status);
+        }
+}
+
+void get_chclk_cfg()
+{
+    uint32_t status;
+    for(int gtm = 0; gtm < 2; gtm++)
+        for(int ch = 0; ch < 4; ch++)
+        {
+            status = check_chclk_cfg(gtm,ch);
+            xil_printf("gtm %d, ch %d, chclk cfg: 0x%08x\r\n", gtm, ch, status);
+        }
+}
+
+void get_pma_misc_cfg()
+{
+    uint32_t status;
+    for(int gtm = 0; gtm < 2; gtm++)
+        for(int ch = 0; ch < 4; ch++)
+        {
+            status = check_pma_misc_cfg(gtm,ch);
+            xil_printf("gtm %d, ch %d, pma misc cfg: 0x%08x\r\n", gtm, ch, status);
+        }
+}
+
+// we need to change these registers to get ch1 and ch2 working
+/*
+[0] : CH2_CHCLK_CFG3
+[1] : CH2_FABRIC_INTF_CFG2 ??
+[2] : CH2_PMA_MISC_CFG0
+[3] : CH2_RX_PCS_CFG0
+[4] : CH2_TX_CTRL_CFG2 ??
+[5] : CH2_TX_PCS_CFG0
+[6] : CH3_CHCLK_CFG3 
+[7] : CH3_FABRIC_INTF_CFG2 ??
+[8] : CH3_PMA_MISC_CFG0
+[9] : CH3_RX_PCS_CFG0
+[10] : CH3_TX_CTRL_CFG2 ??
+[11] : CH3_TX_PCS_CFG0
+[12] : CTRL_RSV_CFG0
+[13] : HSCLK0_HSDIST_CFG
+[14] : HSCLK1_HSDIST_CFG
+[15] : MST_RESET_CFG
+*/
+uint32_t mregs[17] = {  0x0E2F * 4,\
+                        0x0E4E * 4, \
+                        0x0E27 * 4, \
+                        0x0E14 * 4, \
+                        0x0E36 * 4, \
+                        0x0E16 * 4, \ 
+                        0x0F2F * 4, \ 
+                        0x0F4E * 4, \ 
+                        0x0F27 * 4, \ 
+                        0x0F14 * 4, \ 
+                        0X0F36 * 4, \ 
+                        0x0F16 * 4, \  
+                        0x0C03 * 4, \  
+                        0x0D3F * 4, \  
+                        0x0F3F * 4, \  
+                        0x0D12 * 4, \
+						0x580B * 4
+};
+
+void read_mregs()
+{
+    uint8_t i = 0;
+    // gtm quad0
+    for(i = 0; i < 17; i++)
+    {
+        xil_printf("gtm0 reg %d: 0x%08x\r\n", i, gtm_read_reg(GTM0_REG_BASE + mregs[i]));
+    }
+    // gtm quad1
+    for(i = 0; i < 17; i++)
+    {
+        xil_printf("gtm1 reg %d: 0x%08x\r\n", i, gtm_read_reg(GTM1_REG_BASE + mregs[i]));
+    }
+}
+
+void write_mregs()
+{
+    uint8_t i = 0;
+    uint32_t d = 0;
+    // quad0 uses ch0 and ch2, quad1 uses ch1 and ch3
+    // read regs from quad0 and write the regs to quad1 
+    for(i = 0; i < 15; i++)
+    {
+        d = gtm_read_reg(GTM0_REG_BASE + mregs[i]);
+        gtm_write_reg(GTM1_REG_BASE + mregs[i], d);
+    }
+    // the last reg is a special one
+    gtm_write_reg(GTM1_REG_BASE + mregs[0], 0x60ee60);
+    gtm_write_reg(GTM1_REG_BASE + mregs[4], 0x1b800010);
+    gtm_write_reg(GTM1_REG_BASE + mregs[6], 0x60ea60);
+    gtm_write_reg(GTM1_REG_BASE + mregs[12], 0x18);
+    gtm_write_reg(GTM1_REG_BASE + mregs[15], 0x77a00dd0);
+    //gtm_write_reg(GTM1_REG_BASE + mregs[16], 0x041B);
+}
 void main()
 {
     int i;
-
+    // loopback mode
+    // 0 - external mode
+    // 1 - NE PCS loopback
+    // 2 - NE PMA loopback
+    int mode = 0;
+    /*
+    // get ch_clk_cfg
+    get_chclk_cfg();
+    // get pma misc cfg
+    get_pma_misc_cfg();
+    // change half density mode
+    xil_printf("Before changing settings...\r\n");
+    get_tx_pcs_cfg();
+    get_rx_pcs_cfg();
+    //change_lane(0);
+    xil_printf("After changing settings...\r\n");
+    get_tx_pcs_cfg();
+    get_rx_pcs_cfg();
+    */
+    // read mregs
+    xil_printf("before writing mregs...\r\n");
+    read_mregs();
+    // write mregs
+    //write_mregs();
+    xil_printf("after writing mregs...\r\n");
+    read_mregs();
     // read the core type to make sure the RW is working.
-    xil_printf("core type: 0x%08x\r\n", dcmac_read_reg(CORE_TYPE));
-    set_tx_rx_vl_length(vl_marker);
-    set_vl_marker(vl_marker);
+    //xil_printf("core type: 0x%08x\r\n", dcmac_read_reg(CORE_TYPE));
+    //set_tx_rx_vl_length(vl_marker);
+    //set_vl_marker(vl_marker);
     // init dcmac and gtm transceivers
-    init_dcmac();
-
+    init_dcmac(mode);
+    /*
     // write arp table
     // write the arp table to FF:FF:FF:FF:FF:FF, 
     // so that all of the NIC should be able to receive the packet
@@ -182,16 +371,12 @@ void main()
         	//arp_flag = 1;
         }
     }
-    /*
-    if(arp_flag == 1)
-    	xil_printf("arp_table_read_error\r\n");
-    */
     xil_printf("arp table read.\r\n");
 
     // set a specific dst mac
     uint32_t dst_mac[3] = {0xacae6d94, 0x000038f8};
-    write_arp(536, dst_mac[0]);
-    write_arp(537, dst_mac[1]);
+    //write_arp(536, dst_mac[0]);
+    //write_arp(537, dst_mac[1]);
     // configure the mac address
     uint32_t mac_addr[2] = {0x0000946d, 0xaeacf839};
     uint32_t mac_addr_read[2];
@@ -375,6 +560,7 @@ void main()
     // wirte AXIS_PKT_CYC
     xil_printf("writing AXIS_PKT_CYC...\r\n");
     uint32_t axis_pkt_cyc = PKT_LEN / BUS_WIDTH * 2;
+    //uint32_t axis_pkt_cyc = 65535;
     uint32_t axis_pkt_cyc_read;
     write_axis_pkt_cyc(axis_pkt_cyc);
     xil_printf("AXIS_PKT_CYC written.\r\n");
@@ -395,17 +581,28 @@ void main()
     enable_core_ctrl();
     xil_printf("core control enabled.\r\n");
 
+    latch_all();
     // enable AXIS pkt gen
     xil_printf("enabling AXIS pkt gen...\r\n");
-    //enable_axis_pkt_gen();
-    disable_axis_pkt_gen();
+    enable_axis_pkt_gen();
+    //disable_axis_pkt_gen();
     xil_printf("AXIS pkt gen enabled.\r\n");
+    //usleep(2000000);
+    usleep(3U);
+    disable_axis_pkt_gen();
+    usleep(3U);
+    check_tx_status();
 
-
+    //uint32_t status;
+    // check tx_pcs_cfg
+    get_tx_pcs_cfg();
+    // check loopback mode
+    get_loopback_mode();
+        
     while(1)
     {
     	usleep(2000000);
-        //disable_axis_pkt_gen();
+    
     	print_port0_statistics();
     	latch_all();
     	//print_port1_statistics();
@@ -414,5 +611,6 @@ void main()
     	//print_port4_statistics();
     	//print_port5_statistics();
     }
+    */
 
 }

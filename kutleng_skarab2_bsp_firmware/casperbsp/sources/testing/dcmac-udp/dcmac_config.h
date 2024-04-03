@@ -451,6 +451,9 @@ int program_dcmac();
 int test_fixe_sanity(uint8_t ch_en_str);
 int read_rev_id();
 int change_loopback_mode(int mode);
-void check_tx_status();
+int check_tx_status();
+int assert_tx_port_reset();
+int deassert_tx_port_reset();
+int dcmac_tx_port_reset();
 
 #endif
