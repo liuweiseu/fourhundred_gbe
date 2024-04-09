@@ -21,7 +21,7 @@
 
 
 module delay # (
-    parameter D 		= 1,
+    parameter D 			= 1,
 	parameter BITWIDTH 	= 1
 )(
     input clk,
