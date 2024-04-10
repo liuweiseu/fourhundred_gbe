@@ -21,9 +21,9 @@ entity lbusrxaxistx is
         lbus_rxclk     : in  STD_LOGIC;
         lbus_rxreset   : in  STD_LOGIC;
         -- Outputs to AXIS bus
-        axis_tx_tdata  : out STD_LOGIC_VECTOR(511 downto 0);
+        axis_tx_tdata  : out STD_LOGIC_VECTOR(1023 downto 0);
         axis_tx_tvalid : out STD_LOGIC;
-        axis_tx_tkeep  : out STD_LOGIC_VECTOR(63 downto 0);
+        axis_tx_tkeep  : out STD_LOGIC_VECTOR(127 downto 0);
         axis_tx_tlast  : out STD_LOGIC;
         axis_tx_tuser  : out STD_LOGIC;
         -- Inputs from L-BUS interface

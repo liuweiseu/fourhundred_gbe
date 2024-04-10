@@ -337,21 +337,22 @@ void main()
     */
     // read mregs
     xil_printf("before writing mregs...\r\n");
-    read_mregs();
+    //read_mregs();
     // write mregs
     //write_mregs();
     xil_printf("after writing mregs...\r\n");
-    read_mregs();
+    //read_mregs();
     // read the core type to make sure the RW is working.
     //xil_printf("core type: 0x%08x\r\n", dcmac_read_reg(CORE_TYPE));
     //set_tx_rx_vl_length(vl_marker);
     //set_vl_marker(vl_marker);
     // init dcmac and gtm transceivers
     init_dcmac(mode);
-    /*
+
     // write arp table
     // write the arp table to FF:FF:FF:FF:FF:FF, 
     // so that all of the NIC should be able to receive the packet
+
     xil_printf("writing arp table...\r\n");
     for(i = 0; i < 1024; i++)
     {
@@ -589,15 +590,15 @@ void main()
     xil_printf("AXIS pkt gen enabled.\r\n");
     //usleep(2000000);
     usleep(3U);
-    disable_axis_pkt_gen();
+    //disable_axis_pkt_gen();
     usleep(3U);
-    check_tx_status();
+    //check_tx_status();
 
     //uint32_t status;
     // check tx_pcs_cfg
-    get_tx_pcs_cfg();
+    //get_tx_pcs_cfg();
     // check loopback mode
-    get_loopback_mode();
+    //get_loopback_mode();
         
     while(1)
     {
@@ -611,6 +612,6 @@ void main()
     	//print_port4_statistics();
     	//print_port5_statistics();
     }
-    */
+
 
 }

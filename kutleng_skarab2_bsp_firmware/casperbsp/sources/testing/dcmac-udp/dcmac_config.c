@@ -8,6 +8,7 @@
 #include "sleep.h"
 
 #include "dcmac_config.h"
+#include "gtm_config.h"
 
 //Channel enable;
 uint8_t ch_en[6] = {0,0,0,0,0,0};
@@ -730,7 +731,7 @@ int wait_for_alignment()
 
 	do
 	{
-		
+
 		gt_rx_datapathonly_reset();
 	    wait_gt_rxresetdone(gt_lanes);
 
@@ -738,7 +739,7 @@ int wait_for_alignment()
         // DCMAC RX Port reset
         dcmac_rx_port_reset();
         wait(2000);
-		
+
 		for(int i =0 ; i < 1; i++)
 
 		{
@@ -1092,6 +1093,18 @@ int set_gt_pcs_loopback_and_reset_static(int mode) {
 	uint32_t txpostcursor = 9; // 9
 	uint32_t maincursor = 75; //75
 	uint32_t rxcdrhold = 1;
+	set_tx_maincursor(0,0,maincursor);
+	set_tx_maincursor(0,2,maincursor);
+	set_tx_maincursor(1,0,maincursor);
+	set_tx_maincursor(1,2,maincursor);
+	set_tx_postcursor(0,0,txpostcursor);
+	set_tx_postcursor(0,2,txpostcursor);
+	set_tx_postcursor(1,0,txpostcursor);
+	set_tx_postcursor(1,2,txpostcursor);
+	set_tx_precursor(0,0,19);
+	set_tx_precursor(0,2,16);
+	set_tx_precursor(1,0,20);
+	set_tx_precursor(1,2,18);
 	data =  (maincursor << 24) | (txpostcursor << 18) | (txprecursor << 12) | (mode << 9) | (0 << 1);
     //Add variable to select if NE PCS loopback or External loopback
 	// [0] reset all
