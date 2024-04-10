@@ -180,7 +180,27 @@ entity mac400gphy is
         ctl_port_ctl_tx_vl_marker_id16          : in STD_LOGIC_VECTOR(63 downto 0);
         ctl_port_ctl_tx_vl_marker_id17          : in STD_LOGIC_VECTOR(63 downto 0);
         ctl_port_ctl_tx_vl_marker_id18          : in STD_LOGIC_VECTOR(63 downto 0);
-        ctl_port_ctl_tx_vl_marker_id19          : in STD_LOGIC_VECTOR(63 downto 0)
+        ctl_port_ctl_tx_vl_marker_id19          : in STD_LOGIC_VECTOR(63 downto 0);
+        gt0_ch01_txmaincursor                   : in  STD_LOGIC_VECTOR(6 downto 0);
+        gt0_ch01_txpostcursor                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt0_ch01_txprecursor                    : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt0_ch01_txprecursor2                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt0_ch01_txprecursor3                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt0_ch23_txmaincursor                   : in  STD_LOGIC_VECTOR(6 downto 0);
+        gt0_ch23_txpostcursor                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt0_ch23_txprecursor                    : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt0_ch23_txprecursor2                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt0_ch23_txprecursor3                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt1_ch01_txmaincursor                   : in  STD_LOGIC_VECTOR(6 downto 0);
+        gt1_ch01_txpostcursor                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt1_ch01_txprecursor                    : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt1_ch01_txprecursor2                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt1_ch01_txprecursor3                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt1_ch23_txmaincursor                   : in  STD_LOGIC_VECTOR(6 downto 0);
+        gt1_ch23_txpostcursor                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt1_ch23_txprecursor                    : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt1_ch23_txprecursor2                   : in  STD_LOGIC_VECTOR(5 downto 0);
+        gt1_ch23_txprecursor3                   : in  STD_LOGIC_VECTOR(5 downto 0)
     );
 end entity mac400gphy;
 
@@ -344,7 +364,27 @@ architecture rtl of mac400gphy is
             ctl_port_ctl_tx_vl_marker_id16          : in STD_LOGIC_VECTOR(63 downto 0);
             ctl_port_ctl_tx_vl_marker_id17          : in STD_LOGIC_VECTOR(63 downto 0);
             ctl_port_ctl_tx_vl_marker_id18          : in STD_LOGIC_VECTOR(63 downto 0);
-            ctl_port_ctl_tx_vl_marker_id19          : in STD_LOGIC_VECTOR(63 downto 0)
+            ctl_port_ctl_tx_vl_marker_id19          : in STD_LOGIC_VECTOR(63 downto 0);
+            gt0_ch01_txmaincursor                   : in  STD_LOGIC_VECTOR(6 downto 0);
+            gt0_ch01_txpostcursor                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt0_ch01_txprecursor                    : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt0_ch01_txprecursor2                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt0_ch01_txprecursor3                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt0_ch23_txmaincursor                   : in  STD_LOGIC_VECTOR(6 downto 0);
+            gt0_ch23_txpostcursor                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt0_ch23_txprecursor                    : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt0_ch23_txprecursor2                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt0_ch23_txprecursor3                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt1_ch01_txmaincursor                   : in  STD_LOGIC_VECTOR(6 downto 0);
+            gt1_ch01_txpostcursor                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt1_ch01_txprecursor                    : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt1_ch01_txprecursor2                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt1_ch01_txprecursor3                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt1_ch23_txmaincursor                   : in  STD_LOGIC_VECTOR(6 downto 0);
+            gt1_ch23_txpostcursor                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt1_ch23_txprecursor                    : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt1_ch23_txprecursor2                   : in  STD_LOGIC_VECTOR(5 downto 0);
+            gt1_ch23_txprecursor3                   : in  STD_LOGIC_VECTOR(5 downto 0)
         );
     end component dcmactop;
 
@@ -663,7 +703,27 @@ begin
             ctl_port_ctl_tx_vl_marker_id16          => ctl_port_ctl_tx_vl_marker_id16,
             ctl_port_ctl_tx_vl_marker_id17          => ctl_port_ctl_tx_vl_marker_id17,
             ctl_port_ctl_tx_vl_marker_id18          => ctl_port_ctl_tx_vl_marker_id18,
-            ctl_port_ctl_tx_vl_marker_id19          => ctl_port_ctl_tx_vl_marker_id19
+            ctl_port_ctl_tx_vl_marker_id19          => ctl_port_ctl_tx_vl_marker_id19,
+            gt0_ch01_txmaincursor                   => gt0_ch01_txmaincursor,
+            gt0_ch01_txpostcursor                   => gt0_ch01_txpostcursor,
+            gt0_ch01_txprecursor                    => gt0_ch01_txprecursor,
+            gt0_ch01_txprecursor2                   => gt0_ch01_txprecursor2,
+            gt0_ch01_txprecursor3                   => gt0_ch01_txprecursor3,
+            gt0_ch23_txmaincursor                   => gt0_ch23_txmaincursor,
+            gt0_ch23_txpostcursor                   => gt0_ch23_txpostcursor,
+            gt0_ch23_txprecursor                    => gt0_ch23_txprecursor,
+            gt0_ch23_txprecursor2                   => gt0_ch23_txprecursor2,
+            gt0_ch23_txprecursor3                   => gt0_ch23_txprecursor3,
+            gt1_ch01_txmaincursor                   => gt1_ch01_txmaincursor,
+            gt1_ch01_txpostcursor                   => gt1_ch01_txpostcursor,
+            gt1_ch01_txprecursor                    => gt1_ch01_txprecursor,
+            gt1_ch01_txprecursor2                   => gt1_ch01_txprecursor2,
+            gt1_ch01_txprecursor3                   => gt1_ch01_txprecursor3,
+            gt1_ch23_txmaincursor                   => gt1_ch23_txmaincursor,
+            gt1_ch23_txpostcursor                   => gt1_ch23_txpostcursor,
+            gt1_ch23_txprecursor                    => gt1_ch23_txprecursor,
+            gt1_ch23_txprecursor2                   => gt1_ch23_txprecursor2,
+            gt1_ch23_txprecursor3                   => gt1_ch23_txprecursor3
         );
 
 end architecture rtl;

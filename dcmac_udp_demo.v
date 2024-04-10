@@ -221,7 +221,56 @@ wire [31:0] s_axi_rdata_gtm;      // output
 wire [1:0] s_axi_rresp_gtm;       // output
 wire s_axi_rvalid_gtm;            // output
 wire s_axi_rready_gtm;            // input
+// tx cursor signals
+wire [31:0] gt0_ch01_cursor_tri_o;
+wire [31:0] gt0_ch23_cursor_tri_o;
+wire [31:0] gt1_ch01_cursor_tri_o;
+wire [31:0] gt1_ch23_cursor_tri_o;
 
+wire [6:0]gt0_ch01_txmaincursor;
+wire [5:0]gt0_ch01_txpostcursor;
+wire [5:0]gt0_ch01_txprecursor;
+wire [5:0]gt0_ch01_txprecursor2;
+wire [5:0]gt0_ch01_txprecursor3;
+wire [6:0]gt0_ch23_txmaincursor;
+wire [5:0]gt0_ch23_txpostcursor;
+wire [5:0]gt0_ch23_txprecursor;
+wire [5:0]gt0_ch23_txprecursor2;
+wire [5:0]gt0_ch23_txprecursor3;
+wire [6:0]gt1_ch01_txmaincursor;
+wire [5:0]gt1_ch01_txpostcursor;
+wire [5:0]gt1_ch01_txprecursor;
+wire [5:0]gt1_ch01_txprecursor2;
+wire [5:0]gt1_ch01_txprecursor3;
+wire [6:0]gt1_ch23_txmaincursor;
+wire [5:0]gt1_ch23_txpostcursor;
+wire [5:0]gt1_ch23_txprecursor;
+wire [5:0]gt1_ch23_txprecursor2;
+wire [5:0]gt1_ch23_txprecursor3;
+
+assign gt0_ch01_txmaincursor = gt0_ch01_cursor_tri_o[6:0];
+assign gt0_ch01_txpostcursor = gt0_ch01_cursor_tri_o[12:7];
+assign gt0_ch01_txprecursor  = gt0_ch01_cursor_tri_o[18:13];
+assign gt0_ch01_txprecursor2 = gt0_ch01_cursor_tri_o[24:19];
+assign gt0_ch01_txprecursor3 = gt0_ch01_cursor_tri_o[30:25];
+
+assign gt0_ch23_txmaincursor = gt0_ch23_cursor_tri_o[6:0];
+assign gt0_ch23_txpostcursor = gt0_ch23_cursor_tri_o[12:7];
+assign gt0_ch23_txprecursor  = gt0_ch23_cursor_tri_o[18:13];
+assign gt0_ch23_txprecursor2 = gt0_ch23_cursor_tri_o[24:19];
+assign gt0_ch23_txprecursor3 = gt0_ch23_cursor_tri_o[30:25];
+
+assign gt1_ch01_txmaincursor = gt1_ch01_cursor_tri_o[6:0];
+assign gt1_ch01_txpostcursor = gt1_ch01_cursor_tri_o[12:7];
+assign gt1_ch01_txprecursor  = gt1_ch01_cursor_tri_o[18:13];
+assign gt1_ch01_txprecursor2 = gt1_ch01_cursor_tri_o[24:19];
+assign gt1_ch01_txprecursor3 = gt1_ch01_cursor_tri_o[30:25];
+
+assign gt1_ch23_txmaincursor = gt1_ch23_cursor_tri_o[6:0];
+assign gt1_ch23_txpostcursor = gt1_ch23_cursor_tri_o[12:7];
+assign gt1_ch23_txprecursor  = gt1_ch23_cursor_tri_o[18:13];
+assign gt1_ch23_txprecursor2 = gt1_ch23_cursor_tri_o[24:19];
+assign gt1_ch23_txprecursor3 = gt1_ch23_cursor_tri_o[30:25];
 //----------------------------------------------------------------------------------------------------
 // added cips for control
 dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
@@ -404,7 +453,92 @@ dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
     .M00_AXI_6_wready     (1'b0	),
     .M00_AXI_6_wstrb      (		),	
     .M00_AXI_6_wvalid     (		),		
-    .pl0_resetn_0       (pl0_resetn_0) 
+    .pl0_resetn_0       (pl0_resetn_0),
+    // ddr
+    .ch0_lpddr4_trip1_ca_a(ch0_lpddr4_trip1_ca_a),
+    .ch0_lpddr4_trip1_ca_b(ch0_lpddr4_trip1_ca_b),
+    .ch0_lpddr4_trip1_ck_c_a(ch0_lpddr4_trip1_ck_c_a),
+    .ch0_lpddr4_trip1_ck_c_b(ch0_lpddr4_trip1_ck_c_b),
+    .ch0_lpddr4_trip1_ck_t_a(ch0_lpddr4_trip1_ck_t_a),
+    .ch0_lpddr4_trip1_ck_t_b(ch0_lpddr4_trip1_ck_t_b),
+    .ch0_lpddr4_trip1_cke_a(ch0_lpddr4_trip1_cke_a),
+    .ch0_lpddr4_trip1_cke_b(ch0_lpddr4_trip1_cke_b),
+    .ch0_lpddr4_trip1_cs_a(ch0_lpddr4_trip1_cs_a),
+    .ch0_lpddr4_trip1_cs_b(ch0_lpddr4_trip1_cs_b),
+    .ch0_lpddr4_trip1_dmi_a(ch0_lpddr4_trip1_dmi_a),
+    .ch0_lpddr4_trip1_dmi_b(ch0_lpddr4_trip1_dmi_b),
+    .ch0_lpddr4_trip1_dq_a(ch0_lpddr4_trip1_dq_a),
+    .ch0_lpddr4_trip1_dq_b(ch0_lpddr4_trip1_dq_b),
+    .ch0_lpddr4_trip1_dqs_c_a(ch0_lpddr4_trip1_dqs_c_a),
+    .ch0_lpddr4_trip1_dqs_c_b(ch0_lpddr4_trip1_dqs_c_b),
+    .ch0_lpddr4_trip1_dqs_t_a(ch0_lpddr4_trip1_dqs_t_a),
+    .ch0_lpddr4_trip1_dqs_t_b(ch0_lpddr4_trip1_dqs_t_b),
+    .ch0_lpddr4_trip1_reset_n(ch0_lpddr4_trip1_reset_n),
+    .ch0_lpddr4_trip2_ca_a(ch0_lpddr4_trip2_ca_a),
+    .ch0_lpddr4_trip2_ca_b(ch0_lpddr4_trip2_ca_b),
+    .ch0_lpddr4_trip2_ck_c_a(ch0_lpddr4_trip2_ck_c_a),
+    .ch0_lpddr4_trip2_ck_c_b(ch0_lpddr4_trip2_ck_c_b),
+    .ch0_lpddr4_trip2_ck_t_a(ch0_lpddr4_trip2_ck_t_a),
+    .ch0_lpddr4_trip2_ck_t_b(ch0_lpddr4_trip2_ck_t_b),
+    .ch0_lpddr4_trip2_cke_a(ch0_lpddr4_trip2_cke_a),
+    .ch0_lpddr4_trip2_cke_b(ch0_lpddr4_trip2_cke_b),
+    .ch0_lpddr4_trip2_cs_a(ch0_lpddr4_trip2_cs_a),
+    .ch0_lpddr4_trip2_cs_b(ch0_lpddr4_trip2_cs_b),
+    .ch0_lpddr4_trip2_dmi_a(ch0_lpddr4_trip2_dmi_a),
+    .ch0_lpddr4_trip2_dmi_b(ch0_lpddr4_trip2_dmi_b),
+    .ch0_lpddr4_trip2_dq_a(ch0_lpddr4_trip2_dq_a),
+    .ch0_lpddr4_trip2_dq_b(ch0_lpddr4_trip2_dq_b),
+    .ch0_lpddr4_trip2_dqs_c_a(ch0_lpddr4_trip2_dqs_c_a),
+    .ch0_lpddr4_trip2_dqs_c_b(ch0_lpddr4_trip2_dqs_c_b),
+    .ch0_lpddr4_trip2_dqs_t_a(ch0_lpddr4_trip2_dqs_t_a),
+    .ch0_lpddr4_trip2_dqs_t_b(ch0_lpddr4_trip2_dqs_t_b),
+    .ch0_lpddr4_trip2_reset_n(ch0_lpddr4_trip2_reset_n),
+    .ch1_lpddr4_trip1_ca_a(ch1_lpddr4_trip1_ca_a),
+    .ch1_lpddr4_trip1_ca_b(ch1_lpddr4_trip1_ca_b),
+    .ch1_lpddr4_trip1_ck_c_a(ch1_lpddr4_trip1_ck_c_a),
+    .ch1_lpddr4_trip1_ck_c_b(ch1_lpddr4_trip1_ck_c_b),
+    .ch1_lpddr4_trip1_ck_t_a(ch1_lpddr4_trip1_ck_t_a),
+    .ch1_lpddr4_trip1_ck_t_b(ch1_lpddr4_trip1_ck_t_b),
+    .ch1_lpddr4_trip1_cke_a(ch1_lpddr4_trip1_cke_a),
+    .ch1_lpddr4_trip1_cke_b(ch1_lpddr4_trip1_cke_b),
+    .ch1_lpddr4_trip1_cs_a(ch1_lpddr4_trip1_cs_a),
+    .ch1_lpddr4_trip1_cs_b(ch1_lpddr4_trip1_cs_b),
+    .ch1_lpddr4_trip1_dmi_a(ch1_lpddr4_trip1_dmi_a),
+    .ch1_lpddr4_trip1_dmi_b(ch1_lpddr4_trip1_dmi_b),
+    .ch1_lpddr4_trip1_dq_a(ch1_lpddr4_trip1_dq_a),
+    .ch1_lpddr4_trip1_dq_b(ch1_lpddr4_trip1_dq_b),
+    .ch1_lpddr4_trip1_dqs_c_a(ch1_lpddr4_trip1_dqs_c_a),
+    .ch1_lpddr4_trip1_dqs_c_b(ch1_lpddr4_trip1_dqs_c_b),
+    .ch1_lpddr4_trip1_dqs_t_a(ch1_lpddr4_trip1_dqs_t_a),
+    .ch1_lpddr4_trip1_dqs_t_b(ch1_lpddr4_trip1_dqs_t_b),
+    .ch1_lpddr4_trip1_reset_n(ch1_lpddr4_trip1_reset_n),
+    .ch1_lpddr4_trip2_ca_a(ch1_lpddr4_trip2_ca_a),
+    .ch1_lpddr4_trip2_ca_b(ch1_lpddr4_trip2_ca_b),
+    .ch1_lpddr4_trip2_ck_c_a(ch1_lpddr4_trip2_ck_c_a),
+    .ch1_lpddr4_trip2_ck_c_b(ch1_lpddr4_trip2_ck_c_b),
+    .ch1_lpddr4_trip2_ck_t_a(ch1_lpddr4_trip2_ck_t_a),
+    .ch1_lpddr4_trip2_ck_t_b(ch1_lpddr4_trip2_ck_t_b),
+    .ch1_lpddr4_trip2_cke_a(ch1_lpddr4_trip2_cke_a),
+    .ch1_lpddr4_trip2_cke_b(ch1_lpddr4_trip2_cke_b),
+    .ch1_lpddr4_trip2_cs_a(ch1_lpddr4_trip2_cs_a),
+    .ch1_lpddr4_trip2_cs_b(ch1_lpddr4_trip2_cs_b),
+    .ch1_lpddr4_trip2_dmi_a(ch1_lpddr4_trip2_dmi_a),
+    .ch1_lpddr4_trip2_dmi_b(ch1_lpddr4_trip2_dmi_b),
+    .ch1_lpddr4_trip2_dq_a(ch1_lpddr4_trip2_dq_a),
+    .ch1_lpddr4_trip2_dq_b(ch1_lpddr4_trip2_dq_b),
+    .ch1_lpddr4_trip2_dqs_c_a(ch1_lpddr4_trip2_dqs_c_a),
+    .ch1_lpddr4_trip2_dqs_c_b(ch1_lpddr4_trip2_dqs_c_b),
+    .ch1_lpddr4_trip2_dqs_t_a(ch1_lpddr4_trip2_dqs_t_a),
+    .ch1_lpddr4_trip2_dqs_t_b(ch1_lpddr4_trip2_dqs_t_b),
+    .ch1_lpddr4_trip2_reset_n(ch1_lpddr4_trip2_reset_n),
+    .lpddr4_clk1_clk_n(lpddr4_clk1_clk_n),
+    .lpddr4_clk1_clk_p(lpddr4_clk1_clk_p),
+    .lpddr4_clk2_clk_n(lpddr4_clk2_clk_n),
+    .lpddr4_clk2_clk_p(lpddr4_clk2_clk_p),
+    .gt0_ch01_cursor_tri_o(gt0_ch01_cursor_tri_o),
+    .gt0_ch23_cursor_tri_o(gt0_ch23_cursor_tri_o),
+    .gt1_ch01_cursor_tri_o(gt1_ch01_cursor_tri_o),
+    .gt1_ch23_cursor_tri_o(gt1_ch23_cursor_tri_o)
 
 );
 
@@ -1094,6 +1228,27 @@ casper400gethernetblock_no_cpu #(
     .ctl_port_ctl_tx_vl_marker_id16(ctl_port_ctl_tx_vl_marker_id16_d),
     .ctl_port_ctl_tx_vl_marker_id17(ctl_port_ctl_tx_vl_marker_id17_d),
     .ctl_port_ctl_tx_vl_marker_id18(ctl_port_ctl_tx_vl_marker_id18_d),
-    .ctl_port_ctl_tx_vl_marker_id19(ctl_port_ctl_tx_vl_marker_id19_d)
+    .ctl_port_ctl_tx_vl_marker_id19(ctl_port_ctl_tx_vl_marker_id19_d),
+    // tx cursors
+    .gt0_ch01_txmaincursor(gt0_ch01_txmaincursor),
+    .gt0_ch01_txpostcursor(gt0_ch01_txpostcursor),
+    .gt0_ch01_txprecursor(gt0_ch01_txprecursor),
+    .gt0_ch01_txprecursor2(gt0_ch01_txprecursor2),
+    .gt0_ch01_txprecursor3(gt0_ch01_txprecursor3),
+    .gt0_ch23_txmaincursor(gt0_ch23_txmaincursor),
+    .gt0_ch23_txpostcursor(gt0_ch23_txpostcursor),
+    .gt0_ch23_txprecursor(gt0_ch23_txprecursor),
+    .gt0_ch23_txprecursor2(gt0_ch23_txprecursor2),
+    .gt0_ch23_txprecursor3(gt0_ch23_txprecursor3),
+    .gt1_ch01_txmaincursor(gt1_ch01_txmaincursor),
+    .gt1_ch01_txpostcursor(gt1_ch01_txpostcursor),
+    .gt1_ch01_txprecursor(gt1_ch01_txprecursor),
+    .gt1_ch01_txprecursor2(gt1_ch01_txprecursor2),
+    .gt1_ch01_txprecursor3(gt1_ch01_txprecursor3),
+    .gt1_ch23_txmaincursor(gt1_ch23_txmaincursor),
+    .gt1_ch23_txpostcursor(gt1_ch23_txpostcursor),
+    .gt1_ch23_txprecursor(gt1_ch23_txprecursor),
+    .gt1_ch23_txprecursor2(gt1_ch23_txprecursor2),
+    .gt1_ch23_txprecursor3(gt1_ch23_txprecursor3)
 );
 endmodule

@@ -156,7 +156,28 @@ module dcmactop#(
     input [63:0] ctl_port_ctl_tx_vl_marker_id16,
     input [63:0] ctl_port_ctl_tx_vl_marker_id17,
     input [63:0] ctl_port_ctl_tx_vl_marker_id18,
-    input [63:0] ctl_port_ctl_tx_vl_marker_id19
+    input [63:0] ctl_port_ctl_tx_vl_marker_id19,
+    // tx cursors
+    input [6:0]gt0_ch01_txmaincursor,
+    input [5:0]gt0_ch01_txpostcursor,
+    input [5:0]gt0_ch01_txprecursor,
+    input [5:0]gt0_ch01_txprecursor2,
+    input [5:0]gt0_ch01_txprecursor3,
+    input [6:0]gt0_ch23_txmaincursor,
+    input [5:0]gt0_ch23_txpostcursor,
+    input [5:0]gt0_ch23_txprecursor,
+    input [5:0]gt0_ch23_txprecursor2,
+    input [5:0]gt0_ch23_txprecursor3,
+    input [6:0]gt1_ch01_txmaincursor,
+    input [5:0]gt1_ch01_txpostcursor,
+    input [5:0]gt1_ch01_txprecursor,
+    input [5:0]gt1_ch01_txprecursor2,
+    input [5:0]gt1_ch01_txprecursor3,
+    input [6:0]gt1_ch23_txmaincursor,
+    input [5:0]gt1_ch23_txpostcursor,
+    input [5:0]gt1_ch23_txprecursor,
+    input [5:0]gt1_ch23_txprecursor2,
+    input [5:0]gt1_ch23_txprecursor3
 );
 
 /*--------------------------------------------------------------------------------------*/
@@ -669,6 +690,27 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .ctl_txrx_port5_ctl_tx_send_idle_in(1'b0),                 // input-fixed-0-[0:0]-dcmac -- ok
   .ctl_txrx_port5_ctl_tx_send_lfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
   .ctl_txrx_port5_ctl_tx_send_rfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  // tx cursors
+  .gt0_ch01_txmaincursor(gt0_ch01_txmaincursor),
+  .gt0_ch01_txpostcursor(gt0_ch01_txpostcursor),
+  .gt0_ch01_txprecursor(gt0_ch01_txprecursor),
+  .gt0_ch01_txprecursor2(gt0_ch01_txprecursor2),
+  .gt0_ch01_txprecursor3(gt0_ch01_txprecursor3),
+  .gt0_ch23_txmaincursor(gt0_ch23_txmaincursor),
+  .gt0_ch23_txpostcursor(gt0_ch23_txpostcursor),
+  .gt0_ch23_txprecursor(gt0_ch23_txprecursor),
+  .gt0_ch23_txprecursor2(gt0_ch23_txprecursor2),
+  .gt0_ch23_txprecursor3(gt0_ch23_txprecursor3),
+  .gt1_ch01_txmaincursor(gt1_ch01_txmaincursor),
+  .gt1_ch01_txpostcursor(gt1_ch01_txpostcursor),
+  .gt1_ch01_txprecursor(gt1_ch01_txprecursor),
+  .gt1_ch01_txprecursor2(gt1_ch01_txprecursor2),
+  .gt1_ch01_txprecursor3(gt1_ch01_txprecursor3),
+  .gt1_ch23_txmaincursor(gt1_ch23_txmaincursor),
+  .gt1_ch23_txpostcursor(gt1_ch23_txpostcursor),
+  .gt1_ch23_txprecursor(gt1_ch23_txprecursor),
+  .gt1_ch23_txprecursor2(gt1_ch23_txprecursor2),
+  .gt1_ch23_txprecursor3(gt1_ch23_txprecursor3),
   .gt_reset_all_in(gt_reset_all_in),                         // input-[0:0]-dcmac--port: gt_ctl(0xA413_0000)-[0:0] -- ok
   .gpo(gt_gpo),                                              // output-[31:0]-gt--don't care
   .gt_reset_tx_datapath_in_0(gt_reset_tx_datapath_in_0),     // input-[0:0]-dcmac--port: tx_datapath(0xA414_0000)-[0:0] -- ok
