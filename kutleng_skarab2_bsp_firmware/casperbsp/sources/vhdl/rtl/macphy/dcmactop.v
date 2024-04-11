@@ -1088,6 +1088,7 @@ lbusrxaxistx400g fhg_axis_rx_adapter
   .lbus_rxmtyin7(dcmac_rx_mty[31:28])
   );
 // connect the signals to yellow block
+
 yellow_block_400gbe_udp_rx yellow_block_400gbe_udp_rx_inst
 (
   .fabric_mac(fabric_mac),
@@ -1105,4 +1106,5 @@ yellow_block_400gbe_udp_rx yellow_block_400gbe_udp_rx_inst
   .yellow_block_rx_eof(yellow_block_rx_eof),
   .yellow_block_rx_overrun(yellow_block_rx_overrun)
 );
+
 endmodule

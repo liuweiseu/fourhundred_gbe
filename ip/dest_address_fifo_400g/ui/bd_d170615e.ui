@@ -18,11 +18,11 @@ preplace portBus din -pg 1 -lvl 0 -x -10 -y 140 -defaultsOSRD
 preplace portBus dout -pg 1 -lvl 2 -x 320 -y 0 -defaultsOSRD
 preplace inst emb_fifo_gen_0 -pg 1 -lvl 1 -x 170 -y 210 -defaultsOSRD
 preplace netloc din_0_1 1 0 1 10J 140n
-preplace netloc emb_fifo_gen_0_dout 1 0 2 20 0 NJ
-preplace netloc emb_fifo_gen_0_empty 1 0 2 30 40 NJ
-preplace netloc emb_fifo_gen_0_full 1 0 2 40 20 NJ
-preplace netloc emb_fifo_gen_0_rd_rst_busy 1 1 1 300J 210n
-preplace netloc emb_fifo_gen_0_wr_rst_busy 1 1 1 300J 190n
+preplace netloc emb_fifo_gen_0_dout 1 0 2 30 0 NJ
+preplace netloc emb_fifo_gen_0_empty 1 0 2 40 40 NJ
+preplace netloc emb_fifo_gen_0_full 1 0 2 50 20 NJ
+preplace netloc emb_fifo_gen_0_rd_rst_busy 1 1 1 290J 210n
+preplace netloc emb_fifo_gen_0_wr_rst_busy 1 1 1 290J 190n
 preplace netloc rd_clk_0_1 1 0 1 30J 300n
 preplace netloc rd_en_0_1 1 0 1 40J 240n
 preplace netloc rst_0_1 1 0 1 30J 260n
@@ -32,4 +32,4 @@ levelinfo -pg 1 -10 170 320
 pagesize -pg 1 -db -bbox -sgen -130 -20 460 370
 "
 }
-
+0

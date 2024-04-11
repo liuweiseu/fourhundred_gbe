@@ -134,7 +134,7 @@ architecture rtl of yellow_block_400gbe_udp_rx is
   -- components used
   -- Clock domain crossing fifo between CMAC RX AXI and 400GbE yellow block RX interface
   -- TODO: we need a new fifo here
-  component async_fifo_1023b_1024deep IS
+  component async_fifo_1025b_512deep IS
     port (
       rst : IN STD_LOGIC;
       wr_clk : IN STD_LOGIC;
@@ -150,7 +150,7 @@ architecture rtl of yellow_block_400gbe_udp_rx is
       wr_rst_busy : OUT STD_LOGIC;
       rd_rst_busy : OUT STD_LOGIC
     );
-  end component async_fifo_1023b_1024deep;
+  end component async_fifo_1025b_512deep;
 
   -- Clock domain crossing synchronizer between CMAC RX AXI and 100GbE yellow block RX interface
   component async is
@@ -225,7 +225,7 @@ begin
 
 
   -- Clock domain crossing: AXI FIFO to store incomming validated UDP payload + control signals (from mac rx clock) to Simulink user clk
-  mac_rx_packet_fifo_inst: async_fifo_1023b_1024deep 
+  mac_rx_packet_fifo_inst: async_fifo_1025b_512deep 
     port map (
       -- MAC RX Side Clock domain - FIFO Write side into FIFO: Validated UDP payload + control
       wr_clk => mac_rx_axi_clk,

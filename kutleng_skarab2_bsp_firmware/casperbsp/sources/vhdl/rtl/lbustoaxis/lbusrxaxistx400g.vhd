@@ -207,12 +207,12 @@ begin
     begin
         if rising_edge(lbus_rxclk) then
             -- Whenever there is an EOP we signal TLAST
-            axis_tx_tlast  <= aligned_rxeopin0 or aligned_rxeopin1 or aligned_rxeopin2 or aligned_rxeopin3;
+            axis_tx_tlast  <= aligned_rxeopin0 or aligned_rxeopin1 or aligned_rxeopin2 or aligned_rxeopin3 or aligned_rxeopin4 or aligned_rxeopin5 or aligned_rxeopin6 or aligned_rxeopin7;
             -- When ever there is an enable we signal TVALID			
             axis_tx_tvalid <= aligned_rxenain0; -- or aligned_rxenain1 or aligned_rxenain2 or aligned_rxenain3;
-            if ((aligned_rxeopin0 = '1') or (aligned_rxeopin1 = '1') or (aligned_rxeopin2 = '1') or (aligned_rxeopin3 = '1')) then
+            if ((aligned_rxeopin0 = '1') or (aligned_rxeopin1 = '1') or (aligned_rxeopin2 = '1') or (aligned_rxeopin3 = '1') or (aligned_rxeopin4 = '1') or (aligned_rxeopin5 = '1') or (aligned_rxeopin6 = '1') or (aligned_rxeopin7 = '1')) then
                 -- Flag an error signal on TUSER if there was an error and TLAST is valid 
-                axis_tx_tuser <= lbus_rxerrin0 or lbus_rxerrin1 or lbus_rxerrin2 or lbus_rxerrin3;
+                axis_tx_tuser <= lbus_rxerrin0 or lbus_rxerrin1 or lbus_rxerrin2 or lbus_rxerrin3 or lbus_rxerrin4 or lbus_rxerrin5 or lbus_rxerrin6 or lbus_rxerrin7;
             else
                 -- Signal no error otherwise
                 axis_tx_tuser <= '0';
@@ -598,17 +598,17 @@ begin
                                 else
                                     if (lbus_rxsopin5 = '1') then
                                         -- The SOP is in segment 5
-                                        -- The alignment is 16 bytes
+                                        -- The alignment is 80 bytes
                                         CurrentAlignment <= b"101";
                                     else
                                         if (lbus_rxsopin6 = '1') then
                                             -- The SOP is in segment 6
-                                            -- The alignment is 32 bytes
+                                            -- The alignment is 96 bytes
                                             CurrentAlignment <= b"110";
                                         else
                                             if (lbus_rxsopin7 = '1') then
                                                 -- The SOP is in segment 7
-                                                -- The alignment is 48 bytes
+                                                -- The alignment is 112 bytes
                                                 CurrentAlignment <= b"111";
                                             else
                                                 null;
