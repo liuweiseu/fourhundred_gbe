@@ -20,7 +20,7 @@ module dcmactop#(
     input [3:0] gt1_rx_p,
     input [3:0] gt1_rx_n,
     // TX
-    output [3:0] gt0_tx_p,
+    output [3:0] gt0_tx_p, 
     output [3:0] gt0_tx_n,
     output [3:0] gt1_tx_p,
     output [3:0] gt1_tx_n,
@@ -1019,6 +1019,8 @@ assign axis_tx_tvalid = 1'b0;
 assign axis_tx_tkeep = 128'b0;
 assign axis_tx_tlast = 1'b0;
 assign axis_tx_tuser = 1'b0;
+
+
 // casper rx out
 wire [1023:0] casper_rx_tdata;
 wire casper_rx_tvalid;
@@ -1038,6 +1040,7 @@ lbusrxaxistx400g fhg_axis_rx_adapter
   .axis_tx_tlast(casper_rx_tlast),
   .axis_tx_tuser(casper_rx_tuser),
   //-- Inputs from L-BUS interface
+  .lbus_rxvldin0(dcmac_rx_vld[0]),
   .lbus_rxdatain0(dcmac_rx_dat[127:0]),
   .lbus_rxenain0(dcmac_rx_ena[0]),
   .lbus_rxsopin0(dcmac_rx_sop[0]),
@@ -1106,5 +1109,7 @@ yellow_block_400gbe_udp_rx yellow_block_400gbe_udp_rx_inst
   .yellow_block_rx_eof(yellow_block_rx_eof),
   .yellow_block_rx_overrun(yellow_block_rx_overrun)
 );
+
+
 
 endmodule
