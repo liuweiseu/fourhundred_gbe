@@ -44,6 +44,7 @@ module reg_delay #(
     input [31:0] gmac_reg_word_size_d,
     input [31:0] gmac_reg_buffer_max_size_d,
     input [31:0] gmac_arp_cache_read_data_d,
+    input [31:0] dcmac1_gmac_arp_cache_read_data_d,
 
     output [31:0] axis_streaming_data_tx_destination_ip_d,
     output [15:0] axis_streaming_data_tx_destination_udp_port_d,
@@ -86,6 +87,7 @@ module reg_delay #(
     output [31:0] gmac_reg_word_size,
     output [31:0] gmac_reg_buffer_max_size,
     output [31:0] gmac_arp_cache_read_data,
+    output [31:0] dcmac1_gmac_arp_cache_read_data,
 
     // am settings
     input [15:0] ctl_port_ctl_rx_custom_vl_length_minus1,
@@ -588,6 +590,16 @@ delay #(
     .dout(gmac_arp_cache_read_data)
 );
 
+//42
+delay #(
+    .D(D),
+    .BITWIDTH(32)
+) delay_dcmac1_gmac_arp_cache_read_data (
+    .clk(clk),
+    .rst(rst),
+    .din(dcmac1_gmac_arp_cache_read_data_d),
+    .dout(dcmac1_gmac_arp_cache_read_data)
+);
 // am settings
 //rx
 delay #(

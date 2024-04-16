@@ -2,7 +2,8 @@ module dcmactop#(
     parameter ETH           = 400,
     parameter C_USE_RS_FEC  = 0,
     parameter C_INST_ID     = 0,
-    parameter C_N_COMMON    = 2
+    parameter C_N_COMMON    = 2,
+    parameter DCMAC_ID     = 0
 )(
     /* Ports for connecting CASPER module*/
     // Global System Enable
@@ -495,6 +496,9 @@ wire rx_tsmac_tdm_stats_valid;
 wire [5:0] dcmac_tx_serdes_is_am;
 wire [5:0] dcmac_tx_serdes_is_am_prefifo;
 
+generate
+if(DCMAC_ID == 0)
+begin: DCMAC0
 // dcmac wrapper
 dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   (
@@ -1008,7 +1012,527 @@ dcmac_0_exdes_support_wrapper i_dcmac_0_exdes_support_wrapper
   .tx_tsmac_tdm_stats_valid(tx_tsmac_tdm_stats_valid),            // output-[0:0]-dcmac--connected to tx_stats_cnt module -- wired, not used
   .tx_serdes_reset(tx_serdes_reset)                               // input-[5:0]-dcmac--port: reset_dyn(0xA417_0000)-[7:2] -- ok
   );
+end
+endgenerate
 
+generate
+if(DCMAC_ID == 1)
+begin: DCMAC1
+// dcmac wrapper
+dcmac_gt_wrapper i_dcmac_0_exdes_support_wrapper
+  (
+  .CLK_IN_D_0_clk_n(gt_clk0_n),       // input-[0:0]-gt -- ok
+  .CLK_IN_D_0_clk_p(gt_clk0_p),       // input-[0:0]-gt -- ok
+  .CLK_IN_D_1_clk_n(gt_clk1_n),       // input-[0:0]-gt -- ok
+  .CLK_IN_D_1_clk_p(gt_clk1_p),       // input-[0:0]-gt -- ok
+  .GT_Serial_grx_n(gt0_rx_n),         // input-[3:0]-gt -- ok
+  .GT_Serial_grx_p(gt0_rx_p),         // input-[3:0]-gt -- ok
+  .GT_Serial_gtx_n(gt0_tx_n),         // output-[3:0]-gt -- ok
+  .GT_Serial_gtx_p(gt0_tx_p),         // output-[3:0]-gt -- ok
+  .GT_Serial_1_grx_n(gt1_rx_n),       // input-[3:0]-gt -- ok
+  .GT_Serial_1_grx_p(gt1_rx_p),       // input-[3:0]-gt -- ok
+  .GT_Serial_1_gtx_n(gt1_tx_n),       // output-[3:0]-gt -- ok
+  .GT_Serial_1_gtx_p(gt1_tx_p),       // output-[3:0]-gt -- ok
+  .IBUFDS_ODIV2(clk_wiz_in),          // output-[0:0]-gt-156.25MHz,  -- ok
+                                      // which is connected to clk_wiz, generating core_clk(782MHz), axis_clk(390.625MHz) and ts_clk(350MHz)
+  .gt_rxcdrhold(gt_rxcdrhold),        // input-[0:0]-gt--port: gt_ctl(0xA413_0000)-[31:31] -- ok
+  .gt_txprecursor(gt_txprecursor),    // input-[5:0]-gt--port: gt_ctl(0xA413_0000)-[17:12] -- ok
+  .gt_txpostcursor(gt_txpostcursor),  // input-[5:0]-gt--port: gt_ctl(0xA413_0000)-[23:18] -- ok
+  .gt_txmaincursor(gt_txmaincursor),  // input-[6:0]-gt--port: gt_ctl(0xA413_0000)-[30:24] -- ok
+  .ch0_loopback_0(gt_loopback),       // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9]  -- ok
+  .ch0_loopback_1(gt_loopback),       // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9]  -- ok
+  .ch0_rxrate_0(sw_reg_gt_line_rate[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
+  .ch0_rxrate_1(sw_reg_gt_line_rate[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
+  .ch0_txrate_0(sw_reg_gt_line_rate[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
+  .ch0_txrate_1(sw_reg_gt_line_rate[7:0]),   // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1] -- ok
+  .ch0_tx_usr_clk2_0(gt0_tx_usrclk2_0),      // output-[0:0]-gt--connected to tx_alt_serdes_clk -- ok
+  .ch0_tx_usr_clk_0(gt0_tx_usrclk_0),        // output-[0:0]-gt--connected to tx_serdes_clk -- ok
+  .ch0_rx_usr_clk2_0(gt0_rx_usrclk2_0),      // output-[0:0]-gt--connected to rx_alt_serdes_clk -- ok
+  .ch0_rx_usr_clk_0(gt0_rx_usrclk_0),        // output-[0:0]-gt--connected to rx_serdes_clk -- ok
+  .ch1_loopback_0(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
+  .ch1_loopback_1(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
+  .ch1_rxrate_0(sw_reg_gt_line_rate[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch1_rxrate_1(sw_reg_gt_line_rate[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch1_txrate_0(sw_reg_gt_line_rate[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch1_txrate_1(sw_reg_gt_line_rate[15:8]),  // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch2_loopback_0(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
+  .ch2_loopback_1(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
+  .ch2_rxrate_0(sw_reg_gt_line_rate[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch2_rxrate_1(sw_reg_gt_line_rate[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch2_txrate_0(sw_reg_gt_line_rate[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch2_txrate_1(sw_reg_gt_line_rate[23:16]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch3_loopback_0(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
+  .ch3_loopback_1(gt_loopback),              // input-[2:0]-gt--port: gt_ctl(0xA413_0000)-[11:9] -- ok
+  .ch3_rxrate_0(sw_reg_gt_line_rate[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch3_rxrate_1(sw_reg_gt_line_rate[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch3_txrate_0(sw_reg_gt_line_rate[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .ch3_txrate_1(sw_reg_gt_line_rate[31:24]), // input-[7:0]-gt--port: gt_ctl(0xA413_0000)-[8:1]  -- ok
+  .gtpowergood_0(gtpowergood_0),             // output-[0:0]-gt--connected to gtpowergood -- ok
+  .gtpowergood_1(gtpowergood_1),             // output-[0:0]-gt--dont't care -- ok
+  /*
+  .ctl_port_ctl_rx_custom_vl_length_minus1(default_vl_length_200GE_or_400GE), // input-fixed-256-[15:0]-dcmac -- ok
+  .ctl_port_ctl_tx_custom_vl_length_minus1(default_vl_length_200GE_or_400GE), // input-fixed-256-[15:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id0(ctl_tx_vl_marker_id0_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id1(ctl_tx_vl_marker_id1_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id2(ctl_tx_vl_marker_id2_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id3(ctl_tx_vl_marker_id3_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id4(ctl_tx_vl_marker_id4_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id5(ctl_tx_vl_marker_id5_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id6(ctl_tx_vl_marker_id6_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id7(ctl_tx_vl_marker_id7_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id8(ctl_tx_vl_marker_id8_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id9(ctl_tx_vl_marker_id9_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id10(ctl_tx_vl_marker_id10_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id11(ctl_tx_vl_marker_id11_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id12(ctl_tx_vl_marker_id12_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id13(ctl_tx_vl_marker_id13_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id14(ctl_tx_vl_marker_id14_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id15(ctl_tx_vl_marker_id15_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id16(ctl_tx_vl_marker_id16_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id17(ctl_tx_vl_marker_id17_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id18(ctl_tx_vl_marker_id18_100ge), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id19(ctl_tx_vl_marker_id19_100ge), // input-fixed-[63:0]-dcmac -- ok
+  */
+  .ctl_port_ctl_rx_custom_vl_length_minus1(ctl_port_ctl_rx_custom_vl_length_minus1), // input-fixed-256-[15:0]-dcmac -- ok
+  .ctl_port_ctl_tx_custom_vl_length_minus1(ctl_port_ctl_tx_custom_vl_length_minus1), // input-fixed-256-[15:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id0(ctl_port_ctl_tx_vl_marker_id0), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id1(ctl_port_ctl_tx_vl_marker_id1), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id2(ctl_port_ctl_tx_vl_marker_id2), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id3(ctl_port_ctl_tx_vl_marker_id3), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id4(ctl_port_ctl_tx_vl_marker_id4), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id5(ctl_port_ctl_tx_vl_marker_id5), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id6(ctl_port_ctl_tx_vl_marker_id6), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id7(ctl_port_ctl_tx_vl_marker_id7), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id8(ctl_port_ctl_tx_vl_marker_id8), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id9(ctl_port_ctl_tx_vl_marker_id9), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id10(ctl_port_ctl_tx_vl_marker_id10), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id11(ctl_port_ctl_tx_vl_marker_id11), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id12(ctl_port_ctl_tx_vl_marker_id12), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id13(ctl_port_ctl_tx_vl_marker_id13), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id14(ctl_port_ctl_tx_vl_marker_id14), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id15(ctl_port_ctl_tx_vl_marker_id15), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id16(ctl_port_ctl_tx_vl_marker_id16), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id17(ctl_port_ctl_tx_vl_marker_id17), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id18(ctl_port_ctl_tx_vl_marker_id18), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_port_ctl_vl_marker_id19(ctl_port_ctl_tx_vl_marker_id19), // input-fixed-[63:0]-dcmac -- ok
+  .ctl_txrx_port0_ctl_tx_lane0_vlm_bip7_override(1'b0),      // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port0_ctl_tx_lane0_vlm_bip7_override_value(8'd0),// input-fixed-0-[7:0]-dcmac -- ok
+  .ctl_txrx_port0_ctl_tx_send_idle_in(1'b0),                 // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port0_ctl_tx_send_lfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port0_ctl_tx_send_rfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port1_ctl_tx_lane0_vlm_bip7_override(1'b0),      // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port1_ctl_tx_lane0_vlm_bip7_override_value(8'd0),// input-fixed-0-[7:0]-dcmac -- ok
+  .ctl_txrx_port1_ctl_tx_send_idle_in(1'b0),                 // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port1_ctl_tx_send_lfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port1_ctl_tx_send_rfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port2_ctl_tx_lane0_vlm_bip7_override(1'b0),      // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port2_ctl_tx_lane0_vlm_bip7_override_value(8'd0),// input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port2_ctl_tx_send_idle_in(1'b0),                 // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port2_ctl_tx_send_lfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port2_ctl_tx_send_rfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port3_ctl_tx_lane0_vlm_bip7_override(1'b0),      // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port3_ctl_tx_lane0_vlm_bip7_override_value(8'd0),// input-fixed-0-[7:0]-dcmac -- ok
+  .ctl_txrx_port3_ctl_tx_send_idle_in(1'b0),                 // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port3_ctl_tx_send_lfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port3_ctl_tx_send_rfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port4_ctl_tx_lane0_vlm_bip7_override(1'b0),      // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port4_ctl_tx_lane0_vlm_bip7_override_value(8'd0),// input-fixed-0-[7:0]-dcmac -- ok
+  .ctl_txrx_port4_ctl_tx_send_idle_in(1'b0),                 // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port4_ctl_tx_send_lfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port4_ctl_tx_send_rfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port5_ctl_tx_lane0_vlm_bip7_override(1'b0),      // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port5_ctl_tx_lane0_vlm_bip7_override_value(8'd0),// input-fixed-0-[7:0]-dcmac -- ok
+  .ctl_txrx_port5_ctl_tx_send_idle_in(1'b0),                 // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port5_ctl_tx_send_lfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  .ctl_txrx_port5_ctl_tx_send_rfi_in(1'b0),                  // input-fixed-0-[0:0]-dcmac -- ok
+  // tx cursors
+  .gt0_ch01_txmaincursor(gt0_ch01_txmaincursor),
+  .gt0_ch01_txpostcursor(gt0_ch01_txpostcursor),
+  .gt0_ch01_txprecursor(gt0_ch01_txprecursor),
+  .gt0_ch01_txprecursor2(gt0_ch01_txprecursor2),
+  .gt0_ch01_txprecursor3(gt0_ch01_txprecursor3),
+  .gt0_ch23_txmaincursor(gt0_ch23_txmaincursor),
+  .gt0_ch23_txpostcursor(gt0_ch23_txpostcursor),
+  .gt0_ch23_txprecursor(gt0_ch23_txprecursor),
+  .gt0_ch23_txprecursor2(gt0_ch23_txprecursor2),
+  .gt0_ch23_txprecursor3(gt0_ch23_txprecursor3),
+  .gt1_ch01_txmaincursor(gt1_ch01_txmaincursor),
+  .gt1_ch01_txpostcursor(gt1_ch01_txpostcursor),
+  .gt1_ch01_txprecursor(gt1_ch01_txprecursor),
+  .gt1_ch01_txprecursor2(gt1_ch01_txprecursor2),
+  .gt1_ch01_txprecursor3(gt1_ch01_txprecursor3),
+  .gt1_ch23_txmaincursor(gt1_ch23_txmaincursor),
+  .gt1_ch23_txpostcursor(gt1_ch23_txpostcursor),
+  .gt1_ch23_txprecursor(gt1_ch23_txprecursor),
+  .gt1_ch23_txprecursor2(gt1_ch23_txprecursor2),
+  .gt1_ch23_txprecursor3(gt1_ch23_txprecursor3),
+  .gt_reset_all_in(gt_reset_all_in),                         // input-[0:0]-dcmac--port: gt_ctl(0xA413_0000)-[0:0] -- ok
+  .gpo(gt_gpo),                                              // output-[31:0]-gt--don't care
+  .gt_reset_tx_datapath_in_0(gt_reset_tx_datapath_in_0),     // input-[0:0]-dcmac--port: tx_datapath(0xA414_0000)-[0:0] -- ok
+  .gt_reset_rx_datapath_in_0(gt_reset_rx_datapath_in_0),     // input-[0:0]-dcmac--port: rx_datapath(0xA415_0000)-[0:0] -- ok
+  .gt_tx_reset_done_out_0(gt_tx_reset_done_out[0]),          // output-[0:0]-dcmac--connected to dcmac_0_syncer_reset, which generates rstn_tx_axi
+                                                             //                   --port: reset_done_dyn(0xA414_0000)-gpio0[0:0]  -- ok                   
+  .gt_rx_reset_done_out_0(gt_rx_reset_done_out[0]),          // output-[0:0]-dcmac--connected to dcmac_0_syncer_reset, which generates rstn_rx_axi
+                                                             //                   --port: reset_done_dyn(0xA414_0000)-gpio1[0:0]  -- ok
+  .gt_reset_tx_datapath_in_1(gt_reset_tx_datapath_in_1),     // input-[0:0]-dcmac--port: tx_datapath(0xA414_0000)-[1:1] -- ok
+  .gt_reset_rx_datapath_in_1(gt_reset_rx_datapath_in_1),     // input-[0:0]-dcmac--port: rx_datapath(0xA415_0000)-[1:1] -- ok
+  .gt_tx_reset_done_out_1(gt_tx_reset_done_out[1]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio0[1:1] -- ok
+  .gt_rx_reset_done_out_1(gt_rx_reset_done_out[1]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio1[1:1] -- ok
+  .gt_reset_tx_datapath_in_2(gt_reset_tx_datapath_in_2),     // input-[0:0]-dcmac--port: tx_datapath(0xA414_0000)-[2:2] -- ok
+  .gt_reset_rx_datapath_in_2(gt_reset_rx_datapath_in_2),     // input-[0:0]-dcmac--port: rx_datapath(0xA415_0000)-[2:2] -- ok
+  .gt_tx_reset_done_out_2(gt_tx_reset_done_out[2]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio0[2:2] -- ok
+  .gt_rx_reset_done_out_2(gt_rx_reset_done_out[2]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio1[2:2] -- ok
+  .gt_reset_tx_datapath_in_3(gt_reset_tx_datapath_in_3),     // input-[0:0]-dcmac--port: tx_datapath(0xA414_0000)-[3:3] -- ok
+  .gt_reset_rx_datapath_in_3(gt_reset_rx_datapath_in_3),     // input-[0:0]-dcmac--port: rx_datapath(0xA415_0000)-[3:3] -- ok
+  .gt_tx_reset_done_out_3(gt_tx_reset_done_out[3]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio0[3:3] -- ok
+  .gt_rx_reset_done_out_3(gt_rx_reset_done_out[3]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio1[3:3] -- ok
+  .gt_reset_tx_datapath_in_4(gt_reset_tx_datapath_in_4),     // input-[0:0]-dcmac--port: tx_datapath(0xA414_0000)-[4:4] -- ok
+  .gt_reset_rx_datapath_in_4(gt_reset_rx_datapath_in_4),     // input-[0:0]-dcmac--port: rx_datapath(0xA415_0000)-[4:4] -- ok
+  .gt_tx_reset_done_out_4(gt_tx_reset_done_out[4]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio0[4:4] -- ok
+  .gt_rx_reset_done_out_4(gt_rx_reset_done_out[4]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio1[4:4] -- ok
+  .gt_reset_tx_datapath_in_5(gt_reset_tx_datapath_in_5),     // input-[0:0]-dcmac--port: tx_datapath(0xA414_0000)-[5:5] -- ok
+  .gt_reset_rx_datapath_in_5(gt_reset_rx_datapath_in_5),     // input-[0:0]-dcmac--port: rx_datapath(0xA415_0000)-[5:5] -- ok
+  .gt_tx_reset_done_out_5(gt_tx_reset_done_out[5]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio0[5:5] -- ok
+  .gt_rx_reset_done_out_5(gt_rx_reset_done_out[5]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio1[5:5] -- ok
+  .gt_reset_tx_datapath_in_6(gt_reset_tx_datapath_in_6),     // input-[0:0]-dcmac--port: tx_datapath(0xA414_0000)-[6:6] -- ok
+  .gt_reset_rx_datapath_in_6(gt_reset_rx_datapath_in_6),     // input-[0:0]-dcmac--port: rx_datapath(0xA415_0000)-[6:6] -- ok
+  .gt_tx_reset_done_out_6(gt_tx_reset_done_out[6]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio0[6:6] -- ok
+  .gt_rx_reset_done_out_6(gt_rx_reset_done_out[6]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio1[6:6] -- ok
+  .gt_reset_tx_datapath_in_7(gt_reset_tx_datapath_in_7),     // input-[0:0]-dcmac--port: tx_datapath(0xA414_0000)-[7:7] -- ok
+  .gt_reset_rx_datapath_in_7(gt_reset_rx_datapath_in_7),     // input-[0:0]-dcmac--port: rx_datapath(0xA415_0000)-[7:7] -- ok
+  .gt_tx_reset_done_out_7(gt_tx_reset_done_out[7]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio0[7:7] -- ok
+  .gt_rx_reset_done_out_7(gt_rx_reset_done_out[7]),          // output-[0:0]-dcmac--port: reset_done_dyn(0xA414_0000)-gpio1[7:7] -- ok
+  .gtpowergood_in(gtpowergood),                              // input-[0:0]-dcmac--connected from gtpowergood_in_0 -- ok
+  .ctl_rsvd_in(120'd0),                                      // input-fixed-0-[119:0]-dcmac -- ok
+  .rsvd_in_rx_mac(8'd0),                                     // input-fixed-0-[7:0]-dcmac -- ok
+  .rsvd_in_rx_phy(8'd0),                                     // input-fixed-0-[7:0]-dcmac -- ok
+  .rx_all_channel_mac_pm_tick(1'b0),                         // input-fixed-0-[0:0]-dcmac -- ok
+  .rx_alt_serdes_clk(rx_alt_serdes_clk),                     // input-[5:0]-dcmac--connected from gt0_rx_usrclk2_0 -- ok
+  .rx_axi_clk(clk_rx_axi),                                   // axi-stream-rx--connected from axis_clk, which is 390.625MHz -- ok
+  .rx_axis_tdata0(dcmac_rx_dat[127:0]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata1(dcmac_rx_dat[255:128]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata2(dcmac_rx_dat[383:256]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata3(dcmac_rx_dat[511:384]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata4(dcmac_rx_dat[639:512]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata5(dcmac_rx_dat[767:640]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata6(dcmac_rx_dat[895:768]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata7(dcmac_rx_dat[1023:896]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata8(dcmac_rx_dat[1151:1024]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata9(dcmac_rx_dat[1279:1152]),                       // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata10(dcmac_rx_dat[1407:1280]),                     // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tdata11(dcmac_rx_dat[1535:1408]),                     // axi-stream-rx-output-[127:0]-dcmac -- ok
+  .rx_axis_tid(dcmac_rx_id),                              // axi-stream-rx-output-[5:0]-dcmac -- ok
+  .rx_axis_tuser_ena0(dcmac_rx_ena[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena1(dcmac_rx_ena[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena2(dcmac_rx_ena[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena3(dcmac_rx_ena[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena4(dcmac_rx_ena[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena5(dcmac_rx_ena[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena6(dcmac_rx_ena[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena7(dcmac_rx_ena[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena8(dcmac_rx_ena[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena9(dcmac_rx_ena[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena10(dcmac_rx_ena[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_ena11(dcmac_rx_ena[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop0(dcmac_rx_eop[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop1(dcmac_rx_eop[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop2(dcmac_rx_eop[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop3(dcmac_rx_eop[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop4(dcmac_rx_eop[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop5(dcmac_rx_eop[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop6(dcmac_rx_eop[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop7(dcmac_rx_eop[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop8(dcmac_rx_eop[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop9(dcmac_rx_eop[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop10(dcmac_rx_eop[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_eop11(dcmac_rx_eop[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err0(dcmac_rx_err[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err1(dcmac_rx_err[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err2(dcmac_rx_err[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err3(dcmac_rx_err[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err4(dcmac_rx_err[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err5(dcmac_rx_err[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err6(dcmac_rx_err[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err7(dcmac_rx_err[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err8(dcmac_rx_err[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err9(dcmac_rx_err[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err10(dcmac_rx_err[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_err11(dcmac_rx_err[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_mty0(dcmac_rx_mty[3:0]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty1(dcmac_rx_mty[7:4]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty2(dcmac_rx_mty[11:8]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty3(dcmac_rx_mty[15:12]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty4(dcmac_rx_mty[19:16]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty5(dcmac_rx_mty[23:20]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty6(dcmac_rx_mty[27:24]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty7(dcmac_rx_mty[31:28]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty8(dcmac_rx_mty[35:32]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty9(dcmac_rx_mty[39:36]),                   // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty10(dcmac_rx_mty[43:40]),                 // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_mty11(dcmac_rx_mty[47:44]),                 // axi-stream-rx-output-[3:0]-dcmac -- ok
+  .rx_axis_tuser_sop0(dcmac_rx_sop[0]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop1(dcmac_rx_sop[1]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop2(dcmac_rx_sop[2]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop3(dcmac_rx_sop[3]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop4(dcmac_rx_sop[4]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop5(dcmac_rx_sop[5]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop6(dcmac_rx_sop[6]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop7(dcmac_rx_sop[7]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop8(dcmac_rx_sop[8]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop9(dcmac_rx_sop[9]),                   // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop10(dcmac_rx_sop[10]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tuser_sop11(dcmac_rx_sop[11]),                 // axi-stream-rx-output-dcmac -- ok
+  .rx_axis_tvalid_0(dcmac_rx_vld[0]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tvalid_1(dcmac_rx_vld[1]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tvalid_2(dcmac_rx_vld[2]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tvalid_3(dcmac_rx_vld[3]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tvalid_4(dcmac_rx_vld[4]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_axis_tvalid_5(dcmac_rx_vld[5]),                     // axi-stream-rx-output-dcmac -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_channel_flush(6'd0),                          // input-fixed-0-[5:0]-dcmac -- ok
+  .rx_core_clk(rx_core_clk),                        // input-[0:0]-dcmac--connected to core_clk, which is 782MHz -- ok
+  .rx_core_reset(rx_core_reset),                    // input-[0:0]-dcmac--port: reset_dyn(0xA417_0000)-[1:1] -- ok
+  .rx_flexif_clk(rx_flexif_clk),                    // input-[5:0]-dcmac--connected to axi_clk, which is 390.625MHz -- ok
+  .rx_lane_aligner_fill(),                          // output-[6:0]-dcmac -- ok
+  .rx_lane_aligner_fill_start(),                    // output-[0:0]-dcmac -- ok
+  .rx_lane_aligner_fill_valid(),                    // output-[0:0]-dcmac -- ok
+  .rx_macif_clk(rx_macif_clk),                      // input-[0:0]-dcmac--connected to axi_clk, which is 390.625MHz -- ok
+  .rx_pcs_tdm_stats_data(),                         // output-[43:0]-dcmac -- ok
+  .rx_pcs_tdm_stats_start(),                        // output-[0:0]-dcmac -- ok
+  .rx_pcs_tdm_stats_valid(),                        // output-[0:0]-dcmac -- ok
+  .rx_port_pm_rdy(),                                // output[5:0]-dcmac -- ok
+  .rx_preambleout_0(dcmac_rx_preamble[55:0]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_1(dcmac_rx_preamble[111:56]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_2(dcmac_rx_preamble[167:112]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_3(dcmac_rx_preamble[223:168]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_4(dcmac_rx_preamble[279:224]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  .rx_preambleout_5(dcmac_rx_preamble[335:280]),       // output-[55:0]-dcmac--connected to gearbox_rx module -- wired, not used -- packed into rx_axis_tvalid -- ok
+  
+  .rx_serdes_albuf_restart_0(),                     // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_restart_1(),                     // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_restart_2(),                     // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_restart_3(),                     // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_restart_4(),                     // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_restart_5(),                     // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_0(),                        // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_1(),                        // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_2(),                        // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_3(),                        // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_4(),                        // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_5(),                        // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_6(),                        // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_7(),                        // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_8(),                        // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_9(),                        // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_10(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_11(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_12(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_13(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_14(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_15(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_16(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_17(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_18(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_19(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_20(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_21(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_22(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_albuf_slip_23(),                       // output-[0:0]-dcmac -- ok
+  .rx_serdes_clk(rx_serdes_clk),                    // input-[5:0]-dcmac--connected from rx_usrclk_0 -- ok
+  .rx_serdes_fifo_flagin_0(1'b0),                   // input-[0:0]-fixed-0-dcmac -- ok    
+  .rx_serdes_fifo_flagin_1(1'b0),                   // input-[0:0]-fixed-0-dcmac -- ok
+  .rx_serdes_fifo_flagin_2(1'b0),                   // input-[0:0]-fixed-0-dcmac -- ok
+  .rx_serdes_fifo_flagin_3(1'b0),                   // input-[0:0]-fixed-0-dcmac -- ok
+  .rx_serdes_fifo_flagin_4(1'b0),                   // input-[0:0]-fixed-0-dcmac -- ok
+  .rx_serdes_fifo_flagin_5(1'b0),                   // input-[0:0]-fixed-0-dcmac -- ok
+  .rx_serdes_fifo_flagout_0(),                      // output-[0:0]-dcmac -- ok
+  .rx_serdes_fifo_flagout_1(),                      // output-[0:0]-dcmac -- ok
+  .rx_serdes_fifo_flagout_2(),                      // output-[0:0]-dcmac -- ok
+  .rx_serdes_fifo_flagout_3(),                      // output-[0:0]-dcmac -- ok
+  .rx_serdes_fifo_flagout_4(),                      // output-[0:0]-dcmac -- ok
+  .rx_serdes_fifo_flagout_5(),                      // output-[0:0]-dcmac -- ok
+  .rx_serdes_reset(rx_serdes_reset),                // input-[5:0]-dcmac--port: reset_dyn(0xA417_0000)-[13:8] -- ok
+  .rx_tsmac_tdm_stats_data(rx_tsmac_tdm_stats_data),   // output-[78:0]-dcmac--connected to rx_stats_cnt module -- wired, not used
+  .rx_tsmac_tdm_stats_id(rx_tsmac_tdm_stats_id),       // output-[5:0]-dcmac--connected to rx_stats_cnt module -- wired, not used
+  .rx_tsmac_tdm_stats_valid(rx_tsmac_tdm_stats_valid), // output-[0:0]-dcmac--connected to rx_stats_cnt module  -- wired, not used
+
+  //// GT APB3 ports // axi-interface-dcmac
+  .axi4_lite_aclk(axi4_lite_aclk),
+  .axi4_lite_araddr(axi4_lite_araddr),
+  .axi4_lite_aresetn(axi4_lite_aresetn),
+  .axi4_lite_arready(axi4_lite_arready),
+  .axi4_lite_arvalid(axi4_lite_arvalid),
+  .axi4_lite_awaddr(axi4_lite_awaddr),
+  .axi4_lite_awready(axi4_lite_awready),
+  .axi4_lite_awvalid(axi4_lite_awvalid),
+  .axi4_lite_bready(axi4_lite_bready),
+  .axi4_lite_bresp(axi4_lite_bresp),
+  .axi4_lite_bvalid(axi4_lite_bvalid),
+  .axi4_lite_rdata(axi4_lite_rdata),
+  .axi4_lite_rready(axi4_lite_rready),
+  .axi4_lite_rresp(axi4_lite_rresp),
+  .axi4_lite_rvalid(axi4_lite_rvalid),
+  .axi4_lite_wdata(axi4_lite_wdata),
+  .axi4_lite_wready(axi4_lite_wready),
+  .axi4_lite_wvalid(axi4_lite_wvalid),
+  // s axi for dcmac
+  .apb3clk_quad(s_axi_aclk),      // -- ok                           
+  .s_axi_araddr(s_axi_araddr),    // -- ok
+  .s_axi_arready(s_axi_arready),  // -- ok
+  .s_axi_arvalid(s_axi_arvalid),  // -- ok
+  .s_axi_awaddr(s_axi_awaddr),    // -- ok
+  .s_axi_awready(s_axi_awready),  // -- ok
+  .s_axi_awvalid(s_axi_awvalid),  // -- ok
+  .s_axi_bready(s_axi_bready),    // -- ok
+  .s_axi_bresp(s_axi_bresp),      // -- ok
+  .s_axi_bvalid(s_axi_bvalid),    // -- ok
+  .s_axi_rdata(s_axi_rdata),      // -- ok
+  .s_axi_rready(s_axi_rready),    // -- ok
+  .s_axi_rresp(s_axi_rresp),      // -- ok
+  .s_axi_rvalid(s_axi_rvalid),    // -- ok
+  .s_axi_wdata(s_axi_wdata),      // -- ok
+  .s_axi_wready(s_axi_wready),    // -- ok
+  .s_axi_wvalid(s_axi_wvalid),    // -- ok
+  .s_axi_aclk(s_axi_aclk),        // -- ok
+  .s_axi_aresetn(s_axi_aresetn),  // -- ok
+  .ts_clk({6{ts_clk}}),                                           // input-[5:0]-dcmac--connected from ts_clk, which is 350MHz -- ok
+  .tx_all_channel_mac_pm_rdy(),                                   // output-[0:0]-dcmac -- ok
+  .tx_all_channel_mac_pm_tick(1'b0),                              // input-fixed-0-[0:0]-dcmac -- ok
+  .tx_alt_serdes_clk(tx_alt_serdes_clk),                          // input-[5:0]-dcmac--connected from tx_usrclk2_0 -- ok
+  .tx_axi_clk(clk_tx_axi),                                        // axi-stream-tx--connected from axis_clk, which is 390.625MHz -- ok
+  .tx_axis_ch_status_id(tx_axis_ch_status_id),                    // axi-stream-tx-output-[5:0]-dcmac-connected to axis_pkt_gen_ts -- wired, not used
+  .tx_axis_ch_status_skip_req(tx_axis_ch_status_skip_req),        // axi-stream-tx-output-dcmac-don't care -- ok 
+  .tx_axis_ch_status_vld(tx_axis_ch_status_vld),                  // axi-stream-tx-output-dcmac-don't care -- ok
+  .tx_axis_id_req(tx_axis_id_req),                                // axi-stream-tx-output-[5:0]-dcmac-don't care -- ok
+  .tx_axis_id_req_vld(tx_axis_id_req_vld),                        // axi-stream-tx-output-dcmac-don't care -- ok 
+  .tx_axis_taf_0(dcmac_tx_af[0]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_taf_1(dcmac_tx_af[1]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_taf_2(dcmac_tx_af[2]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_taf_3(dcmac_tx_af[3]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_taf_4(dcmac_tx_af[4]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_taf_5(dcmac_tx_af[5]),                            // axi-stream-tx-output-dcmac -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tdata0(dcmac_tx_dat[127:0]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata1(dcmac_tx_dat[255:128]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata2(dcmac_tx_dat[383:256]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata3(dcmac_tx_dat[511:384]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata4(dcmac_tx_dat[639:512]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata5(dcmac_tx_dat[767:640]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata6(dcmac_tx_dat[895:768]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata7(dcmac_tx_dat[1023:896]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata8(dcmac_tx_dat[1151:1024]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata9(dcmac_tx_dat[1279:1152]),                            // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata10(dcmac_tx_dat[1407:1280]),                          // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tdata11(dcmac_tx_dat[1535:1408]),                          // axi-stream-tx-input-[127:0]-dcmac -- ok
+  .tx_axis_tid(dcmac_tx_id),                                   // axi-stream-tx-input-[5:0]-dcmac -- ok
+  .tx_axis_tready_0(dcmac_tx_tready[0]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tready_1(dcmac_tx_tready[1]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tready_2(dcmac_tx_tready[2]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tready_3(dcmac_tx_tready[3]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tready_4(dcmac_tx_tready[4]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tready_5(dcmac_tx_tready[5]),                     // axi-stream-tx-output-dcmac-connected to gearbox_tx module -- wired, not used -- packed into tx_o_axis_tready -- ok
+  .tx_axis_tuser_ena0(dcmac_tx_ena[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena1(dcmac_tx_ena[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena2(dcmac_tx_ena[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena3(dcmac_tx_ena[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena4(dcmac_tx_ena[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena5(dcmac_tx_ena[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena6(dcmac_tx_ena[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena7(dcmac_tx_ena[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena8(dcmac_tx_ena[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena9(dcmac_tx_ena[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena10(dcmac_tx_ena[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_ena11(dcmac_tx_ena[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop0(dcmac_tx_eop[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop1(dcmac_tx_eop[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop2(dcmac_tx_eop[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop3(dcmac_tx_eop[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop4(dcmac_tx_eop[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop5(dcmac_tx_eop[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop6(dcmac_tx_eop[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop7(dcmac_tx_eop[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop8(dcmac_tx_eop[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop9(dcmac_tx_eop[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop10(dcmac_tx_eop[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_eop11(dcmac_tx_eop[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err0(dcmac_tx_err[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err1(dcmac_tx_err[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err2(dcmac_tx_err[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err3(dcmac_tx_err[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err4(dcmac_tx_err[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err5(dcmac_tx_err[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err6(dcmac_tx_err[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err7(dcmac_tx_err[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err8(dcmac_tx_err[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err9(dcmac_tx_err[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err10(dcmac_tx_err[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_err11(dcmac_tx_err[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_mty0(dcmac_tx_mty[3:0]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty1(dcmac_tx_mty[7:4]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty2(dcmac_tx_mty[11:8]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty3(dcmac_tx_mty[15:12]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty4(dcmac_tx_mty[19:16]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty5(dcmac_tx_mty[23:20]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty6(dcmac_tx_mty[27:24]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty7(dcmac_tx_mty[31:28]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty8(dcmac_tx_mty[35:32]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty9(dcmac_tx_mty[39:36]),                        // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty10(dcmac_tx_mty[43:40]),                      // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_mty11(dcmac_tx_mty[47:44]),                      // axi-stream-tx-input-[3:0]-dcmac -- ok
+  .tx_axis_tuser_skip_response(tx_axis_tuser_skip_response),        // axi-stream-tx-input-dcmac-connected from axis_pkt_gen_ts -- wired, not used
+  .tx_axis_tuser_sop0(dcmac_tx_sop[0]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop1(dcmac_tx_sop[1]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop2(dcmac_tx_sop[2]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop3(dcmac_tx_sop[3]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop4(dcmac_tx_sop[4]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop5(dcmac_tx_sop[5]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop6(dcmac_tx_sop[6]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop7(dcmac_tx_sop[7]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop8(dcmac_tx_sop[8]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop9(dcmac_tx_sop[9]),                        // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop10(dcmac_tx_sop[10]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tuser_sop11(dcmac_tx_sop[11]),                      // axi-stream-tx-input-dcmac -- ok
+  .tx_axis_tvalid_0(dcmac_tx_vld[0]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_tvalid_1(dcmac_tx_vld[1]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_tvalid_2(dcmac_tx_vld[2]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_tvalid_3(dcmac_tx_vld[3]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_tvalid_4(dcmac_tx_vld[4]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_axis_tvalid_5(dcmac_tx_vld[5]),                          // axi-stream-tx-input-dcmac-connected from gearbox_tx module -- wired, not used -- packed into tx_axis_tvalid -- ok
+  .tx_channel_flush(6'd0),                                        // input-fixed-0-[5:0]-dcmac -- ok
+  .tx_core_clk(tx_core_clk),                                      // input-[0:0]-dcmac--connected from core_clk, which is 782MHz -- ok
+  .tx_core_reset(tx_core_reset),                                  // input-[0:0]-dcmac--port: reset_dyn(0xA417_0000)-[0:0] -- ok
+  .tx_flexif_clk(tx_flexif_clk),                                  // input-[5:0]-dcmac--connected from axis_clk, which is 390.625MHz -- ok
+  .tx_macif_clk(tx_macif_clk),                                    // input-[0:0]-dcmac--connected from axis_clk, which is 390.625MHz -- ok
+  .tx_pcs_tdm_stats_data(),                                       // output-[21:0]-dcmac -- ok
+  .tx_pcs_tdm_stats_start(),                                      // output-[0:0]-dcmac -- ok
+  .tx_pcs_tdm_stats_valid(),                                      // output-[0:0]-dcmac -- ok
+  .tx_port_pm_rdy(),                                              // output-[5:0]-dcmac -- ok
+  .tx_port_pm_tick(pm_tick_core),                                 // input-[5:0]-fixed-0-dcmac -- ok
+  .rx_port_pm_tick(pm_tick_core),                                 // input-[5:0]-fixed-0-dcmac -- ok
+  .tx_preamblein_0(dcmac_tx_preamble[55:0]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_1(dcmac_tx_preamble[111:56]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_2(dcmac_tx_preamble[167:112]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_3(dcmac_tx_preamble[223:168]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_4(dcmac_tx_preamble[279:224]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_preamblein_5(dcmac_tx_preamble[335:280]),                      // input-[55:0]-dcmac--connected from gear_tx module -- now it's from packed interface -- ok
+  .tx_serdes_clk(tx_serdes_clk),                                  // input-[5:0]-dcmac--connected from gt0_tx_usrclk_0 -- ok
+  .tx_serdes_is_am_0(dcmac_tx_serdes_is_am[0]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_1(dcmac_tx_serdes_is_am[1]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_2(dcmac_tx_serdes_is_am[2]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_3(dcmac_tx_serdes_is_am[3]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_4(dcmac_tx_serdes_is_am[4]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_5(dcmac_tx_serdes_is_am[5]),                         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_0(dcmac_tx_serdes_is_am_prefifo[0]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_1(dcmac_tx_serdes_is_am_prefifo[1]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_2(dcmac_tx_serdes_is_am_prefifo[2]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_3(dcmac_tx_serdes_is_am_prefifo[3]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_4(dcmac_tx_serdes_is_am_prefifo[4]),         // output-[0:0]-dcmac--don't care
+  .tx_serdes_is_am_prefifo_5(dcmac_tx_serdes_is_am_prefifo[5]),         // output-[0:0]-dcmac--don't care
+  .tx_tsmac_tdm_stats_data(tx_tsmac_tdm_stats_data),              // output-[55:0]-dcmac--connected to tx_stats_cnt module -- wired, not used
+  .tx_tsmac_tdm_stats_id(tx_tsmac_tdm_stats_id),                  // output-[5:0]-dcmac--connected to tx_stats_cnt module -- wired, not used
+  .tx_tsmac_tdm_stats_valid(tx_tsmac_tdm_stats_valid),            // output-[0:0]-dcmac--connected to tx_stats_cnt module -- wired, not used
+  .tx_serdes_reset(tx_serdes_reset)                               // input-[5:0]-dcmac--port: reset_dyn(0xA417_0000)-[7:2] -- ok
+  );
+end
+endgenerate
 /*--------------------------------------------------------------------------------------*/
 // implement RX
 /*--------------------------------------------------------------------------------------*/

@@ -199,7 +199,10 @@ architecture rtl of lbusrxaxistx400g is
     signal aligned_rxenain5 : STD_LOGIC;
     signal aligned_rxenain6 : STD_LOGIC;
     signal aligned_rxenain7 : STD_LOGIC;
-
+    
+    signal rxvldin_delay    : STD_LOGIC;
+    signal aligned_rxvldin  : STD_LOGIC;
+    
     signal CurrentAlignment : STD_LOGIC_VECTOR(2 downto 0);
 
 begin
@@ -207,10 +210,12 @@ begin
     ControlAxisProc : process(lbus_rxclk)
     begin
         if rising_edge(lbus_rxclk) then
+            rxvldin_delay <= lbus_rxvldin0;
+            aligned_rxvldin <= rxvldin_delay;
             -- Whenever there is an EOP we signal TLAST
-            axis_tx_tlast  <= lbus_rxvldin0 and (aligned_rxeopin0 or aligned_rxeopin1 or aligned_rxeopin2 or aligned_rxeopin3 or aligned_rxeopin4 or aligned_rxeopin5 or aligned_rxeopin6 or aligned_rxeopin7);
+            axis_tx_tlast  <= aligned_rxvldin and (aligned_rxeopin0 or aligned_rxeopin1 or aligned_rxeopin2 or aligned_rxeopin3 or aligned_rxeopin4 or aligned_rxeopin5 or aligned_rxeopin6 or aligned_rxeopin7);
             -- When ever there is an enable we signal TVALID			
-            axis_tx_tvalid <= lbus_rxvldin0 and aligned_rxenain0; -- or aligned_rxenain1 or aligned_rxenain2 or aligned_rxenain3;
+            axis_tx_tvalid <= aligned_rxvldin and aligned_rxenain0; -- or aligned_rxenain1 or aligned_rxenain2 or aligned_rxenain3;
             if ((aligned_rxeopin0 = '1') or (aligned_rxeopin1 = '1') or (aligned_rxeopin2 = '1') or (aligned_rxeopin3 = '1') or (aligned_rxeopin4 = '1') or (aligned_rxeopin5 = '1') or (aligned_rxeopin6 = '1') or (aligned_rxeopin7 = '1')) then
                 -- Flag an error signal on TUSER if there was an error and TLAST is valid 
                 axis_tx_tuser <= lbus_rxerrin0 or lbus_rxerrin1 or lbus_rxerrin2 or lbus_rxerrin3 or lbus_rxerrin4 or lbus_rxerrin5 or lbus_rxerrin6 or lbus_rxerrin7;

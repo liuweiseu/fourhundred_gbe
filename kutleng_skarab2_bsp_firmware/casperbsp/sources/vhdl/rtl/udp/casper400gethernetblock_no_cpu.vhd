@@ -40,7 +40,9 @@ entity casper400gethernetblock_no_cpu is
         -- Number of slots in circular buffers (2^?)
         G_SLOT_WIDTH                 : natural              := 2;
         -- Instance ID
-        G_MAC_INSTANCE               : integer              := 0
+        G_MAC_INSTANCE               : integer              := 0;
+        -- DCMAC ID
+        DCMAC_ID                     : integer range 0 to 1 := 0
     );
     port(
         -- Aximm clock is the AXI Lite MM clock for the gmac register interface
@@ -441,7 +443,8 @@ architecture rtl of casper400gethernetblock_no_cpu is
         generic(
             C_MAC_INSTANCE : natural range 0 to 3 := 0;
             C_USE_RS_FEC : boolean := false;
-            C_N_COMMON : natural range 1 to 2 := 1
+            C_N_COMMON : natural range 1 to 2 := 1;
+            DCMAC_ID    : natural range 0 to 1:= 0
         );
         port(
             -- Ethernet reference clock for 156.25MHz
@@ -684,7 +687,8 @@ begin
         generic map(
             C_MAC_INSTANCE => G_MAC_INSTANCE,
             C_USE_RS_FEC => G_USE_RS_FEC,
-            C_N_COMMON  => G_N_COMMON
+            C_N_COMMON  => G_N_COMMON,
+            DCMAC_ID    => DCMAC_ID
         )
         port map(
             Enable                       => udp_gmac_reg_mac_enable,

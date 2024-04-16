@@ -26,7 +26,8 @@ entity mac400gphy is
         -- Search "full density or half density mode" in this document:
         -- https://docs.xilinx.com/r/en-US/am017-versal-gtm-transceivers/Transceiver-and-Tool-Overview
         C_N_COMMON : natural range 1 to 2 := 2;
-        G_AXIS_DATA_WIDTH          : natural  := 1024
+        G_AXIS_DATA_WIDTH          : natural  := 1024;
+        DCMAC_ID                   : natural  := 0
     );
     port(
         -- Ethernet reference clock for 156.25MHz
@@ -209,7 +210,8 @@ architecture rtl of mac400gphy is
     generic(
         C_USE_RS_FEC : boolean := false;
         C_INST_ID : integer;
-        C_N_COMMON : natural range 1 to 2 := 2
+        C_N_COMMON : natural range 1 to 2 := 2;
+        DCMAC_ID   : natural range 0 to 1 := 1
     );
         port(
             -- Ethernet reference clock for 156.25MHz
@@ -567,7 +569,8 @@ begin
         generic map(
             C_USE_RS_FEC => C_USE_RS_FEC,
             C_INST_ID => C_MAC_INSTANCE,
-            C_N_COMMON  => C_N_COMMON
+            C_N_COMMON  => C_N_COMMON,
+            DCMAC_ID    => DCMAC_ID
         )
         port map(
             Enable                       => Enable,

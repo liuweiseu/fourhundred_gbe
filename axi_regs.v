@@ -119,6 +119,7 @@
         output wire [31:0] gmac_arp_cache_write_address,	// reg35 rw -- ok
         output wire [31:0] gmac_arp_cache_read_address,		// reg36 rw -- ok
         input wire [31:0] gmac_arp_cache_read_data,			// reg37 ro -- ok
+        input wire [31:0] dcmac1_gmac_arp_cache_read_data,
 		// info about ip, port ect
 		output wire [31:0] axis_streaming_data_tx_destination_ip,  				// reg38 rw
         output wire [31:0] axis_streaming_data_tx_destination_udp_port,			// reg39 rw
@@ -1739,7 +1740,7 @@
 	        7'h23   : reg_data_out <= slv_reg35;
 	        7'h24   : reg_data_out <= slv_reg36;
 	        7'h25   : reg_data_out <= gmac_arp_cache_read_data;			// 37
-	        7'h26   : reg_data_out <= slv_reg38;
+	        7'h26   : reg_data_out <= dcmac1_gmac_arp_cache_read_data;  // 38
 	        7'h27   : reg_data_out <= slv_reg39;
 	        7'h28   : reg_data_out <= slv_reg40;
 	        7'h29   : reg_data_out <= slv_reg41;

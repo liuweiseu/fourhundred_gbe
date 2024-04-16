@@ -2,6 +2,7 @@
 
 (* DowngradeIPIdentifiedWarnings="yes" *)
 module dcmac_udp_demo (
+    // dcmac0
     input  wire [3:0] gt_rxn_in0,
     input  wire [3:0] gt_rxp_in0,
     output wire [3:0] gt_txn_out0,
@@ -14,6 +15,19 @@ module dcmac_udp_demo (
     input  wire       gt_ref_clk0_n,
     input  wire       gt_ref_clk1_p,
     input  wire       gt_ref_clk1_n,
+    // dcmac1
+    input  wire [3:0] dcmac1_gt_rxn_in0,
+    input  wire [3:0] dcmac1_gt_rxp_in0,
+    output wire [3:0] dcmac1_gt_txn_out0,
+    output wire [3:0] dcmac1_gt_txp_out0,
+    input  wire [3:0] dcmac1_gt_rxn_in1,
+    input  wire [3:0] dcmac1_gt_rxp_in1,
+    output wire [3:0] dcmac1_gt_txn_out1,
+    output wire [3:0] dcmac1_gt_txp_out1,
+    input  wire       dcmac1_gt_ref_clk0_p,
+    input  wire       dcmac1_gt_ref_clk0_n,
+    input  wire       dcmac1_gt_ref_clk1_p,
+    input  wire       dcmac1_gt_ref_clk1_n,
     // ddr
     output wire [5:0]ch0_lpddr4_trip1_ca_a,
     output wire [5:0]ch0_lpddr4_trip1_ca_b,
@@ -181,6 +195,26 @@ wire [1:0] s_axi_rresp_dcmac;       // output
 wire s_axi_rvalid_dcmac;            // output
 wire s_axi_rready_dcmac;            // input
 
+// axi for dcmac1
+wire s_axi_aclk_dcmac1;              // input
+wire s_axi_aresetn_dcmac1;           // input
+wire [31:0] s_axi_awaddr_dcmac1;     // input 
+wire s_axi_awvalid_dcmac1;           // input
+wire s_axi_awready_dcmac1;           // output
+wire [31:0] s_axi_wdata_dcmac1;      // input
+wire s_axi_wvalid_dcmac1;            // input
+wire s_axi_wready_dcmac1;            // output
+wire [1:0] s_axi_bresp_dcmac1;       // output
+wire s_axi_bvalid_dcmac1;            // output     
+wire s_axi_bready_dcmac1;            // input
+wire [31:0] s_axi_araddr_dcmac1;     // input
+wire s_axi_arvalid_dcmac1;           // input
+wire s_axi_arready_dcmac1;           // output
+wire [31:0] s_axi_rdata_dcmac1;      // output
+wire [1:0] s_axi_rresp_dcmac1;       // output
+wire s_axi_rvalid_dcmac1;            // output
+wire s_axi_rready_dcmac1;            // input
+
 // axi for regs
 wire s_axi_aclk_reg;              // input
 wire s_axi_aresetn_reg;           // input
@@ -221,6 +255,27 @@ wire [31:0] s_axi_rdata_gtm;      // output
 wire [1:0] s_axi_rresp_gtm;       // output
 wire s_axi_rvalid_gtm;            // output
 wire s_axi_rready_gtm;            // input
+
+// axi for dcmac1 gtm
+wire dcmac1_s_axi_aclk_gtm;              // input
+wire dcmac1_s_axi_aresetn_gtm;           // input
+wire [31:0] dcmac1_s_axi_awaddr_gtm;     // input 
+wire dcmac1_s_axi_awvalid_gtm;           // input
+wire dcmac1_s_axi_awready_gtm;           // output
+wire [31:0] dcmac1_s_axi_wdata_gtm;      // input
+wire dcmac1_s_axi_wvalid_gtm;            // input
+wire dcmac1_s_axi_wready_gtm;            // output
+wire [1:0] dcmac1_s_axi_bresp_gtm;       // output
+wire dcmac1_s_axi_bvalid_gtm;            // output     
+wire dcmac1_s_axi_bready_gtm;            // input
+wire [31:0] dcmac1_s_axi_araddr_gtm;     // input
+wire dcmac1_s_axi_arvalid_gtm;           // input
+wire dcmac1_s_axi_arready_gtm;           // output
+wire [31:0] dcmac1_s_axi_rdata_gtm;      // output
+wire [1:0] dcmac1_s_axi_rresp_gtm;       // output
+wire dcmac1_s_axi_rvalid_gtm;            // output
+wire dcmac1_s_axi_rready_gtm;            // input
+
 // tx cursor signals
 wire [31:0] gt0_ch01_cursor_tri_o;
 wire [31:0] gt0_ch23_cursor_tri_o;
@@ -271,6 +326,58 @@ assign gt1_ch23_txpostcursor = gt1_ch23_cursor_tri_o[12:7];
 assign gt1_ch23_txprecursor  = gt1_ch23_cursor_tri_o[18:13];
 assign gt1_ch23_txprecursor2 = gt1_ch23_cursor_tri_o[24:19];
 assign gt1_ch23_txprecursor3 = gt1_ch23_cursor_tri_o[30:25];
+
+// dcmac1 tx cursor signals
+wire [31:0] dcmac1_gt0_ch01_cursor_tri_o;
+wire [31:0] dcmac1_gt0_ch23_cursor_tri_o;
+wire [31:0] dcmac1_gt1_ch01_cursor_tri_o;
+wire [31:0] dcmac1_gt1_ch23_cursor_tri_o;
+
+wire [6:0]dcmac1_gt0_ch01_txmaincursor;
+wire [5:0]dcmac1_gt0_ch01_txpostcursor;
+wire [5:0]dcmac1_gt0_ch01_txprecursor;
+wire [5:0]dcmac1_gt0_ch01_txprecursor2;
+wire [5:0]dcmac1_gt0_ch01_txprecursor3;
+wire [6:0]dcmac1_gt0_ch23_txmaincursor;
+wire [5:0]dcmac1_gt0_ch23_txpostcursor;
+wire [5:0]dcmac1_gt0_ch23_txprecursor;
+wire [5:0]dcmac1_gt0_ch23_txprecursor2;
+wire [5:0]dcmac1_gt0_ch23_txprecursor3;
+wire [6:0]dcmac1_gt1_ch01_txmaincursor;
+wire [5:0]dcmac1_gt1_ch01_txpostcursor;
+wire [5:0]dcmac1_gt1_ch01_txprecursor;
+wire [5:0]dcmac1_gt1_ch01_txprecursor2;
+wire [5:0]dcmac1_gt1_ch01_txprecursor3;
+wire [6:0]dcmac1_gt1_ch23_txmaincursor;
+wire [5:0]dcmac1_gt1_ch23_txpostcursor;
+wire [5:0]dcmac1_gt1_ch23_txprecursor;
+wire [5:0]dcmac1_gt1_ch23_txprecursor2;
+wire [5:0]dcmac1_gt1_ch23_txprecursor3;
+
+assign dcmac1_gt0_ch01_txmaincursor = dcmac1_gt0_ch01_cursor_tri_o[6:0];
+assign dcmac1_gt0_ch01_txpostcursor = dcmac1_gt0_ch01_cursor_tri_o[12:7];
+assign dcmac1_gt0_ch01_txprecursor  = dcmac1_gt0_ch01_cursor_tri_o[18:13];
+assign dcmac1_gt0_ch01_txprecursor2 = dcmac1_gt0_ch01_cursor_tri_o[24:19];
+assign dcmac1_gt0_ch01_txprecursor3 = dcmac1_gt0_ch01_cursor_tri_o[30:25];
+
+assign dcmac1_gt0_ch23_txmaincursor = dcmac1_gt0_ch23_cursor_tri_o[6:0];
+assign dcmac1_gt0_ch23_txpostcursor = dcmac1_gt0_ch23_cursor_tri_o[12:7];
+assign dcmac1_gt0_ch23_txprecursor  = dcmac1_gt0_ch23_cursor_tri_o[18:13];
+assign dcmac1_gt0_ch23_txprecursor2 = dcmac1_gt0_ch23_cursor_tri_o[24:19];
+assign dcmac1_gt0_ch23_txprecursor3 = dcmac1_gt0_ch23_cursor_tri_o[30:25];
+
+assign dcmac1_gt1_ch01_txmaincursor = dcmac1_gt1_ch01_cursor_tri_o[6:0];
+assign dcmac1_gt1_ch01_txpostcursor = dcmac1_gt1_ch01_cursor_tri_o[12:7];
+assign dcmac1_gt1_ch01_txprecursor  = dcmac1_gt1_ch01_cursor_tri_o[18:13];
+assign dcmac1_gt1_ch01_txprecursor2 = dcmac1_gt1_ch01_cursor_tri_o[24:19];
+assign dcmac1_gt1_ch01_txprecursor3 = dcmac1_gt1_ch01_cursor_tri_o[30:25];
+
+assign dcmac1_gt1_ch23_txmaincursor = dcmac1_gt1_ch23_cursor_tri_o[6:0];
+assign dcmac1_gt1_ch23_txpostcursor = dcmac1_gt1_ch23_cursor_tri_o[12:7];
+assign dcmac1_gt1_ch23_txprecursor  = dcmac1_gt1_ch23_cursor_tri_o[18:13];
+assign dcmac1_gt1_ch23_txprecursor2 = dcmac1_gt1_ch23_cursor_tri_o[24:19];
+assign dcmac1_gt1_ch23_txprecursor3 = dcmac1_gt1_ch23_cursor_tri_o[30:25];
+
 //----------------------------------------------------------------------------------------------------
 // added cips for control
 dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
@@ -393,47 +500,47 @@ dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
     .M00_AXI_3_wready     (s_axi_wready_gtm),
     .M00_AXI_3_wstrb      (s_axi_wstrb_gtm),	
     .M00_AXI_3_wvalid     (s_axi_wvalid_gtm),	
-		
-    .M00_AXI_4_araddr     (		),	
+	
+	.M00_AXI_4_araddr     (s_axi_araddr_dcmac1),	
     .M00_AXI_4_arprot     (		),	
-    .M00_AXI_4_arready    (1'b0	),
-    .M00_AXI_4_arvalid    (		),	
-    .M00_AXI_4_awaddr     (		),	
+    .M00_AXI_4_arready    (s_axi_arready_dcmac1),
+    .M00_AXI_4_arvalid    (s_axi_arvalid_dcmac1),	
+    .M00_AXI_4_awaddr     (s_axi_awaddr_dcmac1),	
     .M00_AXI_4_awprot     (		),	
-    .M00_AXI_4_awready    (1'b0	),
-    .M00_AXI_4_awvalid    (		),	
-    .M00_AXI_4_bready     (		),	
-    .M00_AXI_4_bresp      (2'b00),
-    .M00_AXI_4_bvalid     (1'b0	),
-    .M00_AXI_4_rdata      (32'd0),
-    .M00_AXI_4_rready     (		),	
-    .M00_AXI_4_rresp      (2'b00),
-    .M00_AXI_4_rvalid     (1'b0	),
-    .M00_AXI_4_wdata      (		),	
-    .M00_AXI_4_wready     (1'b0	),
+    .M00_AXI_4_awready    (s_axi_awready_dcmac1),
+    .M00_AXI_4_awvalid    (s_axi_awvalid_dcmac1),	
+    .M00_AXI_4_bready     (s_axi_bready_dcmac1),	
+    .M00_AXI_4_bresp      (s_axi_bresp_dcmac1),
+    .M00_AXI_4_bvalid     (s_axi_bvalid_dcmac1),
+    .M00_AXI_4_rdata      (s_axi_rdata_dcmac1),
+    .M00_AXI_4_rready     (s_axi_rready_dcmac1),	
+    .M00_AXI_4_rresp      (s_axi_rresp_dcmac1),
+    .M00_AXI_4_rvalid     (s_axi_rvalid_dcmac1),
+    .M00_AXI_4_wdata      (s_axi_wdata_dcmac1),	
+    .M00_AXI_4_wready     (s_axi_wready_dcmac1),
     .M00_AXI_4_wstrb      (		),	
-    .M00_AXI_4_wvalid     (		),		
-	
-	
-    .M00_AXI_5_araddr     (		),	
+    .M00_AXI_4_wvalid     (s_axi_wvalid_dcmac1),	
+    	
+    .M00_AXI_5_araddr     (dcmac1_s_axi_araddr_gtm),	
     .M00_AXI_5_arprot     (		),	
-    .M00_AXI_5_arready    (1'b0	),
-    .M00_AXI_5_arvalid    (		),	
-    .M00_AXI_5_awaddr     (		),	
+    .M00_AXI_5_arready    (dcmac1_s_axi_arready_gtm),
+    .M00_AXI_5_arvalid    (dcmac1_s_axi_arvalid_gtm),	
+    .M00_AXI_5_awaddr     (dcmac1_s_axi_awaddr_gtm),	
     .M00_AXI_5_awprot     (		),	
-    .M00_AXI_5_awready    (1'b0	),
-    .M00_AXI_5_awvalid    (		),	
-    .M00_AXI_5_bready     (		),	
-    .M00_AXI_5_bresp      (2'b00),
-    .M00_AXI_5_bvalid     (1'b0	),
-    .M00_AXI_5_rdata      (32'd0),
-    .M00_AXI_5_rready     (		),	
-    .M00_AXI_5_rresp      (2'b00),
-    .M00_AXI_5_rvalid     (1'b0	),
-    .M00_AXI_5_wdata      (		),	
-    .M00_AXI_5_wready     (1'b0	),
-    .M00_AXI_5_wstrb      (		),	
-    .M00_AXI_5_wvalid     (		),		
+    .M00_AXI_5_awready    (dcmac1_s_axi_awready_gtm),
+    .M00_AXI_5_awvalid    (dcmac1_s_axi_awvalid_gtm),	
+    .M00_AXI_5_bready     (dcmac1_s_axi_bready_gtm),	
+    .M00_AXI_5_bresp      (dcmac1_s_axi_bresp_gtm),
+    .M00_AXI_5_bvalid     (dcmac1_s_axi_bvalid_gtm),
+    .M00_AXI_5_rdata      (dcmac1_s_axi_rdata_gtm),
+    .M00_AXI_5_rready     (dcmac1_s_axi_rready_gtm),	
+    .M00_AXI_5_rresp      (dcmac1_s_axi_rresp_gtm),
+    .M00_AXI_5_rvalid     (dcmac1_s_axi_rvalid_gtm),
+    .M00_AXI_5_wdata      (dcmac1_s_axi_wdata_gtm),	
+    .M00_AXI_5_wready     (dcmac1_s_axi_wready_gtm),
+    .M00_AXI_5_wstrb      (dcmac1_s_axi_wstrb_gtm),	
+    .M00_AXI_5_wvalid     (dcmac1_s_axi_wvalid_gtm),
+    		
     .M00_AXI_6_araddr     (		),	
     .M00_AXI_6_arprot     (		),	
     .M00_AXI_6_arready    (1'b0	),
@@ -538,7 +645,11 @@ dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
     .gt0_ch01_cursor_tri_o(gt0_ch01_cursor_tri_o),
     .gt0_ch23_cursor_tri_o(gt0_ch23_cursor_tri_o),
     .gt1_ch01_cursor_tri_o(gt1_ch01_cursor_tri_o),
-    .gt1_ch23_cursor_tri_o(gt1_ch23_cursor_tri_o)
+    .gt1_ch23_cursor_tri_o(gt1_ch23_cursor_tri_o),
+    .dcmac1_gt0_ch01_cursor_tri_o(dcmac1_gt0_ch01_cursor_tri_o),
+    .dcmac1_gt0_ch23_cursor_tri_o(dcmac1_gt0_ch23_cursor_tri_o),
+    .dcmac1_gt1_ch01_cursor_tri_o(dcmac1_gt1_ch01_cursor_tri_o),
+    .dcmac1_gt1_ch23_cursor_tri_o(dcmac1_gt1_ch23_cursor_tri_o)
 
 );
 
@@ -559,7 +670,7 @@ wire axis_streaming_data_tx_tlast;              // input
 wire axis_streaming_data_tx_tready;             // output
 wire axis_streaming_arst;
 wire axis_streaming_data_clk;
-
+wire axis_streaming_data_tx_tready_dcmac1;             // output
 wire axis_data_gen_enable;
 wire [15:0] pkt_length, pkt_length_d;
 wire [15:0] period, period_d;
@@ -600,7 +711,7 @@ axis_data_gen #(
     .axis_streaming_data_tx_tuser(axis_streaming_data_tx_tuser),
     .axis_streaming_data_tx_tkeep(axis_streaming_data_tx_tkeep),
     .axis_streaming_data_tx_tlast(axis_streaming_data_tx_tlast),
-    .axis_streaming_data_tx_tready(axis_streaming_data_tx_tready)
+    .axis_streaming_data_tx_tready(axis_streaming_data_tx_tready & axis_streaming_data_tx_tready_dcmac1)
 );
 //----------------------------------------------------------------------------------------------------
 // add axi regs here
@@ -646,6 +757,7 @@ wire [31:0] gmac_arp_cache_write_data;                          // input
 wire [31:0] gmac_arp_cache_write_address;                       // input
 wire [31:0] gmac_arp_cache_read_address;                        // input    
 wire [31:0] gmac_arp_cache_read_data;                           // output
+wire [31:0] dcmac1_gmac_arp_cache_read_data;                    // output
 
 wire [31:0] axis_streaming_data_tx_destination_ip_d;              // input
 wire [15:0] axis_streaming_data_tx_destination_udp_port_d;        // input
@@ -688,6 +800,7 @@ wire [31:0] gmac_arp_cache_write_data_d;                          // input
 wire [31:0] gmac_arp_cache_write_address_d;                       // input
 wire [31:0] gmac_arp_cache_read_address_d;                        // input    
 wire [31:0] gmac_arp_cache_read_data_d;                           // output
+wire [31:0] dcmac1_gmac_arp_cache_read_data_d;                    // output
 
 // am setting
 wire [15:0] ctl_port_ctl_rx_custom_vl_length_minus1;
@@ -829,6 +942,7 @@ axi_regs #(
     .gmac_arp_cache_write_address(gmac_arp_cache_write_address),
     .gmac_arp_cache_read_address(gmac_arp_cache_read_address),
     .gmac_arp_cache_read_data(gmac_arp_cache_read_data),
+    .dcmac1_gmac_arp_cache_read_data(dcmac1_gmac_arp_cache_read_data),
     .axis_data_gen_enable(axis_data_gen_enable),
     .pkt_length(pkt_length),
     .period(period),
@@ -970,6 +1084,7 @@ reg_delay #(
     .gmac_reg_word_size_d(gmac_reg_word_size_d),
     .gmac_reg_buffer_max_size_d(gmac_reg_buffer_max_size_d),
     .gmac_arp_cache_read_data_d(gmac_arp_cache_read_data_d),
+    .dcmac1_gmac_arp_cache_read_data_d(dcmac1_gmac_arp_cache_read_data_d),
 
     .axis_streaming_data_tx_destination_ip_d(axis_streaming_data_tx_destination_ip_d),
     .axis_streaming_data_tx_destination_udp_port_d(axis_streaming_data_tx_destination_udp_port_d),
@@ -1059,12 +1174,18 @@ reg_delay #(
     .ctl_port_ctl_tx_vl_marker_id18_d(ctl_port_ctl_tx_vl_marker_id18_d),
     .ctl_port_ctl_tx_vl_marker_id19_d(ctl_port_ctl_tx_vl_marker_id19_d)
 );
+
 assign aximm_clk = pl0_ref_clk_0;
 assign axis_reset = ~pl0_resetn_0;
 assign s_axi_aclk_dcmac = pl0_ref_clk_0;
 assign s_axi_aresetn_dcmac = pl0_resetn_0;
 assign s_axi_aclk_gtm = pl0_ref_clk_0;
 assign s_axi_aresetn_gtm = pl0_resetn_0;
+// for dcmac1
+assign s_axi_aclk_dcmac1 = pl0_ref_clk_0;
+assign s_axi_aresetn_dcmac1 = pl0_resetn_0;
+assign dcmac1_s_axi_aclk_gtm = pl0_ref_clk_0;
+assign dcmac1_s_axi_aresetn_gtm = pl0_resetn_0;
 // added casper400gethernetblock_no_cpu module here
 casper400gethernetblock_no_cpu #(
     .G_AXIS_DATA_WIDTH (1024)
@@ -1154,8 +1275,8 @@ casper400gethernetblock_no_cpu #(
     .tx_core_reset(tx_core_reset),
     .tx_serdes_reset(tx_serdes_reset),
     //-- reset_done_dyn
-    .gt_tx_reset_done_out(gt_tx_reset_done_out),
-    .gt_rx_reset_done_out(gt_rx_reset_done_out),
+    .gt_tx_reset_done_out(gt_tx_reset_done_out[7:0]),
+    .gt_rx_reset_done_out(gt_rx_reset_done_out[7:0]),
 
     //--Data inputs from AXIS bus of the Yellow Blocks
     .axis_streaming_data_tx_tdata(axis_streaming_data_tx_tdata),
@@ -1250,5 +1371,193 @@ casper400gethernetblock_no_cpu #(
     .gt1_ch23_txprecursor(gt1_ch23_txprecursor),
     .gt1_ch23_txprecursor2(gt1_ch23_txprecursor2),
     .gt1_ch23_txprecursor3(gt1_ch23_txprecursor3)
+);
+
+// one more 400g core
+casper400gethernetblock_no_cpu #(
+    .G_AXIS_DATA_WIDTH (1024),
+    .DCMAC_ID(1)
+) casper400gethernetblock_no_cpu_inst1(
+    .aximm_clk(aximm_clk),
+    .icap_clk(1'b0),         // we don't care about icap
+    .axis_reset(axis_reset),
+    .gt_clk0_p(dcmac1_gt_ref_clk0_p),
+    .gt_clk0_n(dcmac1_gt_ref_clk0_n),
+    .gt_clk1_p(dcmac1_gt_ref_clk1_p),
+    .gt_clk1_n(dcmac1_gt_ref_clk1_n),
+    .gt0_rx_p(dcmac1_gt_rxp_in0),
+    .gt0_rx_n(dcmac1_gt_rxn_in0),
+    .gt1_rx_p(dcmac1_gt_rxp_in1),
+    .gt1_rx_n(dcmac1_gt_rxn_in1),
+    .gt0_tx_p(dcmac1_gt_txp_out0),
+    .gt0_tx_n(dcmac1_gt_txn_out0),
+    .gt1_tx_p(dcmac1_gt_txp_out1),
+    .gt1_tx_n(dcmac1_gt_txn_out1),
+    .qsfp_modsell_ls(), //output
+    .qsfp_resetl_ls(), //output
+    .qsfp_modprsl_ls(1'b0), 
+    .qsfp_intl_ls(1'b0),
+    .qsfp_lpmode_ls(), 
+    .axis_streaming_data_clk(axis_streaming_data_clk),
+    .axis_streaming_data_rx_packet_length(),        
+
+    .yellow_block_rx_data(),
+    .yellow_block_rx_valid(),
+    .yellow_block_rx_eof(),
+    .yellow_block_rx_overrun(),
+
+    // gtm transceiver config
+    .axi4_lite_aclk(dcmac1_s_axi_aclk_gtm),
+    .axi4_lite_araddr(dcmac1_s_axi_araddr_gtm),
+    .axi4_lite_aresetn(dcmac1_s_axi_aresetn_gtm),
+    .axi4_lite_arready(dcmac1_s_axi_arready_gtm),
+    .axi4_lite_arvalid(dcmac1_s_axi_arvalid_gtm),
+    .axi4_lite_awaddr(dcmac1_s_axi_awaddr_gtm),
+    .axi4_lite_awready(dcmac1_s_axi_awready_gtm),
+    .axi4_lite_awvalid(dcmac1_s_axi_awvalid_gtm),
+    .axi4_lite_bready(dcmac1_s_axi_bready_gtm),
+    .axi4_lite_bresp(dcmac1_s_axi_bresp_gtm),
+    .axi4_lite_bvalid(dcmac1_s_axi_bvalid_gtm),
+    .axi4_lite_rdata(dcmac1_s_axi_rdata_gtm),
+    .axi4_lite_rready(dcmac1_s_axi_rready_gtm),
+    .axi4_lite_rresp(dcmac1_s_axi_rresp_gtm),
+    .axi4_lite_rvalid(dcmac1_s_axi_rvalid_gtm),
+    .axi4_lite_wdata(dcmac1_s_axi_wdata_gtm),
+    .axi4_lite_wready(dcmac1_s_axi_wready_gtm),
+    .axi4_lite_wvalid(dcmac1_s_axi_wvalid_gtm),
+    // DCMAC core config/rst interfaces
+    // axi interface for DCMAC core configuration
+    // connect to M_AXI1
+    .s_axi_aclk(s_axi_aclk_dcmac1),    
+    .s_axi_aresetn(s_axi_aresetn_dcmac1),
+    .s_axi_awaddr(s_axi_awaddr_dcmac1),
+    .s_axi_awvalid(s_axi_awvalid_dcmac1),
+    .s_axi_awready(s_axi_awready_dcmac1),
+    .s_axi_wdata(s_axi_wdata_dcmac1),
+    .s_axi_wvalid(s_axi_wvalid_dcmac1),
+    .s_axi_wready(s_axi_wready_dcmac1),
+    .s_axi_bresp(s_axi_bresp_dcmac1), 
+    .s_axi_bvalid(s_axi_bvalid_dcmac1),
+    .s_axi_bready(s_axi_bready_dcmac1),
+    .s_axi_araddr(s_axi_araddr_dcmac1),
+    .s_axi_arvalid(s_axi_arvalid_dcmac1),
+    .s_axi_arready(s_axi_arready_dcmac1),
+    .s_axi_rdata(s_axi_rdata_dcmac1),
+    .s_axi_rresp(s_axi_rresp_dcmac1),
+    .s_axi_rvalid(s_axi_rvalid_dcmac1),
+    .s_axi_rready(s_axi_rready_dcmac1),
+    //-- GT control signals
+    .gt_rxcdrhold(gt_rxcdrhold),
+    .gt_txprecursor(gt_txprecursor),
+    .gt_txpostcursor(gt_txpostcursor),
+    .gt_txmaincursor(gt_txmaincursor),
+    .gt_loopback(gt_loopback),
+    .gt_line_rate(gt_line_rate),
+    .gt_reset_all_in(gt_reset_all_in),
+    // -- TX & RX datapath
+    .gt_reset_tx_datapath_in(gt_reset_tx_datapath_in),
+    .gt_reset_rx_datapath_in(gt_reset_rx_datapath_in),
+    // -- reset_dyn
+    .rx_core_reset(rx_core_reset),
+    .rx_serdes_reset(rx_serdes_reset),
+    .tx_core_reset(tx_core_reset),
+    .tx_serdes_reset(tx_serdes_reset),
+    //-- reset_done_dyn
+    .gt_tx_reset_done_out(gt_tx_reset_done_out[15:8]),
+    .gt_rx_reset_done_out(gt_rx_reset_done_out[15:8]),
+
+    //--Data inputs from AXIS bus of the Yellow Blocks
+    .axis_streaming_data_tx_tdata(axis_streaming_data_tx_tdata),
+    .axis_streaming_data_tx_tvalid(axis_streaming_data_tx_tvalid),
+    .axis_streaming_data_tx_tuser(axis_streaming_data_tx_tuser),
+    .axis_streaming_data_tx_tkeep(axis_streaming_data_tx_tkeep),
+    .axis_streaming_data_tx_tlast(axis_streaming_data_tx_tlast),
+    .axis_streaming_data_tx_tready(axis_streaming_data_tx_tready_dcmac1),
+
+    .axis_streaming_data_tx_destination_ip( axis_streaming_data_tx_destination_ip_d),
+    .axis_streaming_data_tx_destination_udp_port( axis_streaming_data_tx_destination_udp_port_d),
+    .axis_streaming_data_tx_source_udp_port( axis_streaming_data_tx_source_udp_port_d),
+    .axis_streaming_data_tx_packet_length( axis_streaming_data_tx_packet_length_d),   
+    // -- Software controlled register IO
+    .gmac_reg_phy_control_h(gmac_reg_phy_control_h_d),
+    .gmac_reg_phy_control_l(gmac_reg_phy_control_l_d),
+    .gmac_reg_mac_address_h(gmac_reg_mac_address_h_d),
+    .gmac_reg_mac_address_l(gmac_reg_mac_address_l_d),
+    .gmac_reg_local_ip_address(gmac_reg_local_ip_address_d),
+    .gmac_reg_local_ip_netmask(gmac_reg_local_ip_netmask_d),
+    .gmac_reg_gateway_ip_address(gmac_reg_gateway_ip_address_d),
+    .gmac_reg_multicast_ip_address(gmac_reg_multicast_ip_address_d),
+    .gmac_reg_multicast_ip_mask(gmac_reg_multicast_ip_mask_d),
+    .gmac_reg_udp_port(gmac_reg_udp_port_d),
+    .gmac_reg_core_ctrl(gmac_reg_core_ctrl_d),
+    .gmac_reg_core_type(),
+    .gmac_reg_phy_status_h(),
+    .gmac_reg_phy_status_l(),
+    .gmac_reg_tx_packet_rate(),
+    .gmac_reg_tx_packet_count(),
+    .gmac_reg_tx_valid_rate(),
+    .gmac_reg_tx_valid_count(),
+    .gmac_reg_tx_overflow_count(),
+    .gmac_reg_tx_almost_full_count(),
+    .gmac_reg_rx_packet_rate(),
+    .gmac_reg_rx_packet_count(),
+    .gmac_reg_rx_valid_rate(),
+    .gmac_reg_rx_valid_count(),
+    .gmac_reg_rx_overflow_count(),
+    .gmac_reg_rx_almost_full_count(),
+    .gmac_reg_rx_bad_packet_count(),
+    .gmac_reg_arp_size(),
+    .gmac_reg_word_size(),
+    .gmac_reg_buffer_max_size(),
+    .gmac_reg_count_reset(gmac_reg_count_reset_d),
+    .gmac_arp_cache_write_enable(gmac_arp_cache_write_enable_d),
+    .gmac_arp_cache_read_enable(gmac_arp_cache_read_enable_d),
+    .gmac_arp_cache_write_data(gmac_arp_cache_write_data_d),
+    .gmac_arp_cache_write_address(gmac_arp_cache_write_address_d),
+    .gmac_arp_cache_read_address(gmac_arp_cache_read_address_d),
+    .gmac_arp_cache_read_data(dcmac1_gmac_arp_cache_read_data_d),
+    .ctl_port_ctl_rx_custom_vl_length_minus1(ctl_port_ctl_rx_custom_vl_length_minus1_d),
+    .ctl_port_ctl_tx_custom_vl_length_minus1(ctl_port_ctl_tx_custom_vl_length_minus1_d),
+    .ctl_port_ctl_tx_vl_marker_id0(ctl_port_ctl_tx_vl_marker_id0_d),
+    .ctl_port_ctl_tx_vl_marker_id1(ctl_port_ctl_tx_vl_marker_id1_d),
+    .ctl_port_ctl_tx_vl_marker_id2(ctl_port_ctl_tx_vl_marker_id2_d),
+    .ctl_port_ctl_tx_vl_marker_id3(ctl_port_ctl_tx_vl_marker_id3_d),
+    .ctl_port_ctl_tx_vl_marker_id4(ctl_port_ctl_tx_vl_marker_id4_d),
+    .ctl_port_ctl_tx_vl_marker_id5(ctl_port_ctl_tx_vl_marker_id5_d),
+    .ctl_port_ctl_tx_vl_marker_id6(ctl_port_ctl_tx_vl_marker_id6_d),
+    .ctl_port_ctl_tx_vl_marker_id7(ctl_port_ctl_tx_vl_marker_id7_d),
+    .ctl_port_ctl_tx_vl_marker_id8(ctl_port_ctl_tx_vl_marker_id8_d),
+    .ctl_port_ctl_tx_vl_marker_id9(ctl_port_ctl_tx_vl_marker_id9_d),
+    .ctl_port_ctl_tx_vl_marker_id10(ctl_port_ctl_tx_vl_marker_id10_d),
+    .ctl_port_ctl_tx_vl_marker_id11(ctl_port_ctl_tx_vl_marker_id11_d),
+    .ctl_port_ctl_tx_vl_marker_id12(ctl_port_ctl_tx_vl_marker_id12_d),
+    .ctl_port_ctl_tx_vl_marker_id13(ctl_port_ctl_tx_vl_marker_id13_d),
+    .ctl_port_ctl_tx_vl_marker_id14(ctl_port_ctl_tx_vl_marker_id14_d),
+    .ctl_port_ctl_tx_vl_marker_id15(ctl_port_ctl_tx_vl_marker_id15_d),
+    .ctl_port_ctl_tx_vl_marker_id16(ctl_port_ctl_tx_vl_marker_id16_d),
+    .ctl_port_ctl_tx_vl_marker_id17(ctl_port_ctl_tx_vl_marker_id17_d),
+    .ctl_port_ctl_tx_vl_marker_id18(ctl_port_ctl_tx_vl_marker_id18_d),
+    .ctl_port_ctl_tx_vl_marker_id19(ctl_port_ctl_tx_vl_marker_id19_d),
+    // tx cursors
+    .gt0_ch01_txmaincursor(dcmac1_gt0_ch01_txmaincursor),
+    .gt0_ch01_txpostcursor(dcmac1_gt0_ch01_txpostcursor),
+    .gt0_ch01_txprecursor(dcmac1_gt0_ch01_txprecursor),
+    .gt0_ch01_txprecursor2(dcmac1_gt0_ch01_txprecursor2),
+    .gt0_ch01_txprecursor3(dcmac1_gt0_ch01_txprecursor3),
+    .gt0_ch23_txmaincursor(dcmac1_gt0_ch23_txmaincursor),
+    .gt0_ch23_txpostcursor(dcmac1_gt0_ch23_txpostcursor),
+    .gt0_ch23_txprecursor(dcmac1_gt0_ch23_txprecursor),
+    .gt0_ch23_txprecursor2(dcmac1_gt0_ch23_txprecursor2),
+    .gt0_ch23_txprecursor3(dcmac1_gt0_ch23_txprecursor3),
+    .gt1_ch01_txmaincursor(dcmac1_gt1_ch01_txmaincursor),
+    .gt1_ch01_txpostcursor(dcmac1_gt1_ch01_txpostcursor),
+    .gt1_ch01_txprecursor(dcmac1_gt1_ch01_txprecursor),
+    .gt1_ch01_txprecursor2(dcmac1_gt1_ch01_txprecursor2),
+    .gt1_ch01_txprecursor3(dcmac1_gt1_ch01_txprecursor3),
+    .gt1_ch23_txmaincursor(dcmac1_gt1_ch23_txmaincursor),
+    .gt1_ch23_txpostcursor(dcmac1_gt1_ch23_txpostcursor),
+    .gt1_ch23_txprecursor(dcmac1_gt1_ch23_txprecursor),
+    .gt1_ch23_txprecursor2(dcmac1_gt1_ch23_txprecursor2),
+    .gt1_ch23_txprecursor3(dcmac1_gt1_ch23_txprecursor3)
 );
 endmodule
