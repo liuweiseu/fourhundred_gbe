@@ -584,22 +584,31 @@ delay #(
     .dout(period_d)
 );
 
-assign axis_streaming_data_clk = pl0_ref_clk_0;
+//assign axis_streaming_data_clk = pl0_ref_clk_0;
+/*
+wire locked;
+clk_gen_wrapper clk_gen_inst(
+    .clk_in(pl0_ref_clk_0),
+    .clk_out(axis_streaming_data_clk),
+    .locked(locked)
+);
+*/
 assign axis_streaming_rst = ~pl0_resetn_0;
-
+//assign axis_streaming_rst = ~locked;
 axis_data_gen #(
     .G_AXIS_DATA_WIDTH (1024)
 ) axis_data_gen_inst(
+    .axi_clk(pl0_ref_clk_0),
     .axis_streaming_data_clk(axis_streaming_data_clk),
     .axis_streaming_rst(axis_streaming_rst),
-    .axis_data_gen_enable(axis_data_gen_enable),
-    .pkt_length(pkt_length_d),
-    .period(period_d),
-    .axis_streaming_data_tx_tdata(axis_streaming_data_tx_tdata),
-    .axis_streaming_data_tx_tvalid(axis_streaming_data_tx_tvalid),
-    .axis_streaming_data_tx_tuser(axis_streaming_data_tx_tuser),
-    .axis_streaming_data_tx_tkeep(axis_streaming_data_tx_tkeep),
-    .axis_streaming_data_tx_tlast(axis_streaming_data_tx_tlast),
+    .axis_data_gen_enable_axi(axis_data_gen_enable),
+    .pkt_length_axi(pkt_length_d),
+    .period_axi(period_d),
+    .axis_streaming_data_tx_tdata_o(axis_streaming_data_tx_tdata),
+    .axis_streaming_data_tx_tvalid_o(axis_streaming_data_tx_tvalid),
+    .axis_streaming_data_tx_tuser_o(axis_streaming_data_tx_tuser),
+    .axis_streaming_data_tx_tkeep_o(axis_streaming_data_tx_tkeep),
+    .axis_streaming_data_tx_tlast_o(axis_streaming_data_tx_tlast),
     .axis_streaming_data_tx_tready(axis_streaming_data_tx_tready)
 );
 //----------------------------------------------------------------------------------------------------
@@ -1090,7 +1099,8 @@ casper400gethernetblock_no_cpu #(
     .qsfp_intl_ls(1'b0),
     .qsfp_lpmode_ls(), 
     .axis_streaming_data_clk(axis_streaming_data_clk),
-    .axis_streaming_data_rx_packet_length(),        
+    .axis_streaming_data_rx_packet_length(),    
+    .axis_clk_out(axis_streaming_data_clk),
 
     .yellow_block_rx_data(),
     .yellow_block_rx_valid(),

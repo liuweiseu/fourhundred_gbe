@@ -72,6 +72,8 @@ entity casper400gethernetblock_no_cpu is
         qsfp_modprsl_ls                             : in  STD_LOGIC;
         qsfp_intl_ls                                : in  STD_LOGIC;
         qsfp_lpmode_ls                              : out STD_LOGIC;
+        -- axis clk -- 390.625MHz
+        axis_clk_out                                : out STD_LOGIC;
         ------------------------------------------------------------------------
         -- Yellow Block Data Interface                                        --
         -- These can be many AXIS interfaces denoted by axis_data{n}_tx/rx    --
@@ -675,6 +677,7 @@ begin
     qsfp_resetl_ls  <= (not Reset);
     -- Construct mac address
     fabric_mac <= gmac_reg_mac_address_h(15 downto 0) & gmac_reg_mac_address_l(31 downto 0);
+    axis_clk_out    <= ClkQSFP;
     ----------------------------------------------------------------------------
     --          OSFP DCMAC0 400G MAC Instance (port 1)                        --
     -- The DCMAC resides in the static partition of the design.               --
