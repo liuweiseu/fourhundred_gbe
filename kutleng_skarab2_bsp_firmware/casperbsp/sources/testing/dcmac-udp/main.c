@@ -11,20 +11,21 @@
 #include "dcmac_config.h"
 #include "gtm_config.h"
 
-#define LOCAL_IP_ADDRESS    0xC0A80301
+#define QSFPDD_CONFIG		0xA41A0000
+#define LOCAL_IP_ADDRESS    0xC0A80302
 #define LOCAL_IP_NETMASK    0xFFFFFF00
 #define GW_IP_ADDRESS       0xC0A80301
-#define UDP_PORT            0x1234
+#define UDP_PORT            49152 //0x1234
 #define DST_IP              0xC0A8030C
-#define DST_UDP_PORT        0x5678
-#define SRC_UDP_PORT        0x4321
+#define DST_UDP_PORT        49152//0x5678
+#define SRC_UDP_PORT        49152//0x4321
 
-#define PKT_LEN             2048
+#define PKT_LEN             8192
 #define BUS_WIDTH           128
 
 extern int flag_alignment;
 
-uint32_t rx_tx_vl_len = 256;\
+uint32_t rx_tx_vl_len = 8192;\
 
 uint32_t vl_marker[40] = {0xc1682100, 0x3e97de00, \
                           0x9d718e00, 0x628e7100, \
@@ -316,11 +317,17 @@ void write_mregs()
 void main()
 {
     int i;
+    // config qsfp-dd
+    //*(U32 *) (QSFPDD_CONFIG) = 0x7;
+    //u32 qsfpdd_status = *(U32 *) (QSFPDD_CONFIG + 8);
+    //xil_printf("qsfpdd_status: %d\r\n", qsfpdd_status);
     // loopback mode
     // 0 - external mode
     // 1 - NE PCS loopback
     // 2 - NE PMA loopback
     int mode = 0;
+    set_tx_rx_vl_length(rx_tx_vl_len);
+    set_vl_marker(vl_marker);
     /*
     // get ch_clk_cfg
     get_chclk_cfg();
@@ -344,8 +351,7 @@ void main()
     //read_mregs();
     // read the core type to make sure the RW is working.
     //xil_printf("core type: 0x%08x\r\n", dcmac_read_reg(CORE_TYPE));
-    //set_tx_rx_vl_length(vl_marker);
-    //set_vl_marker(vl_marker);
+
     // init dcmac and gtm transceivers
     init_dcmac(mode);
 
@@ -376,10 +382,12 @@ void main()
 
     // set a specific dst mac
     uint32_t dst_mac[3] = {0xacae6d94, 0x000038f8};
-    //write_arp(536, dst_mac[0]);
-    //write_arp(537, dst_mac[1]);
+    //uint32_t dst_mac[3] = {0x55555555, 0x00005555};
+    write_arp(536, dst_mac[0]);
+    write_arp(537, dst_mac[1]);
     // configure the mac address
-    uint32_t mac_addr[2] = {0x0000946d, 0xaeacf839};
+    //uint32_t mac_addr[2] = {0x0000946d, 0xaeacf839};
+    uint32_t mac_addr[2] = {0x0000a088, 0xc20d5e28};
     uint32_t mac_addr_read[2];
     xil_printf("writing mac address...\r\n");
     write_mac_addr(mac_addr);
@@ -542,7 +550,7 @@ void main()
 
     // wirte AXIS_PKT_LEN
     xil_printf("writing AXIS_PKT_LEN...\r\n");
-    uint32_t axis_pkt_len = PKT_LEN / BUS_WIDTH;
+    uint32_t axis_pkt_len = PKT_LEN / BUS_WIDTH - 1;
     uint32_t axis_pkt_len_read;
     write_axis_pkt_len(axis_pkt_len);
     xil_printf("AXIS_PKT_LEN written.\r\n");
@@ -560,7 +568,9 @@ void main()
 
     // wirte AXIS_PKT_CYC
     xil_printf("writing AXIS_PKT_CYC...\r\n");
-    uint32_t axis_pkt_cyc = PKT_LEN / BUS_WIDTH * 2;
+    //uint32_t axis_pkt_cyc = PKT_LEN / BUS_WIDTH * 2;
+    //uint32_t axis_pkt_cyc = PKT_LEN / BUS_WIDTH + 2;
+    uint32_t axis_pkt_cyc = 70;
     //uint32_t axis_pkt_cyc = 65535;
     uint32_t axis_pkt_cyc_read;
     write_axis_pkt_cyc(axis_pkt_cyc);
@@ -568,6 +578,7 @@ void main()
     // read the AXIS_PKT_CYC back to make sure it's written correctly
     xil_printf("reading AXIS_PKT_CYC...\r\n");
     axis_pkt_cyc_read = read_axis_pkt_cyc();
+    wait(2000);
     if(axis_pkt_cyc_read != axis_pkt_cyc)
     {
         xil_printf("AXIS_PKT_CYC read error: 0x%08x, 0x%08x\r\n", axis_pkt_cyc, axis_pkt_cyc_read);

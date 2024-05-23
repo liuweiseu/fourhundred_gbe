@@ -545,6 +545,7 @@ int release_channel_resets(uint8_t client, uint8_t client_rate){
 	return 1;
 }
 
+//#define INSERT_PREAMBLE
 // 18: config_mac
 //
 int config_mac()
@@ -553,14 +554,22 @@ int config_mac()
 
 	xil_printf("Started MAC configuration \n\r");
 	for ( int i = 0x01; i <= 0x06 ; i++ ) {
-           *(U32* )(ADDR_AXI4_BASE + 0x00000004 + (i << 12) ) = 0x25800042;
-           pdata = *(U32* )(ADDR_AXI4_BASE + 0x00000004 + (i << 12) );
+#ifdef INSERT_PREAMBLE
+		 *(U32* )(ADDR_AXI4_BASE + 0x00000004 + (i << 12) ) = 0x25800062;
+#else
+		 *(U32* )(ADDR_AXI4_BASE + 0x00000004 + (i << 12) ) = 0x25800062; //0x25800042;
+#endif
+		 pdata = *(U32* )(ADDR_AXI4_BASE + 0x00000004 + (i << 12) );
            xil_printf("config_mac :: Wrote %x to address %x\n\r", pdata, (ADDR_AXI4_BASE + 0x00000004 + (i << 12) ));
            wait(10);
 	}
 	for ( int i = 0x01; i <= 0x06 ; i++ ) {
-           *(U32* )(ADDR_AXI4_BASE + 0x00000000 + (i << 12) ) = 0x00000C21;
-           pdata = *(U32* )(ADDR_AXI4_BASE + 0x00000000 + (i << 12) );
+#ifdef INSERT_PREAMBLE
+        *(U32* )(ADDR_AXI4_BASE + 0x00000000 + (i << 12) ) = 0x00000C21;
+#else
+		*(U32* )(ADDR_AXI4_BASE + 0x00000000 + (i << 12) ) = 0x00000C01; //0x00000C01
+#endif
+		pdata = *(U32* )(ADDR_AXI4_BASE + 0x00000000 + (i << 12) );
            xil_printf("config_mac :: Wrote %x to address %x\n\r", pdata, (ADDR_AXI4_BASE + 0x00000000 + (i << 12) ));
            wait(10);
 	}
@@ -697,6 +706,7 @@ int set_data_rate(uint8_t* rate)
 				case R_400G: wdata_tx = (wdata_tx & 0xFFE0FFFF) | (0x10 << 16 );
 				             wdata_rx = (wdata_rx & 0xFFE0FFFF) | (0x10 << 16 );
 							 //wdata_tx = wdata_tx | (1 << 21); // added by wei
+							 //wdata_rx = wdata_rx | (1 << 25); // added by wei
 				break;
 				default: wdata_tx = (wdata_tx & 0xFFE0FFFF) | (0x04 << 16 );
 				         wdata_rx = (wdata_rx & 0xFFE0FFFF) | (0x04 << 16 );
@@ -831,6 +841,7 @@ int test_chan_40()
 		*(U32* )(ADDR_APB3_2_BASE + (i << 2)) = WriteData;
 	}
 	*(U32 *)(GLOBAL_MODE_REG) = 0x00000033;
+	//*(U32 *)(GLOBAL_MODE_REG) = 0x00000022;
 	config_mac();
 	release_all_reset();
 	usleep(2U);
@@ -1093,6 +1104,7 @@ int set_gt_pcs_loopback_and_reset_static(int mode) {
 	uint32_t txpostcursor = 9; // 9
 	uint32_t maincursor = 75; //75
 	uint32_t rxcdrhold = 1;
+
 	set_tx_maincursor(0,0,maincursor);
 	set_tx_maincursor(0,2,maincursor);
 	set_tx_maincursor(1,0,maincursor);
@@ -1101,10 +1113,17 @@ int set_gt_pcs_loopback_and_reset_static(int mode) {
 	set_tx_postcursor(0,2,txpostcursor);
 	set_tx_postcursor(1,0,txpostcursor);
 	set_tx_postcursor(1,2,txpostcursor);
+
 	set_tx_precursor(0,0,19);
 	set_tx_precursor(0,2,16);
 	set_tx_precursor(1,0,20);
 	set_tx_precursor(1,2,18);
+	/*
+	set_tx_precursor(0,0,txprecursor);
+	set_tx_precursor(0,2,txprecursor);
+	set_tx_precursor(1,0,txprecursor);
+	set_tx_precursor(1,2,txprecursor);
+	*/
 	data =  (maincursor << 24) | (txpostcursor << 18) | (txprecursor << 12) | (mode << 9) | (0 << 1);
     //Add variable to select if NE PCS loopback or External loopback
 	// [0] reset all
