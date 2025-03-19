@@ -94,7 +94,12 @@ module dcmac_udp_demo (
     input wire lpddr4_clk1_clk_n,
     input wire lpddr4_clk1_clk_p,
     input wire lpddr4_clk2_clk_n,
-    input wire lpddr4_clk2_clk_p
+    input wire lpddr4_clk2_clk_p,
+    output wire qsfpdd_modsell,
+    output wire qsfpdd_resetl,
+    output wire qsfpdd_initmode,
+    input wire qsfpdd_modprsl,
+    input wire qsfpdd_initl
 );
 
 
@@ -271,6 +276,15 @@ assign gt1_ch23_txpostcursor = gt1_ch23_cursor_tri_o[12:7];
 assign gt1_ch23_txprecursor  = gt1_ch23_cursor_tri_o[18:13];
 assign gt1_ch23_txprecursor2 = gt1_ch23_cursor_tri_o[24:19];
 assign gt1_ch23_txprecursor3 = gt1_ch23_cursor_tri_o[30:25];
+
+// qsfp-dd
+wire [31:0] qsfpdd_config;
+wire [31:0] qsfpdd_status;
+assign qsfpdd_modsell = qsfpdd_config[0];
+assign qsfpdd_resetl = qsfpdd_config[1];
+assign qsfpdd_initmode = qsfpdd_config[2];
+assign qsfpdd_status[0] = qsfpdd_modprsl;
+assign qsfpdd_status[1] = qsfpdd_initl;
 //----------------------------------------------------------------------------------------------------
 // added cips for control
 dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
@@ -538,7 +552,9 @@ dcmac_0_cips_wrapper i_dcmac_0_cips_wrapper(
     .gt0_ch01_cursor_tri_o(gt0_ch01_cursor_tri_o),
     .gt0_ch23_cursor_tri_o(gt0_ch23_cursor_tri_o),
     .gt1_ch01_cursor_tri_o(gt1_ch01_cursor_tri_o),
-    .gt1_ch23_cursor_tri_o(gt1_ch23_cursor_tri_o)
+    .gt1_ch23_cursor_tri_o(gt1_ch23_cursor_tri_o),
+    .qsfpdd_config(qsfpdd_config),
+    .qsfpdd_status(qsfpdd_status)
 
 );
 

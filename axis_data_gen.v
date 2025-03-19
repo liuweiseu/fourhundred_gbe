@@ -64,6 +64,8 @@ begin
                 else
                     st_next = LOOP;
             end
+            default:
+                st_next = IDLE;
         endcase
 end
 

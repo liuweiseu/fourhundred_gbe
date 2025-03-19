@@ -290,6 +290,7 @@ assign lbus_tx_rdyoyt = dcmac_tx_tready[0];
 assign dcmac_tx_id = 6'b000000;
 // lets set dcmac_rx_preamble[55:0] to 0x555...., other bits are 0.
 assign dcmac_tx_preamble = 336'h55555555555555;
+//assign dcmac_tx_preamble = 336'h0;
 
 lbustxaxisrx400g fhg_axis_tx_adapter(
   .lbus_txclk(axis_clk),
