@@ -695,7 +695,7 @@ delay #(
     .dout(period_d)
 );
 
-assign axis_streaming_data_clk = pl0_ref_clk_0;
+//assign axis_streaming_data_clk = pl0_ref_clk_0;
 assign axis_streaming_rst = ~pl0_resetn_0;
 
 axis_data_gen #(
@@ -1211,7 +1211,8 @@ casper400gethernetblock_no_cpu #(
     .qsfp_intl_ls(1'b0),
     .qsfp_lpmode_ls(), 
     .axis_streaming_data_clk(axis_streaming_data_clk),
-    .axis_streaming_data_rx_packet_length(),        
+    .axis_streaming_data_rx_packet_length(),  
+    .axis_clk_out(axis_streaming_data_clk),   
 
     .yellow_block_rx_data(),
     .yellow_block_rx_valid(),
