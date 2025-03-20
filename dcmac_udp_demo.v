@@ -697,9 +697,10 @@ delay #(
 
 //assign axis_streaming_data_clk = pl0_ref_clk_0;
 assign axis_streaming_rst = ~pl0_resetn_0;
-
+/*
 axis_data_gen #(
-    .G_AXIS_DATA_WIDTH (1024)
+    .G_AXIS_DATA_WIDTH (1024),
+    .D(D)
 ) axis_data_gen_inst(
     .axis_streaming_data_clk(axis_streaming_data_clk),
     .axis_streaming_rst(axis_streaming_rst),
@@ -712,6 +713,23 @@ axis_data_gen #(
     .axis_streaming_data_tx_tkeep(axis_streaming_data_tx_tkeep),
     .axis_streaming_data_tx_tlast(axis_streaming_data_tx_tlast),
     .axis_streaming_data_tx_tready(axis_streaming_data_tx_tready & axis_streaming_data_tx_tready_dcmac1)
+);
+*/
+axis_data_gen #(
+    .G_AXIS_DATA_WIDTH (1024)
+) axis_data_gen_inst(
+    .axi_clk(pl0_ref_clk_0),
+    .axis_streaming_data_clk(axis_streaming_data_clk),
+    .axis_streaming_rst(axis_streaming_rst),
+    .axis_data_gen_enable_axi(axis_data_gen_enable),
+    .pkt_length_axi(pkt_length_d),
+    .period_axi(period_d),
+    .axis_streaming_data_tx_tdata_o(axis_streaming_data_tx_tdata),
+    .axis_streaming_data_tx_tvalid_o(axis_streaming_data_tx_tvalid),
+    .axis_streaming_data_tx_tuser_o(axis_streaming_data_tx_tuser),
+    .axis_streaming_data_tx_tkeep_o(axis_streaming_data_tx_tkeep),
+    .axis_streaming_data_tx_tlast_o(axis_streaming_data_tx_tlast),
+    .axis_streaming_data_tx_tready(axis_streaming_data_tx_tready  & axis_streaming_data_tx_tready_dcmac1)
 );
 //----------------------------------------------------------------------------------------------------
 // add axi regs here
